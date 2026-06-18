@@ -125,6 +125,7 @@
     cap: { Vo: 1730, Da: 2210, Vi: 2280 },
     sp: { Vo: false, Da: true, Vi: false },
     log: [],
+    boundCharacter: null,
     lastStory: "请选择行动",
     lastPrompt: "",
     lastDebug: "尚未结算行动。"
@@ -355,7 +356,7 @@
     const resultText = formatDelta(delta);
     const eventText = randomEvent ? formatRandomEvent(randomEvent) : "";
     const resultSummary = eventText ? `${resultText}，${eventText}` : resultText;
-    const story = buildStory(action, attribute, randomEvent);
+    const story = buildPendingStory(actionName, resultSummary, randomEvent);
     const prompt = buildPrompt(action, attribute, resultText, randomEvent);
 
     state.lastStory = story;
@@ -383,14 +384,11 @@
     ].join("\n");
   }
 
-  function buildStory(action, attribute, randomEvent = null) {
-    const profile = idols[state.idol];
+  function buildPendingStory(actionName, resultSummary, randomEvent = null) {
     const eventLine = randomEvent
-      ? `\n\n【随机互动】${randomEvent.scene}中，${randomEvent.character}${randomEvent.mood}。额外结果：${formatDelta(randomEvent.reward)}。`
+      ? `\n\n本次触发随机互动：${randomEvent.scene}，${randomEvent.character}${randomEvent.mood}。`
       : "";
-    if (profile.samples?.[action]) return `${profile.samples[action]}${eventLine}`;
-    const style = profile.styles[action] || profile.styles.rest;
-    return `${state.idol}完成了${actionLabel(action, attribute)}。\n\n${style}\n\n这次行动并不只是数值变化，而是她主线矛盾的一次日常显影。制作人把她此刻的步调、弱点和想前进的理由稳定接住。${eventLine}`;
+    return `${actionName}已经由前端完成结算。\n\n${resultSummary}\n\n剧情正文等待角色卡 AI 回复生成。点击“让 AI 生成后续”后，可以先编辑提示词，再发送给当前 SillyTavern 对话。${eventLine}`;
   }
 
   function buildPrompt(action, attribute, resultText, randomEvent = null) {
@@ -414,6 +412,7 @@
     return `[初星育成系统：行动已经由前端结算]
 
 担当偶像：${state.idol}
+绑定角色卡：${state.boundCharacter?.name || "未绑定，按担当偶像写"}
 当前阶段：${getPhase()}
 当前日程：第 ${state.day} 天，${roundLabel()}
 行动：${actionName}
@@ -631,9 +630,17 @@ ${actionStyle}${eventPrompt}
     return window.parent && window.parent !== window && new URLSearchParams(window.location.search).get("host") === "sillytavern";
   }
 
-  function requestHostPromptSend() {
+  function requestHostCharacter() {
+    if (!isSillyTavernHost()) return;
+    window.parent.postMessage({
+      source: "hatsuboshi-produce",
+      type: "getCharacter"
+    }, window.location.origin);
+  }
+
+  function requestHostPromptSend(promptText) {
     if (!isSillyTavernHost()) return false;
-    const prompt = state.lastPrompt || document.getElementById("promptText").value || "";
+    const prompt = promptText || state.lastPrompt || document.getElementById("promptText").value || "";
     if (!prompt.trim()) return false;
     window.parent.postMessage({
       source: "hatsuboshi-produce",
@@ -644,8 +651,49 @@ ${actionStyle}${eventPrompt}
     return true;
   }
 
+  function applyHostCharacter(character) {
+    if (!character?.name) return;
+    state.boundCharacter = {
+      name: String(character.name),
+      avatar: character.avatar ? String(character.avatar) : ""
+    };
+    if (!state.idol && idols[character.name]) {
+      applyIdolPreset(character.name, true);
+      state.lastPrompt = buildOpeningPrompt();
+    }
+    saveState();
+    render();
+    showToast("已绑定角色卡", `当前角色卡：${state.boundCharacter.name}`, "info");
+  }
+
   function closeNotebook() {
     document.getElementById("notebookDrawer").hidden = true;
+  }
+
+  function openAiPromptOverlay() {
+    document.getElementById("aiPromptPhaseBadge").textContent = getPhase();
+    document.getElementById("aiPromptTextarea").value = state.lastPrompt || "";
+    document.getElementById("aiPromptOverlay").hidden = false;
+    document.getElementById("aiPromptTextarea").focus();
+  }
+
+  function closeAiPromptOverlay() {
+    document.getElementById("aiPromptOverlay").hidden = true;
+  }
+
+  function submitAiPrompt() {
+    const prompt = document.getElementById("aiPromptTextarea").value.trim();
+    if (!prompt) {
+      showToast("提示词为空", "请先输入要发送给 AI 的后续剧情提示词。", "warn");
+      return;
+    }
+    state.lastPrompt = prompt;
+    saveState();
+    renderNotebook();
+    closeAiPromptOverlay();
+    if (requestHostPromptSend(prompt)) return;
+    openNotebook("prompt");
+    showToast("提示词已准备", "当前不在 SillyTavern iframe 中，请从 P 手账复制。", "warn");
   }
 
   function openEventOverlay(title, result, story) {
@@ -659,6 +707,18 @@ ${actionStyle}${eventPrompt}
 
   function closeEventOverlay() {
     document.getElementById("eventOverlay").hidden = true;
+  }
+
+  function applyAiReply(text) {
+    const reply = String(text || "").trim();
+    if (!reply) return;
+    state.lastStory = reply;
+    if (state.log[0]) {
+      state.log[0].aiReply = reply;
+    }
+    saveState();
+    render();
+    openEventOverlay("AI 后续剧情", "已收到 SillyTavern 角色回复", reply);
   }
 
   function showToast(title, message, tone = "info") {
@@ -849,16 +909,27 @@ ${actionStyle}${eventPrompt}
   document.getElementById("eventConfirmBtn").addEventListener("click", closeEventOverlay);
   document.getElementById("eventAiBtn").addEventListener("click", () => {
     closeEventOverlay();
-    if (requestHostPromptSend()) return;
-    openNotebook("prompt");
-    showToast("提示词已准备", "可以复制提示词，或直接让 AI 续写本次事件。", "gold");
+    openAiPromptOverlay();
   });
   document.getElementById("eventOverlay").addEventListener("click", (event) => {
     if (event.target.id === "eventOverlay") closeEventOverlay();
   });
+  document.getElementById("aiPromptCancelBtn").addEventListener("click", closeAiPromptOverlay);
+  document.getElementById("aiPromptSendBtn").addEventListener("click", submitAiPrompt);
+  document.getElementById("aiPromptOverlay").addEventListener("click", (event) => {
+    if (event.target.id === "aiPromptOverlay") closeAiPromptOverlay();
+  });
+  window.addEventListener("message", (event) => {
+    if (event.origin !== window.location.origin) return;
+    const data = event.data || {};
+    if (data.source !== "hatsuboshi-produce-host") return;
+    if (data.type === "character") applyHostCharacter(data.character);
+    if (data.type === "aiReply") applyAiReply(data.text);
+  });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
       closeEventOverlay();
+      closeAiPromptOverlay();
       if (activeModal) closeModal();
       closeNotebook();
     }
@@ -914,4 +985,5 @@ ${actionStyle}${eventPrompt}
   if (state.idol && (!state.growth || !state.cap || !state.sp)) applyIdolPreset(state.idol);
   saveState();
   render();
+  requestHostCharacter();
 })();

@@ -156,6 +156,24 @@
     </article>
   </section>
 
+  <section id="aiPromptOverlay" class="event-overlay" hidden aria-label="AI后续提示词">
+    <article class="event-panel ai-prompt-panel">
+      <header class="event-head">
+        <div>
+          <p class="ui-kicker">AI Continuation</p>
+          <h2>让 AI 生成后续</h2>
+        </div>
+        <span id="aiPromptPhaseBadge" class="event-phase">First Live 前期</span>
+      </header>
+      <p class="ai-prompt-note">前端已经完成结算。你可以在发送前调整提示词，让角色卡继续生成这次事件的后续剧情。</p>
+      <textarea id="aiPromptTextarea" class="ai-prompt-textarea" spellcheck="false"></textarea>
+      <footer class="event-actions">
+        <button id="aiPromptCancelBtn" class="event-button secondary" type="button">取消</button>
+        <button id="aiPromptSendBtn" class="event-button primary" type="button">发送给 AI</button>
+      </footer>
+    </article>
+  </section>
+
   <section id="notebookDrawer" class="notebook-drawer" hidden aria-label="P手账">
     <div class="drawer-panel">
       <header class="drawer-head">
