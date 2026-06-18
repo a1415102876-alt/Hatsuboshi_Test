@@ -627,6 +627,23 @@ ${actionStyle}${eventPrompt}
     document.getElementById("notebookDrawer").hidden = false;
   }
 
+  function isSillyTavernHost() {
+    return window.parent && window.parent !== window && new URLSearchParams(window.location.search).get("host") === "sillytavern";
+  }
+
+  function requestHostPromptSend() {
+    if (!isSillyTavernHost()) return false;
+    const prompt = state.lastPrompt || document.getElementById("promptText").value || "";
+    if (!prompt.trim()) return false;
+    window.parent.postMessage({
+      source: "hatsuboshi-produce",
+      type: "sendPrompt",
+      prompt
+    }, window.location.origin);
+    showToast("已交给酒馆", "提示词已发送到 SillyTavern 当前对话。", "gold");
+    return true;
+  }
+
   function closeNotebook() {
     document.getElementById("notebookDrawer").hidden = true;
   }
@@ -832,6 +849,7 @@ ${actionStyle}${eventPrompt}
   document.getElementById("eventConfirmBtn").addEventListener("click", closeEventOverlay);
   document.getElementById("eventAiBtn").addEventListener("click", () => {
     closeEventOverlay();
+    if (requestHostPromptSend()) return;
     openNotebook("prompt");
     showToast("提示词已准备", "可以复制提示词，或直接让 AI 续写本次事件。", "gold");
   });
