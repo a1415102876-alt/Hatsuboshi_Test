@@ -127,6 +127,9 @@
     log: [],
     boundCharacter: null,
     lastStory: "请选择行动",
+    lastEventTitle: "",
+    lastEventResult: "",
+    lastEventStory: "",
     lastPrompt: "",
     lastDebug: "尚未结算行动。"
   };
@@ -722,6 +725,10 @@ ${actionStyle}${eventPrompt}
   }
 
   function openEventOverlay(title, result, story) {
+    state.lastEventTitle = title || "行动事件";
+    state.lastEventResult = result || "本次行动已经完成结算。";
+    state.lastEventStory = story || state.lastStory || "本次行动已经完成。";
+    saveState();
     document.getElementById("eventTitle").textContent = title || "行动事件";
     document.getElementById("eventPhaseBadge").textContent = getPhase();
     document.getElementById("eventResult").textContent = result || "本次行动已经完成结算。";
@@ -732,6 +739,14 @@ ${actionStyle}${eventPrompt}
 
   function closeEventOverlay() {
     document.getElementById("eventOverlay").hidden = true;
+  }
+
+  function reopenLastEvent() {
+    if (!state.lastEventStory) {
+      showToast("暂无事件", "完成一次行动后，这里会保存最近事件。", "warn");
+      return;
+    }
+    openEventOverlay(state.lastEventTitle, state.lastEventResult, state.lastEventStory);
   }
 
   function applyAiReply(text, requestId = "") {
@@ -941,6 +956,7 @@ ${actionStyle}${eventPrompt}
   document.getElementById("eventOverlay").addEventListener("click", (event) => {
     if (event.target.id === "eventOverlay") closeEventOverlay();
   });
+  document.getElementById("sideItemLastEvent").addEventListener("click", reopenLastEvent);
   document.getElementById("aiPromptCancelBtn").addEventListener("click", closeAiPromptOverlay);
   document.getElementById("aiPromptSendBtn").addEventListener("click", submitAiPrompt);
   document.getElementById("aiPromptOverlay").addEventListener("click", (event) => {
