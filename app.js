@@ -140,6 +140,7 @@
   let activePromptTab = "prompt";
   let activeModal = null;
   let activeModalTab = null;
+  let pendingAiRequestId = "";
   let state = loadState();
 
   if (state.uiVersion !== UI_VERSION || (state.idol && !idols[state.idol])) {
@@ -356,6 +357,7 @@
     const resultText = formatDelta(delta);
     const eventText = randomEvent ? formatRandomEvent(randomEvent) : "";
     const resultSummary = eventText ? `${resultText}，${eventText}` : resultText;
+    const requestId = createRequestId();
     const story = buildPendingStory(actionName, resultSummary, randomEvent);
     const prompt = buildPrompt(action, attribute, resultText, randomEvent);
 
@@ -369,8 +371,24 @@
     rollSpCandidates();
     saveState();
     render();
-    openEventOverlay(actionName, resultSummary, story);
+    pendingAiRequestId = requestId;
+    openEventOverlay(actionName, buildAiWaitingResult(resultSummary), buildAiWaitingStory(story));
+    if (!requestHostPromptSend(prompt, requestId)) {
+      openAiPromptOverlay("当前页面未连接 SillyTavern。请编辑或复制提示词后手动发送。");
+    }
     showToast("行动结算完成", `${actionName}已经写入 P 手账。`, randomEvent ? "gold" : "info");
+  }
+
+  function createRequestId() {
+    return `hatsu-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  }
+
+  function buildAiWaitingResult(resultSummary) {
+    return `${resultSummary}\n\n已向当前角色卡发送剧情生成请求，等待 AI 回复。`;
+  }
+
+  function buildAiWaitingStory(story) {
+    return `${story}\n\n正在等待角色卡 AI 生成本次小剧情...`;
   }
 
   function buildDebugText(actionName, delta, randomEvent) {
@@ -638,13 +656,15 @@ ${actionStyle}${eventPrompt}
     }, window.location.origin);
   }
 
-  function requestHostPromptSend(promptText) {
+  function requestHostPromptSend(promptText, requestId = pendingAiRequestId || createRequestId()) {
     if (!isSillyTavernHost()) return false;
     const prompt = promptText || state.lastPrompt || document.getElementById("promptText").value || "";
     if (!prompt.trim()) return false;
+    pendingAiRequestId = requestId;
     window.parent.postMessage({
       source: "hatsuboshi-produce",
       type: "sendPrompt",
+      requestId,
       prompt
     }, window.location.origin);
     showToast("已交给酒馆", "提示词已发送到 SillyTavern 当前对话。", "gold");
@@ -670,8 +690,10 @@ ${actionStyle}${eventPrompt}
     document.getElementById("notebookDrawer").hidden = true;
   }
 
-  function openAiPromptOverlay() {
+  function openAiPromptOverlay(note) {
     document.getElementById("aiPromptPhaseBadge").textContent = getPhase();
+    const noteNode = document.querySelector(".ai-prompt-note");
+    if (noteNode && note) noteNode.textContent = note;
     document.getElementById("aiPromptTextarea").value = state.lastPrompt || "";
     document.getElementById("aiPromptOverlay").hidden = false;
     document.getElementById("aiPromptTextarea").focus();
@@ -691,7 +713,10 @@ ${actionStyle}${eventPrompt}
     saveState();
     renderNotebook();
     closeAiPromptOverlay();
-    if (requestHostPromptSend(prompt)) return;
+    const requestId = createRequestId();
+    pendingAiRequestId = requestId;
+    openEventOverlay("AI 生成请求", "已重新发送提示词，等待角色卡回复。", "正在等待角色卡 AI 生成本次小剧情...");
+    if (requestHostPromptSend(prompt, requestId)) return;
     openNotebook("prompt");
     showToast("提示词已准备", "当前不在 SillyTavern iframe 中，请从 P 手账复制。", "warn");
   }
@@ -709,9 +734,11 @@ ${actionStyle}${eventPrompt}
     document.getElementById("eventOverlay").hidden = true;
   }
 
-  function applyAiReply(text) {
+  function applyAiReply(text, requestId = "") {
+    if (requestId && pendingAiRequestId && requestId !== pendingAiRequestId) return;
     const reply = String(text || "").trim();
     if (!reply) return;
+    pendingAiRequestId = "";
     state.lastStory = reply;
     if (state.log[0]) {
       state.log[0].aiReply = reply;
@@ -924,7 +951,7 @@ ${actionStyle}${eventPrompt}
     const data = event.data || {};
     if (data.source !== "hatsuboshi-produce-host") return;
     if (data.type === "character") applyHostCharacter(data.character);
-    if (data.type === "aiReply") applyAiReply(data.text);
+    if (data.type === "aiReply") applyAiReply(data.text, data.requestId);
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
