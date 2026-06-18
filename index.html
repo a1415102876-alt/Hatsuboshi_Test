@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>初星育成</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <svg class="icon-sprite" aria-hidden="true">
+    <symbol id="icon-star" viewBox="0 0 24 24"><path d="m12 2 2.9 6 6.6.9-4.8 4.7 1.1 6.5-5.8-3.1-5.8 3.1 1.1-6.5-4.8-4.7 6.6-.9L12 2Z"/></symbol>
+    <symbol id="icon-heart" viewBox="0 0 24 24"><path d="M12 21s-8-4.8-8-11a4.7 4.7 0 0 1 8-3.3A4.7 4.7 0 0 1 20 10c0 6.2-8 11-8 11Z"/></symbol>
+    <symbol id="icon-point" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 8h5.1a3.1 3.1 0 0 1 0 6.2H9V8Z"/><path d="M9 14v4"/></symbol>
+    <symbol id="icon-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 10v7"/><path d="M12 7h.01"/></symbol>
+    <symbol id="icon-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5Z"/></symbol>
+    <symbol id="icon-mic" viewBox="0 0 24 24"><path d="M12 14a4 4 0 0 0 4-4V6a4 4 0 0 0-8 0v4a4 4 0 0 0 4 4Z"/><path d="M19 10a7 7 0 0 1-14 0"/><path d="M12 17v5"/><path d="M8 22h8"/></symbol>
+    <symbol id="icon-dance" viewBox="0 0 24 24"><path d="M13 4a2 2 0 1 0-2.9 1.8"/><path d="m7 22 3-8 3 2 4 6"/><path d="m10 14 2-5 3 3 4-2"/><path d="M5 10l5-1"/></symbol>
+    <symbol id="icon-visual" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="icon-rest" viewBox="0 0 24 24"><path d="M4 11V7a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v4"/><path d="M4 11h16v7H4z"/><path d="M4 18v2"/><path d="M20 18v2"/></symbol>
+    <symbol id="icon-chat" viewBox="0 0 24 24"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z"/></symbol>
+    <symbol id="icon-map" viewBox="0 0 24 24"><path d="m9 18-6 3V6l6-3 6 3 6-3v15l-6 3-6-3Z"/><path d="M9 3v15"/><path d="M15 6v15"/></symbol>
+    <symbol id="icon-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><rect x="2" y="2" width="13" height="13" rx="2"/></symbol>
+    <symbol id="icon-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h6"/></symbol>
+    <symbol id="icon-bag" viewBox="0 0 24 24"><path d="M6 7h12l1 14H5L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></symbol>
+    <symbol id="icon-menu" viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/></symbol>
+    <symbol id="icon-settings" viewBox="0 0 24 24"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1A2 2 0 1 1 4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1A2 2 0 1 1 7.1 4.2l.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1A2 2 0 1 1 19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.1a2 2 0 1 1 0 4H21a1.7 1.7 0 0 0-1.6 1Z"/></symbol>
+    <symbol id="icon-close" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+  </svg>
+
+  <div id="toastStack" class="toast-stack" aria-live="polite" aria-atomic="false"></div>
+
+  <main class="produce-app">
+    <section class="select-screen" id="selectionStage" aria-labelledby="selectTitle">
+      <div class="select-visual">
+        <p class="ui-kicker">Hatsuboshi Produce</p>
+        <h1 id="selectTitle">选择担当偶像</h1>
+        <p>18 天 First Live 育成。前端裁定数值、行动与随机事件，LLM 负责把结果写成角色叙事。</p>
+        <div class="select-rules" aria-label="育成规则">
+          <span>3 次普通行动</span>
+          <span>1 次额外行动</span>
+          <span>随机互动事件</span>
+        </div>
+      </div>
+      <section class="select-panel" aria-label="担当偶像列表">
+        <div class="panel-head">
+          <div>
+            <p class="ui-kicker">Producer Setup</p>
+            <h2>担当偶像</h2>
+          </div>
+          <svg><use href="#icon-star"></use></svg>
+        </div>
+        <div id="idolList" class="idol-list"></div>
+      </section>
+    </section>
+
+    <section class="game-stage is-hidden" id="gameStage" aria-label="初星育成主界面">
+      <div class="scene-backdrop" aria-hidden="true">
+        <div class="window-grid"></div>
+        <div class="classroom-desk"></div>
+      </div>
+
+      <header class="top-hud" aria-label="育成状态">
+        <article class="hud-card day-card">
+          <button id="openScheduleBtn" class="info-dot" type="button" data-modal="schedule" aria-label="查看日程详情"><svg><use href="#icon-info"></use></svg></button>
+          <span>距 H.I.F 本战</span>
+          <strong><b id="daysLeftValue">18</b>日</strong>
+        </article>
+
+        <section class="center-hud" aria-label="体力与点数">
+          <div class="stamina-pill">
+            <div class="stamina-fill" id="staminaFill"></div>
+            <span><svg><use href="#icon-heart"></use></svg><b id="staminaValue">35</b>/100</span>
+          </div>
+          <div class="point-pill">
+            <svg><use href="#icon-point"></use></svg>
+            <strong id="trustValue">0</strong>
+          </div>
+        </section>
+
+        <article class="hud-card exam-card">
+          <button id="openWorldBtn" class="info-dot" type="button" data-modal="world" aria-label="查看世界书"><svg><use href="#icon-info"></use></svg></button>
+          <span>审查基准</span>
+          <strong>+<b id="targetValue">950</b></strong>
+          <div class="exam-bars"><i></i><i></i><i></i></div>
+        </article>
+      </header>
+
+      <aside class="side-items" aria-label="育成道具">
+        <button id="sideItemStory" class="side-token" type="button" data-modal="narrative" aria-label="叙事控制"><svg><use href="#icon-chat"></use></svg><span>1</span></button>
+        <button id="sideItemEvent" class="side-token" type="button" data-modal="event" aria-label="随机事件池"><svg><use href="#icon-star"></use></svg><span>2</span></button>
+        <button id="sideItemSystem" class="side-token" type="button" data-modal="system" aria-label="系统控制台"><svg><use href="#icon-settings"></use></svg></button>
+        <button id="sideItemPrompt" class="side-token" type="button" data-panel="prompt" aria-label="提示词工作台"><svg><use href="#icon-copy"></use></svg></button>
+        <button id="sideItemLog" class="side-token" type="button" data-panel="log" aria-label="育成日志"><svg><use href="#icon-file"></use></svg></button>
+      </aside>
+
+      <section class="idol-stage" aria-label="担当偶像">
+        <div class="advisor-bubble" id="advisorBubble">
+          <span id="advisorText">请选择行动</span>
+          <i></i>
+        </div>
+        <div class="idol-card-name">
+          <p id="currentIdolLabel">请选择担当偶像</p>
+          <h2 id="idolName">藤田琴音</h2>
+          <span id="phaseBadge">First Live 前期</span>
+        </div>
+        <div class="idol-standee" id="idolStandee" aria-hidden="true">
+          <div class="hair"></div>
+          <div class="face"></div>
+          <div class="body"></div>
+          <div class="skirt"></div>
+        </div>
+      </section>
+
+      <section class="score-band" aria-label="能力值">
+        <article class="rank-pyramid">
+          <div class="pyramid-bars"><i></i><i></i><i></i><i></i><i></i></div>
+          <strong id="stressValue">0</strong>
+        </article>
+        <div id="statMeters" class="stat-meters"></div>
+        <button id="notebookButton" class="notebook-button" type="button" data-panel="prompt" aria-label="打开 P 手账">
+          <svg><use href="#icon-book"></use></svg>
+          <span>P手帳</span>
+        </button>
+      </section>
+
+      <section class="action-zone" aria-label="行动选择">
+        <p id="actionModeLabel">请选择行动</p>
+        <div id="actionButtons" class="action-buttons"></div>
+      </section>
+
+      <nav class="bottom-dock" aria-label="底部菜单">
+        <button id="dockChangeIdol" class="dock-button muted" type="button" aria-label="更换担当"><svg><use href="#icon-star"></use></svg></button>
+        <button id="dockResetRun" class="dock-button muted" type="button" aria-label="重置育成"><svg><use href="#icon-rest"></use></svg></button>
+        <button id="dockCopyPrompt" class="dock-button primary" type="button" aria-label="复制提示词"><svg><use href="#icon-copy"></use></svg></button>
+        <button id="dockOpenLog" class="dock-button primary" type="button" data-panel="log" aria-label="育成日志"><svg><use href="#icon-file"></use></svg></button>
+        <button id="dockOpenSystem" class="dock-button primary" type="button" data-modal="system" aria-label="系统菜单"><svg><use href="#icon-menu"></use></svg></button>
+      </nav>
+    </section>
+  </main>
+
+  <section id="eventOverlay" class="event-overlay" hidden aria-label="行动事件">
+    <article class="event-panel">
+      <header class="event-head">
+        <div>
+          <p class="ui-kicker">Produce Event</p>
+          <h2 id="eventTitle">行动事件</h2>
+        </div>
+        <span id="eventPhaseBadge" class="event-phase">First Live 前期</span>
+      </header>
+      <div class="event-result" id="eventResult">等待结算</div>
+      <div class="event-story" id="eventStory"></div>
+      <footer class="event-actions">
+        <button id="eventConfirmBtn" class="event-button secondary" type="button">确定</button>
+        <button id="eventAiBtn" class="event-button primary" type="button">让 AI 生成后续</button>
+      </footer>
+    </article>
+  </section>
+
+  <section id="notebookDrawer" class="notebook-drawer" hidden aria-label="P手账">
+    <div class="drawer-panel">
+      <header class="drawer-head">
+        <div>
+          <p class="ui-kicker">Producer Notebook</p>
+          <h2 id="drawerTitle">提示词工作台</h2>
+        </div>
+        <button id="closeNotebook" class="icon-button" type="button" aria-label="关闭手账"><svg><use href="#icon-close"></use></svg></button>
+      </header>
+      <div class="drawer-tabs" role="tablist" aria-label="手账标签">
+        <button id="promptTabPrompt" class="tab-button active" type="button" data-tab="prompt">本次提示词</button>
+        <button id="promptTabLog" class="tab-button" type="button" data-tab="log">育成日志</button>
+        <button id="promptTabDebug" class="tab-button" type="button" data-tab="debug">结算明细</button>
+      </div>
+      <div class="drawer-content">
+        <div class="tab-panel active" id="tabPrompt"><textarea id="promptText" spellcheck="false"></textarea></div>
+        <div class="tab-panel" id="tabLog"><div id="logList" class="log-list"></div></div>
+        <div class="tab-panel" id="tabDebug"><div id="debugPanel" class="debug-panel"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <div id="appModal" class="modal-backdrop" hidden>
+    <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <header class="modal-head">
+        <div>
+          <p id="modalKicker" class="ui-kicker">Module</p>
+          <h2 id="modalTitle">模块</h2>
+        </div>
+        <button id="closeModal" class="icon-button" type="button" aria-label="关闭模态框"><svg><use href="#icon-close"></use></svg></button>
+      </header>
+      <div id="modalTabs" class="modal-tabs" role="tablist"></div>
+      <div id="modalBody" class="modal-body"></div>
+    </section>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
