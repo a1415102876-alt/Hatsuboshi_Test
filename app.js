@@ -233,6 +233,9 @@
       Vo: ["录音室回放检查", "耐力演唱合练", "发声训练临时搭档", "休息间隙讨论音准", "器材室寻找录音设备"],
       Da: ["训练室临时合练", "镜前动作纠正", "操场耐力训练", "休息间隙讨论节奏", "器材室整理训练道具"],
       Vi: ["镜前表情训练", "舞台走位测试", "临时摄影练习", "休息间隙讨论镜头感", "器材室挑选拍摄道具"]
+    },
+    rest: {
+      any: ["休息室一起喝茶", "天台午睡时被发现", "保健室偶遇", "树荫下分享点心", "对方临时来请教问题", "顺手照顾疲惫的同伴"]
     }
   };
   const eventMoods = ["对方主动指出了一个意外盲点", "对方注意到了担当此刻的表现", "双方因为节奏不合产生轻微摩擦", "对方的一句话让当前课题突然清晰", "一次小失误变成了临时合作", "对方用完全不同的方式理解了这次练习"];
@@ -567,7 +570,7 @@
   }
 
   function eventScenesFor(action, attribute) {
-    const pool = [...(actionEventPools[action]?.[attribute] || [])];
+    const pool = [...(actionEventPools[action]?.[attribute] || actionEventPools[action]?.any || [])];
     if (action === "training" && (state.day >= 13 || state.sp?.[attribute])) {
       pool.push("小舞台试演");
     }
@@ -575,14 +578,38 @@
   }
 
   function rollActionEvent(action, attribute) {
-    const chance = action === "training" ? trainingEventChance : lessonEventChance;
-    if (!["lesson", "training"].includes(action) || Math.random() * 100 >= chance) return null;
+    const tuning = getActionTuning(state.idol, action);
+    if (!tuning.eventChance || Math.random() * 100 >= tuning.eventChance) return null;
     const scenePool = eventScenesFor(action, attribute);
     if (!scenePool.length) return null;
     const character = sample(interactionCharacters.filter((name) => name !== state.idol));
     const rewardAttribute = sample(["Vo", "Da", "Vi", "trust"]);
     const reward = rewardAttribute === "trust" ? { trust: rollInclusive(1, 5) } : { [rewardAttribute]: 10 };
     return { character, scene: sample(scenePool), mood: sample(eventMoods), reward, action, attribute };
+  }
+
+  function getActionTuning(idolName, action) {
+    const isMisuzu = canonicalIdolName(idolName) === "秦谷美铃";
+    if (action === "lesson") {
+      return { lessonGain: isMisuzu ? 98 : 65, staminaDelta: isMisuzu ? -30 : -10, trainingMultiplier: 1, eventChance: lessonEventChance };
+    }
+    if (action === "training") {
+      return { lessonGain: 0, staminaDelta: isMisuzu ? -33 : -12, trainingMultiplier: isMisuzu ? 1.5 : 1, eventChance: trainingEventChance };
+    }
+    if (action === "rest") {
+      return { lessonGain: 0, staminaDelta: 30, trainingMultiplier: 1, eventChance: isMisuzu ? 50 : 0 };
+    }
+    return { lessonGain: 0, staminaDelta: 0, trainingMultiplier: 1, eventChance: 0 };
+  }
+
+  function calculateTrainingGain(baseGain, trainingMultiplier, spActive) {
+    const tunedGain = Math.round(baseGain * trainingMultiplier);
+    return spActive ? Math.round(tunedGain * 1.5) : tunedGain;
+  }
+
+  function getActionCostText(idolName, action) {
+    const staminaDelta = getActionTuning(idolName, action).staminaDelta;
+    return `体力${staminaDelta > 0 ? "+" : ""}${staminaDelta}`;
   }
 
   function formatDelta(delta) {
@@ -684,10 +711,11 @@
 
     const delta = {};
     let randomEvent = null;
+    const tuning = getActionTuning(state.idol, action);
 
     if (action === "lesson") {
-      delta[attribute] = 65;
-      delta.stamina = -10;
+      delta[attribute] = tuning.lessonGain;
+      delta.stamina = tuning.staminaDelta;
       delta.stress = 1;
       randomEvent = rollActionEvent(action, attribute);
     } else if (action === "training") {
@@ -696,13 +724,14 @@
         const baseGain = item === attribute
           ? Math.round(28 + Number(state.growth?.[item] || 0) * 0.8)
           : Math.round(Number(state.growth?.[item] || 0) * 0.15);
-        delta[item] = spActive ? Math.round(baseGain * 1.5) : baseGain;
+        delta[item] = calculateTrainingGain(baseGain, tuning.trainingMultiplier, spActive);
       });
-      delta.stamina = -12;
+      delta.stamina = tuning.staminaDelta;
       delta.stress = spActive ? 3 : 2;
       randomEvent = rollActionEvent(action, attribute);
     } else if (action === "rest") {
-      delta.stamina = 30;
+      delta.stamina = tuning.staminaDelta;
+      randomEvent = rollActionEvent(action, attribute);
     } else if (action === "outing") {
       delta.stamina = 38;
       delta.stress = -5;
@@ -1286,13 +1315,13 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
           ["互动", "interaction", null, "#ff783f", "行动0"]
         ]
       : [
-          ["Vo公开课", "lesson", "Vo", statColors.Vo, "体力-10"],
-          ["Da公开课", "lesson", "Da", statColors.Da, "体力-10"],
-          ["Vi公开课", "lesson", "Vi", statColors.Vi, "体力-10"],
-          ["Vo训练", "training", "Vo", statColors.Vo, "体力-12"],
-          ["Da训练", "training", "Da", statColors.Da, "体力-12"],
-          ["Vi训练", "training", "Vi", statColors.Vi, "体力-12"],
-          ["休息", "rest", null, "#20dfad", "体力+30"],
+          ["Vo公开课", "lesson", "Vo", statColors.Vo, getActionCostText(state.idol, "lesson")],
+          ["Da公开课", "lesson", "Da", statColors.Da, getActionCostText(state.idol, "lesson")],
+          ["Vi公开课", "lesson", "Vi", statColors.Vi, getActionCostText(state.idol, "lesson")],
+          ["Vo训练", "training", "Vo", statColors.Vo, getActionCostText(state.idol, "training")],
+          ["Da训练", "training", "Da", statColors.Da, getActionCostText(state.idol, "training")],
+          ["Vi训练", "training", "Vi", statColors.Vi, getActionCostText(state.idol, "training")],
+          ["休息", "rest", null, "#20dfad", getActionCostText(state.idol, "rest")],
           ["闲聊", "freechat", null, "#8c73ff", "行动0"],
           ["互动", "interaction", null, "#ff783f", "行动0"]
         ];
