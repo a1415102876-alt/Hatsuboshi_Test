@@ -189,6 +189,33 @@
     </article>
   </section>
 
+  <section id="interactionOverlay" class="event-overlay" hidden aria-label="偶像互动">
+    <article class="event-panel interaction-panel">
+      <header class="event-head">
+        <div>
+          <p class="ui-kicker">Idol Interaction</p>
+          <h2>安排偶像互动</h2>
+        </div>
+        <span id="interactionPhaseBadge" class="event-phase">First Live 前期</span>
+      </header>
+      <p class="ai-prompt-note">选择参与互动的其他偶像，或交给 AI 决定。互动不会消耗行动次数，也不会推进日程或改变数值。</p>
+      <div class="interaction-mode" role="group" aria-label="登场角色决定方式">
+        <button id="interactionModeSpecified" class="interaction-mode-button active" type="button" aria-pressed="true">指定角色</button>
+        <button id="interactionModeAi" class="interaction-mode-button" type="button" aria-pressed="false">AI 决定</button>
+      </div>
+      <div id="interactionCharacterList" class="interaction-character-list" aria-label="选择参与互动的偶像"></div>
+      <p id="interactionValidation" class="interaction-validation" aria-live="polite">请选择至少一名其他偶像。</p>
+      <label class="interaction-plot-field" for="interactionPlotTextarea">
+        <span>情节方向（可选）</span>
+        <textarea id="interactionPlotTextarea" spellcheck="false" maxlength="500" placeholder="例如：训练结束后，几个人在商店街偶遇；留空则由 AI 自行设计"></textarea>
+      </label>
+      <footer class="event-actions">
+        <button id="interactionCancelBtn" class="event-button secondary" type="button">取消</button>
+        <button id="interactionSendBtn" class="event-button primary" type="button">生成互动</button>
+      </footer>
+    </article>
+  </section>
+
   <section id="outingOverlay" class="event-overlay" hidden aria-label="选择外出地点">
     <article class="event-panel outing-panel">
       <header class="event-head">

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 
@@ -61,3 +61,60 @@ for (const [name, suppliedStats] of Object.entries(expected)) {
     assert.deepEqual(Object.keys(affinityRouteSeeds[name]).map(Number).sort((a, b) => a - b), [0, 20, 40, 60, 80, 100]);
   });
 }
+
+test("every playable idol has a stable background filename", () => {
+  const backgrounds = {
+    "藤田琴音": "./assets/idols/fujita-kotone.jpeg",
+    "月村手毬": "./assets/idols/tsukimura-temari.jpeg",
+    "花海咲季": "./assets/idols/hanami-saki.jpeg",
+    "花海祐芽": "./assets/idols/hanami-ume.png",
+    "篠泽广": "./assets/idols/shinosawa-hiro.png",
+    "十王星南": "./assets/idols/juo-sena.png",
+    "秦谷美铃": "./assets/idols/hataya-misuzu.png",
+    "仓本千奈": "./assets/idols/kuramoto-china.png",
+    "葛城莉莉娅": "./assets/idols/katsuragi-lilja.png",
+    "紫云清夏": "./assets/idols/shiun-sumika.png",
+    "有村麻央": "./assets/idols/arimura-mao.png",
+    "姬崎莉波": "./assets/idols/himesaki-rinami.png"
+  };
+  for (const [name, background] of Object.entries(backgrounds)) {
+    assert.equal(idols[name].background, background);
+  }
+  for (const background of Object.values(backgrounds).filter((path) => ["fujita-kotone.jpeg", "tsukimura-temari.jpeg", "hanami-saki.jpeg", "hataya-misuzu.png"].some((file) => path.endsWith(file)))) {
+    assert.equal(existsSync(new URL(`../${background.replace("./", "")}`, import.meta.url)), true);
+  }
+  assert.match(source, /function applyIdolBackground\(/);
+});
+
+test("every playable idol has a stable avatar filename", () => {
+  const avatars = {
+    "藤田琴音": "./assets/avatars/fujita-kotone.png",
+    "月村手毬": "./assets/avatars/tsukimura-temari.png",
+    "花海咲季": "./assets/avatars/hanami-saki.png",
+    "花海祐芽": "./assets/avatars/hanami-ume.png",
+    "篠泽广": "./assets/avatars/shinosawa-hiro.png",
+    "十王星南": "./assets/avatars/juo-sena.png",
+    "秦谷美铃": "./assets/avatars/hataya-misuzu.png",
+    "仓本千奈": "./assets/avatars/kuramoto-china.png",
+    "葛城莉莉娅": "./assets/avatars/katsuragi-lilja.png",
+    "紫云清夏": "./assets/avatars/shiun-sumika.png",
+    "有村麻央": "./assets/avatars/arimura-mao.png",
+    "姬崎莉波": "./assets/avatars/himesaki-rinami.png"
+  };
+  for (const [name, avatar] of Object.entries(avatars)) {
+    assert.equal(idols[name].avatar, avatar);
+  }
+  assert.match(source, /class="idol-avatar"/);
+  assert.match(source, /class="idol-card-copy"/);
+});
+
+test("葛城莉莉娅 uses concise worldbook-aligned affinity seeds", () => {
+  assert.deepEqual(JSON.parse(JSON.stringify(affinityRouteSeeds["葛城莉莉娅"])), {
+    0: "初遇：拘谨、迷路、礼貌求助。",
+    20: "开始训练：把制作人当成可靠的指导者。",
+    40: "被选择的信任：制作人相信她，她开始相信制作人的眼光。",
+    60: "主动袒露：想把自己的心意传达出去。",
+    80: "Live前后：恐惧、过度努力、但最信任制作人。",
+    100: "深层信赖：制作人是引导她走出黑暗的人。"
+  });
+});

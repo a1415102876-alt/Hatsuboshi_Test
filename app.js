@@ -14,6 +14,7 @@
       tag: "翻身欲 / 夸奖燃料",
       theme: "#ff4f9a",
       background: "./assets/idols/fujita-kotone.jpeg",
+      avatar: "./assets/avatars/fujita-kotone.png",
       core: "现实收益、被选择的不安、夸奖作为燃料、从不能相信自己到相信制作人。",
       styles: {
         lesson: "把课程换算成翻身机会、报酬、曝光和被选择的证明。她嘴上现实，心里怕自己又被证明没用。",
@@ -30,6 +31,7 @@
       tag: "冷面 / 手制羽翼",
       theme: "#26a9f4",
       background: "./assets/idols/tsukimura-temari.jpeg",
+      avatar: "./assets/avatars/tsukimura-temari.png",
       core: "冷淡外壳、脆弱内心、讨厌旧日的自己、需要精确而严格的支持。",
       styles: {
         lesson: "表面冷淡，实际听得很细。课堂内容会被她转化成对自己的苛责。",
@@ -43,6 +45,7 @@
       tag: "胜利 / 姐姐骄傲",
       theme: "#ff783f",
       background: "./assets/idols/hanami-saki.jpeg",
+      avatar: "./assets/avatars/hanami-saki.png",
       core: "骄傲、好胜、害怕输给重要对手，但会把恐惧转回胜利计划。",
       styles: {
         lesson: "她会把课堂当成赢的工具。被指出弱点会先炸毛，然后要求具体胜利方案。",
@@ -55,6 +58,8 @@
     "花海祐芽": {
       tag: "直觉 / 追逐姐姐",
       theme: "#ff5f4f",
+      background: "./assets/idols/hanami-ume.png",
+      avatar: "./assets/avatars/hanami-ume.png",
       core: "直觉型行动力、对姐姐咲季的憧憬与胜负心、压倒性成长欲、把失败立刻转成下一次挑战。",
       aliases: ["花海佑芽"],
       styles: {
@@ -68,6 +73,8 @@
     "篠泽广": {
       tag: "困难 / 从零开始",
       theme: "#8c73ff",
+      background: "./assets/idols/shinosawa-hiro.png",
+      avatar: "./assets/avatars/shinosawa-hiro.png",
       core: "理论极强、身体极弱、喜欢为了成功而陷入困难的过程。",
       styles: {
         lesson: "理论秒懂，但会平静指出偶像实践不受大脑完全支配。",
@@ -83,6 +90,8 @@
     "十王星南": {
       tag: "一等星 / 数值之外",
       theme: "#20dfad",
+      background: "./assets/idols/juo-sena.png",
+      avatar: "./assets/avatars/juo-sena.png",
       core: "学园顶点、被完美形象困住、重新学习数值以外的偶像魅力。",
       styles: {
         lesson: "像审视课程的顶点偶像。真正有效的是让她接触不擅长和笨拙。",
@@ -95,6 +104,8 @@
     "秦谷美铃": {
       tag: "慢步调 / 温柔野心",
       theme: "#ffca35",
+      background: "./assets/idols/hataya-misuzu.png",
+      avatar: "./assets/avatars/hataya-misuzu.png",
       core: "慵懒、照顾欲、温柔独占欲、安静自负、按自己的步调走向顶点。",
       styles: {
         lesson: "看似偷懒、迟到或走神，却抓住课程本质。她用自己的步调学习。",
@@ -111,6 +122,8 @@
     "仓本千奈": {
       tag: "坚持 / 真心回礼",
       theme: "#f8ac5e",
+      background: "./assets/idols/kuramoto-china.png",
+      avatar: "./assets/avatars/kuramoto-china.png",
       core: "能力不足与优渥出身带来的羞耻、总想放弃却会回来完成下一步、把他人的支持变成真心回礼。",
       styles: {
         lesson: "常常听懂得慢、做得更慢，沮丧和惊喜都写在脸上。哪怕喊着做不到，她仍会把老师要求的最后一步认真完成。",
@@ -123,6 +136,8 @@
     "葛城莉莉娅": {
       tag: "勇气 / 从零开始",
       theme: "#8fcbdc",
+      background: "./assets/idols/katsuragi-lilja.png",
+      avatar: "./assets/avatars/katsuragi-lilja.png",
       core: "从零开始的异国少女、自我否定与害羞、即使害怕也会行动的坚韧、把得到的支持认真还给观众。",
       styles: {
         lesson: "她会把每条指导记得很细，却因为看不见自己的进步而不安。具体的前后对比比空泛鼓励更能让她建立信心。",
@@ -135,6 +150,8 @@
     "紫云清夏": {
       tag: "保护色 / 再次起舞",
       theme: "#a7d63b",
+      background: "./assets/idols/shiun-sumika.png",
+      avatar: "./assets/avatars/shiun-sumika.png",
       core: "开朗轻佻的保护色、芭蕾伤痛留下的恐惧、害怕认真后再次失去、以渐进训练重新选择舞台。",
       styles: {
         lesson: "她擅长用玩笑和社交技巧把课题轻轻带过。真正认真时理解很快，却会在被准确夸奖后慌忙恢复随便的语气。",
@@ -147,6 +164,8 @@
     "有村麻央": {
       tag: "王子 / 可爱与帅气",
       theme: "#bb68d8",
+      background: "./assets/idols/arimura-mao.png",
+      avatar: "./assets/avatars/arimura-mao.png",
       core: "保护他人的王子理想、成长后的身体与旧角色冲突、拒绝被可爱否定、把帅气与脆弱都纳入真实自我。",
       styles: {
         lesson: "经验丰富、理解迅速，常会自然照顾周围学生。真正的课题是停止用完美王子形象遮住不安和不擅长。",
@@ -159,6 +178,8 @@
     "姬崎莉波": {
       tag: "自然照顾 / 也想被保护",
       theme: "#d985aa",
+      background: "./assets/idols/himesaki-rinami.png",
+      avatar: "./assets/avatars/himesaki-rinami.png",
       core: "温柔成熟的姐姐气质、过去扮演妹妹偶像的失败、从刻意营销到自然照顾、也承认自己想被保护与喜欢竞争。",
       styles: {
         lesson: "她会先照顾同学与课堂气氛，反而在刻意展示姐姐魅力时变得僵硬。自然反应比设计好的营业更有吸引力。",
@@ -284,12 +305,12 @@
       100: "演出中即使发生失误，她仍靠自己的力量站稳并完成舞台；演出后，她第一次把坚持到底当作属于自己的才能。"
     },
     "葛城莉莉娅": {
-      0: "迷路的异国少女与制作人相遇。她虽害羞又毫无经验，仍为成为能给别人力量的偶像主动迈出第一步。",
-      20: "从发声、呼吸到表情都必须从零学习，她无法感知进步，制作人用训练记录让微小变化变得具体。",
-      40: "旁人的疑问让她害怕制作人终会选择更优秀的学生；她必须面对自己总把被选择解释成运气的习惯。",
-      60: "她逐渐理解真正的才能是害怕时仍愿意行动，也开始把粉丝和制作人的每份支持当成必须认真回应的约定。",
-      80: "First Live 前夜，她想用过度练习偿还期待，却终于接受休息、求助和共同计划也是站上舞台的勇气。",
-      100: "演出之后，她不再只说自己什么都不会，而是承认从零走到这里的脚步，并约定把收到的力量继续还给观众。"
+      0: "初遇：拘谨、迷路、礼貌求助。",
+      20: "开始训练：把制作人当成可靠的指导者。",
+      40: "被选择的信任：制作人相信她，她开始相信制作人的眼光。",
+      60: "主动袒露：想把自己的心意传达出去。",
+      80: "Live前后：恐惧、过度努力、但最信任制作人。",
+      100: "深层信赖：制作人是引导她走出黑暗的人。"
     },
     "紫云清夏": {
       0: "她用轻松玩笑躲开招揽，还把制作人推向莉莉娅；制作人却看出她一直在等待别人先放弃自己。",
@@ -350,13 +371,18 @@
   const statShort = { Vo: "Vo.", Da: "Da.", Vi: "Vi." };
   const statIcons = { Vo: "mic", Da: "dance", Vi: "visual" };
   const statColors = { Vo: "#ff4f9a", Da: "#26a9f4", Vi: "#ffca35" };
-  const actionIcons = { lesson: "book", training: "dance", rest: "rest", outing: "map", companion: "chat", freechat: "chat" };
+  const actionIcons = { lesson: "book", training: "dance", rest: "rest", outing: "map", companion: "chat", freechat: "chat", interaction: "star" };
   const promptPanels = { prompt: "tabPrompt", log: "tabLog", debug: "tabDebug" };
+  const idolBackgroundStatus = new Map();
   let activePromptTab = "prompt";
   let activeModal = null;
   let activeModalTab = null;
   let pendingAiRequestId = "";
+  let interactionMode = "specified";
+  let selectedInteractionCharacters = new Set();
   let activeStorageKey = STORAGE_KEY;
+  let activeHostSaveScope = "";
+  let hostStateReady = false;
   let state = loadState();
 
   ensureStateShape();
@@ -377,6 +403,17 @@
 
   function saveState() {
     localStorage.setItem(activeStorageKey, JSON.stringify(state));
+    if (hostStateReady) requestHostStateSave();
+  }
+
+  function resolveHostState(remoteState, localState) {
+    if (remoteState && typeof remoteState === "object" && !Array.isArray(remoteState)) {
+      return { source: "remote", state: remoteState, shouldMigrate: false };
+    }
+    if (localState?.idol) {
+      return { source: "local", state: localState, shouldMigrate: true };
+    }
+    return { source: "empty", state: null, shouldMigrate: false };
   }
 
   function storageKeyForScope(scope) {
@@ -879,6 +916,42 @@ ${profile.core}
 ${outputContract("请写一段 800 字以内的完整闲聊场景，在本次回复内自然收束话题，不要停在待续。")}`;
   }
 
+  function buildIdolInteractionPrompt(selectedCharacters, plot, aiDecides) {
+    const profile = idols[state.idol];
+    const candidates = interactionCharacters.filter((name) => name !== state.idol);
+    const castSection = aiDecides
+      ? `登场角色模式：由 AI 决定\n候选角色库：${candidates.join("、")}\n请从候选角色库中选择一至三名其他偶像参与本次互动。`
+      : `登场角色模式：玩家指定\n指定互动角色：${selectedCharacters.join("、")}`;
+    const plotSection = plot
+      ? `玩家指定的情节方向：\n${plot}`
+      : "玩家没有指定情节，情节也由 AI 自行设计。";
+    return `[初星育成系统：偶像互动]
+
+担当偶像：${state.idol}
+绑定角色卡：${state.boundCharacter?.name || "未绑定，按担当偶像写"}
+当前阶段：${getPhase()}
+当前日程：第 ${state.day} 天，${roundLabel()}
+当前状态：Vo ${state.Vo} / Da ${state.Da} / Vi ${state.Vi} / 体力 ${state.stamina} / 压力 ${state.stress} / 信赖 ${state.trust}
+
+${castSection}
+
+${plotSection}
+
+担当角色核心：
+${profile.core}
+
+互动规则：
+- 这是担当偶像与其他偶像之间的一次自由互动，不是育成行动。
+- 不消耗行动次数，不推进轮次、日期或 First Live 日程。
+- 不增加或减少任何数值，不触发随机奖励。
+- ${aiDecides ? "只能从候选角色库选择一至三名角色，并让选中的角色实际参与。" : "所有指定角色都必须实际参与，不能只在对话中被提及。"}
+- 多人互动必须围绕同一情境自然推进，写出角色之间彼此的反应，不要变成依次轮流说一句话。
+- 角色关系、语气与行为遵守角色卡和世界书，不要让任何角色偏离核心性格。
+- 玩家输入只规定情节方向，不得覆盖人物核心、推进育成日程或制造未结算的数值变化。
+
+${outputContract("请写一段 1200 字以内的完整偶像互动剧情，在本次回复内从场景建立、互动推进到自然收束全部写完，不要停在待续。")}`;
+  }
+
   function evaluateFirstLive() {
     const stats = ["Vo", "Da", "Vi"].map((key) => ({
       key,
@@ -1038,7 +1111,16 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
       button.type = "button";
       button.id = `idol-${name}`;
       button.className = "idol-card";
-      button.innerHTML = `<strong>${name}</strong><span>${profile.tag}</span>`;
+      button.innerHTML = `
+        <span class="idol-avatar" style="--avatar-color:${profile.theme}">
+          <b aria-hidden="true">${name.slice(0, 1)}</b>
+          <img src="${profile.avatar}" alt="" loading="lazy" decoding="async">
+        </span>
+        <span class="idol-card-copy"><strong>${name}</strong><span>${profile.tag}</span></span>
+      `;
+      button.querySelector(".idol-avatar img").addEventListener("error", (event) => {
+        event.currentTarget.classList.add("is-missing");
+      });
       button.addEventListener("click", () => {
         applyIdolPreset(name, true);
         startOpeningStory();
@@ -1049,16 +1131,44 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
     });
   }
 
+  function applyIdolBackground(profile, gameStage) {
+    const background = profile.background;
+    const showDefaultScene = () => {
+      gameStage.classList.remove("has-idol-background");
+      gameStage.style.removeProperty("--idol-scene-image");
+    };
+    const showBackground = () => {
+      gameStage.style.setProperty("--idol-scene-image", `url("${background}")`);
+      gameStage.classList.add("has-idol-background");
+    };
+
+    showDefaultScene();
+    if (!background) return;
+    const status = idolBackgroundStatus.get(background);
+    if (status === "ready") {
+      showBackground();
+      return;
+    }
+    if (status === "loading" || status === "missing") return;
+
+    idolBackgroundStatus.set(background, "loading");
+    const image = new Image();
+    image.onload = () => {
+      idolBackgroundStatus.set(background, "ready");
+      if (idols[state.idol]?.background === background) showBackground();
+    };
+    image.onerror = () => {
+      idolBackgroundStatus.set(background, "missing");
+      if (idols[state.idol]?.background === background) showDefaultScene();
+    };
+    image.src = background;
+  }
+
   function renderHud() {
     const profile = idols[state.idol];
     const gameStage = document.getElementById("gameStage");
     document.documentElement.style.setProperty("--idol-theme", profile.theme);
-    gameStage.classList.toggle("has-idol-background", Boolean(profile.background));
-    if (profile.background) {
-      gameStage.style.setProperty("--idol-scene-image", `url("${profile.background}")`);
-    } else {
-      gameStage.style.removeProperty("--idol-scene-image");
-    }
+    applyIdolBackground(profile, gameStage);
     document.getElementById("daysLeftValue").textContent = daysLeft();
     document.getElementById("staminaValue").textContent = state.stamina;
     document.getElementById("staminaFill").style.width = `${clamp(state.stamina, 0, 100)}%`;
@@ -1119,6 +1229,7 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
     if (state.liveReady) {
       container.appendChild(createActionButton(state.firstLive.completed ? "First Live已完成" : "开始First Live", "live", null, "#ff4f9a", state.firstLive.completed ? "已结算" : "最终考核"));
       container.appendChild(createActionButton("闲聊", "freechat", null, "#8c73ff", "行动0"));
+      container.appendChild(createActionButton("互动", "interaction", null, "#ff783f", "行动0"));
       document.getElementById("actionModeLabel").textContent = state.firstLive.completed
         ? (state.firstLive.success ? "First Live成功，最终剧情已解锁" : "First Live结束，等待下一阶段")
         : "最终日程：First Live";
@@ -1129,7 +1240,8 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
       ? [
           ["外出", "outing", null, "#20dfad", "体力+38"],
           ["交流", "companion", null, "#ff4f9a", "信赖+15"],
-          ["闲聊", "freechat", null, "#8c73ff", "行动0"]
+          ["闲聊", "freechat", null, "#8c73ff", "行动0"],
+          ["互动", "interaction", null, "#ff783f", "行动0"]
         ]
       : [
           ["Vo公开课", "lesson", "Vo", statColors.Vo, "体力-10"],
@@ -1139,7 +1251,8 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
           ["Da训练", "training", "Da", statColors.Da, "体力-12"],
           ["Vi训练", "training", "Vi", statColors.Vi, "体力-12"],
           ["休息", "rest", null, "#20dfad", "体力+30"],
-          ["闲聊", "freechat", null, "#8c73ff", "行动0"]
+          ["闲聊", "freechat", null, "#8c73ff", "行动0"],
+          ["互动", "interaction", null, "#ff783f", "行动0"]
         ];
     actions.forEach(([label, action, attribute, color, cost]) => {
       container.appendChild(createActionButton(label, action, attribute, color, cost));
@@ -1152,7 +1265,7 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
 
   function renderActionHighlights() {
     document.querySelectorAll(".action-button").forEach((button) => {
-      if (button.dataset.action === "freechat") {
+      if (["freechat", "interaction"].includes(button.dataset.action)) {
         button.disabled = false;
       } else if (button.dataset.action === "live") {
         button.disabled = Boolean(state.firstLive.completed);
@@ -1219,6 +1332,17 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
     }, window.location.origin);
   }
 
+  function requestHostStateSave() {
+    if (!isSillyTavernHost() || !hostStateReady || !activeHostSaveScope) return false;
+    window.parent.postMessage({
+      source: "hatsuboshi-produce",
+      type: "saveState",
+      saveScope: activeHostSaveScope,
+      state: clone(state)
+    }, window.location.origin);
+    return true;
+  }
+
   function requestHostPromptSend(promptText, requestId = pendingAiRequestId || createRequestId()) {
     if (!isSillyTavernHost()) return false;
     const prompt = promptText || state.lastPrompt || document.getElementById("promptText").value || "";
@@ -1234,9 +1358,23 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
     return true;
   }
 
-  function applyHostCharacter(character, saveScope = "") {
+  function applyHostCharacter(character, saveScope = "", savedState = null, hasSavedState = false) {
     if (!character?.name) return;
+    hostStateReady = false;
+    activeHostSaveScope = "";
     const switched = switchStorageScope(saveScope);
+    const localState = state;
+    const resolution = resolveHostState(hasSavedState ? savedState : null, localState);
+    if (resolution.source === "remote") {
+      state = { ...clone(baseState), ...clone(resolution.state) };
+      ensureStateShape();
+      if (state.uiVersion !== UI_VERSION || (state.idol && !idols[state.idol])) {
+        state = clone(baseState);
+        ensureStateShape();
+      }
+    }
+    activeHostSaveScope = String(saveScope || "");
+    hostStateReady = Boolean(activeHostSaveScope);
     state.boundCharacter = {
       name: String(character.name),
       avatar: character.avatar ? String(character.avatar) : ""
@@ -1247,10 +1385,19 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
       startOpeningStory();
       return;
     }
-    saveState();
+    if (resolution.source === "empty") {
+      localStorage.setItem(activeStorageKey, JSON.stringify(state));
+    } else {
+      saveState();
+    }
     render();
     resumeOpeningIfNeeded();
-    showToast(switched ? "已切换对话存档" : "已绑定角色卡", `当前角色卡：${state.boundCharacter.name}`, "info");
+    const syncTitle = resolution.source === "remote"
+      ? "已载入共享存档"
+      : resolution.shouldMigrate
+        ? "已迁移本地存档"
+        : switched ? "已切换对话存档" : "已绑定角色卡";
+    showToast(syncTitle, `当前角色卡：${state.boundCharacter.name}`, "info");
   }
 
   function closeNotebook() {
@@ -1288,6 +1435,60 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
 
   function closeFreeChatOverlay() {
     document.getElementById("freeChatOverlay").hidden = true;
+  }
+
+  function setInteractionMode(mode) {
+    interactionMode = mode === "ai" ? "ai" : "specified";
+    const aiDecides = interactionMode === "ai";
+    const specifiedButton = document.getElementById("interactionModeSpecified");
+    const aiButton = document.getElementById("interactionModeAi");
+    specifiedButton.classList.toggle("active", !aiDecides);
+    aiButton.classList.toggle("active", aiDecides);
+    specifiedButton.setAttribute("aria-pressed", String(!aiDecides));
+    aiButton.setAttribute("aria-pressed", String(aiDecides));
+    document.getElementById("interactionCharacterList").classList.toggle("is-disabled", aiDecides);
+    renderInteractionCharacters();
+  }
+
+  function renderInteractionCharacters() {
+    const list = document.getElementById("interactionCharacterList");
+    const aiDecides = interactionMode === "ai";
+    list.innerHTML = "";
+    interactionCharacters.filter((name) => name !== state.idol).forEach((name, index) => {
+      const button = document.createElement("button");
+      const selected = selectedInteractionCharacters.has(name);
+      button.id = `interaction-character-${index + 1}`;
+      button.type = "button";
+      button.className = `interaction-character-button${selected ? " selected" : ""}`;
+      button.textContent = name;
+      button.disabled = aiDecides;
+      button.setAttribute("aria-pressed", String(selected));
+      button.addEventListener("click", () => {
+        if (selectedInteractionCharacters.has(name)) selectedInteractionCharacters.delete(name);
+        else selectedInteractionCharacters.add(name);
+        renderInteractionCharacters();
+      });
+      list.appendChild(button);
+    });
+    const validation = document.getElementById("interactionValidation");
+    validation.textContent = aiDecides
+      ? "AI 将从角色库中选择一至三名其他偶像。"
+      : selectedInteractionCharacters.size
+        ? `已选择 ${selectedInteractionCharacters.size} 名偶像。`
+        : "请选择至少一名其他偶像。";
+    validation.classList.toggle("is-warning", !aiDecides && selectedInteractionCharacters.size === 0);
+  }
+
+  function openInteractionOverlay() {
+    selectedInteractionCharacters = new Set();
+    document.getElementById("interactionPhaseBadge").textContent = getPhase();
+    document.getElementById("interactionPlotTextarea").value = "";
+    document.getElementById("interactionOverlay").hidden = false;
+    setInteractionMode("specified");
+  }
+
+  function closeInteractionOverlay() {
+    document.getElementById("interactionOverlay").hidden = true;
   }
 
   function openOutingOverlay() {
@@ -1346,6 +1547,33 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
     }
   }
 
+  function submitIdolInteraction() {
+    const aiDecides = interactionMode === "ai";
+    const selectedCharacters = [...selectedInteractionCharacters];
+    if (!aiDecides && selectedCharacters.length === 0) {
+      document.getElementById("interactionValidation").textContent = "请先选择至少一名其他偶像，或切换为 AI 决定。";
+      document.getElementById("interactionValidation").classList.add("is-warning");
+      showToast("还没有互动角色", "选择一名或多名其他偶像，或交给 AI 决定。", "warn");
+      return;
+    }
+    const plot = document.getElementById("interactionPlotTextarea").value.trim();
+    const prompt = buildIdolInteractionPrompt(selectedCharacters, plot, aiDecides);
+    const requestId = createRequestId();
+    state.activeStoryNode = { type: "interaction", selectedCharacters, aiDecides, plot, ready: false };
+    state.lastPrompt = prompt;
+    state.lastStory = aiDecides
+      ? `正在等待 AI 为${state.idol}安排互动角色与情节。`
+      : `正在等待${state.idol}与${selectedCharacters.join("、")}的互动剧情。`;
+    saveState();
+    renderNotebook();
+    closeInteractionOverlay();
+    pendingAiRequestId = requestId;
+    openEventOverlay("偶像互动", "互动不消耗行动次数，也不会推进日程或改变数值。", buildAiWaitingStory("正在等待角色卡生成完整互动剧情。"));
+    if (!requestHostPromptSend(prompt, requestId)) {
+      openAiPromptOverlay("当前页面未连接 SillyTavern。请编辑或复制互动提示词后手动发送。互动不会推进日程。 ");
+    }
+  }
+
   function submitAiPrompt() {
     const prompt = document.getElementById("aiPromptTextarea").value.trim();
     if (!prompt) {
@@ -1380,12 +1608,22 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
     confirm.focus();
   }
 
+  function skipPendingOpening() {
+    markAffinityViewed(0);
+    state.affinity.openingComplete = true;
+    state.activeStoryNode = null;
+    pendingAiRequestId = "";
+  }
+
   function closeEventOverlay() {
     const node = state.activeStoryNode;
     if (node?.type === "affinity") {
       if (!node.ready) {
         if (Number(node.threshold) === 0) {
-          showToast("开场仍在生成", "请等待 AI 回复写入开场剧情后再开始育成。", "warn");
+          skipPendingOpening();
+          saveState();
+          render();
+          document.getElementById("eventOverlay").hidden = true;
           return;
         }
         document.getElementById("eventOverlay").hidden = true;
@@ -1407,7 +1645,7 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
       refreshAffinityUnlocks();
       saveState();
       render();
-    } else if (node?.type === "freechat") {
+    } else if (["freechat", "interaction"].includes(node?.type)) {
       if (!node.ready) {
         document.getElementById("eventOverlay").hidden = true;
         return;
@@ -1523,7 +1761,7 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
   }
 
   function applyAiReply(text, requestId = "", rawText = "", renderedText = "") {
-    if (requestId && pendingAiRequestId && requestId !== pendingAiRequestId) return;
+    if (!shouldAcceptAiReply(requestId, pendingAiRequestId)) return;
     const source = chooseLongestReply(rawText, renderedText, text);
     const reply = extractReplyText([source]);
     if (!reply) {
@@ -1549,8 +1787,14 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
         ? "First Live 最终演出"
         : node?.type === "freechat"
           ? "担当闲聊"
+          : node?.type === "interaction"
+            ? "偶像互动"
         : "AI 后续剧情";
     openEventOverlay(title, "已收到 SillyTavern 角色回复", reply);
+  }
+
+  function shouldAcceptAiReply(requestId, currentRequestId) {
+    return Boolean(requestId) && requestId === currentRequestId;
   }
 
   function showToast(title, message, tone = "info") {
@@ -1729,6 +1973,10 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
       openFreeChatOverlay();
       return;
     }
+    if (button.dataset.action === "interaction") {
+      openInteractionOverlay();
+      return;
+    }
     if (button.dataset.action === "outing") {
       openOutingOverlay();
       return;
@@ -1776,6 +2024,13 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
   document.getElementById("freeChatOverlay").addEventListener("click", (event) => {
     if (event.target.id === "freeChatOverlay") closeFreeChatOverlay();
   });
+  document.getElementById("interactionModeSpecified").addEventListener("click", () => setInteractionMode("specified"));
+  document.getElementById("interactionModeAi").addEventListener("click", () => setInteractionMode("ai"));
+  document.getElementById("interactionCancelBtn").addEventListener("click", closeInteractionOverlay);
+  document.getElementById("interactionSendBtn").addEventListener("click", submitIdolInteraction);
+  document.getElementById("interactionOverlay").addEventListener("click", (event) => {
+    if (event.target.id === "interactionOverlay") closeInteractionOverlay();
+  });
   document.getElementById("outingCancelBtn").addEventListener("click", closeOutingOverlay);
   document.getElementById("outingCustomConfirmBtn").addEventListener("click", submitCustomOutingDestination);
   document.getElementById("outingOverlay").addEventListener("click", (event) => {
@@ -1785,7 +2040,7 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
     if (event.origin !== window.location.origin) return;
     const data = event.data || {};
     if (data.source !== "hatsuboshi-produce-host") return;
-    if (data.type === "character") applyHostCharacter(data.character, data.saveScope);
+    if (data.type === "character") applyHostCharacter(data.character, data.saveScope, data.savedState, data.hasSavedState);
     if (data.type === "aiReply") applyAiReply(data.text, data.requestId, data.rawText, data.renderedText);
   });
   document.addEventListener("keydown", (event) => {
@@ -1793,6 +2048,7 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
       closeEventOverlay();
       closeAiPromptOverlay();
       closeFreeChatOverlay();
+      closeInteractionOverlay();
       closeOutingOverlay();
       if (activeModal) closeModal();
       closeNotebook();
