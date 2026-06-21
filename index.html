@@ -86,7 +86,7 @@
       </header>
 
       <aside class="side-items" aria-label="育成道具">
-        <button id="sideItemStory" class="side-token" type="button" data-modal="narrative" aria-label="叙事控制"><svg><use href="#icon-chat"></use></svg><span>1</span></button>
+        <button id="sideItemStory" class="side-token" type="button" aria-label="好感剧情"><svg><use href="#icon-heart"></use></svg><span id="affinityPendingBadge">0</span></button>
         <button id="sideItemEvent" class="side-token" type="button" data-modal="event" aria-label="随机事件池"><svg><use href="#icon-star"></use></svg><span>2</span></button>
         <button id="sideItemLastEvent" class="side-token" type="button" aria-label="最近事件"><svg><use href="#icon-chat"></use></svg></button>
         <button id="sideItemSystem" class="side-token" type="button" data-modal="system" aria-label="系统控制台"><svg><use href="#icon-settings"></use></svg></button>
@@ -95,10 +95,6 @@
       </aside>
 
       <section class="idol-stage" aria-label="担当偶像">
-        <div class="advisor-bubble" id="advisorBubble">
-          <span id="advisorText">请选择行动</span>
-          <i></i>
-        </div>
         <div class="idol-card-name">
           <p id="currentIdolLabel">请选择担当偶像</p>
           <h2 id="idolName">藤田琴音</h2>
@@ -171,6 +167,45 @@
       <footer class="event-actions">
         <button id="aiPromptCancelBtn" class="event-button secondary" type="button">取消</button>
         <button id="aiPromptSendBtn" class="event-button primary" type="button">发送给 AI</button>
+      </footer>
+    </article>
+  </section>
+
+  <section id="freeChatOverlay" class="event-overlay" hidden aria-label="担当闲聊">
+    <article class="event-panel ai-prompt-panel">
+      <header class="event-head">
+        <div>
+          <p class="ui-kicker">Free Talk</p>
+          <h2>和担当闲聊</h2>
+        </div>
+        <span id="freeChatPhaseBadge" class="event-phase">First Live 前期</span>
+      </header>
+      <p class="ai-prompt-note">输入这次想和担当聊的话题。闲聊不会消耗行动次数，也不会推进日程或改变数值。</p>
+      <textarea id="freeChatTextarea" class="ai-prompt-textarea" spellcheck="false" placeholder="例如：问问她今天训练结束后最想吃什么"></textarea>
+      <footer class="event-actions">
+        <button id="freeChatCancelBtn" class="event-button secondary" type="button">取消</button>
+        <button id="freeChatSendBtn" class="event-button primary" type="button">发送闲聊</button>
+      </footer>
+    </article>
+  </section>
+
+  <section id="outingOverlay" class="event-overlay" hidden aria-label="选择外出地点">
+    <article class="event-panel outing-panel">
+      <header class="event-head">
+        <div>
+          <p class="ui-kicker">Outing Select</p>
+          <h2>选择外出地点</h2>
+        </div>
+        <span id="outingPhaseBadge" class="event-phase">First Live 前期</span>
+      </header>
+      <div id="outingDestinationList" class="outing-destination-list"></div>
+      <label class="outing-custom-field" for="outingCustomInput">
+        <span>自定义地点</span>
+        <input id="outingCustomInput" type="text" maxlength="40" placeholder="输入想和担当前往的地点">
+      </label>
+      <footer class="event-actions">
+        <button id="outingCancelBtn" class="event-button secondary" type="button">取消</button>
+        <button id="outingCustomConfirmBtn" class="event-button primary" type="button">前往自定义地点</button>
       </footer>
     </article>
   </section>

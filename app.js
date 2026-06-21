@@ -13,6 +13,7 @@
     "藤田琴音": {
       tag: "翻身欲 / 夸奖燃料",
       theme: "#ff4f9a",
+      background: "./assets/idols/fujita-kotone.jpeg",
       core: "现实收益、被选择的不安、夸奖作为燃料、从不能相信自己到相信制作人。",
       styles: {
         lesson: "把课程换算成翻身机会、报酬、曝光和被选择的证明。她嘴上现实，心里怕自己又被证明没用。",
@@ -28,6 +29,7 @@
     "月村手毬": {
       tag: "冷面 / 手制羽翼",
       theme: "#26a9f4",
+      background: "./assets/idols/tsukimura-temari.jpeg",
       core: "冷淡外壳、脆弱内心、讨厌旧日的自己、需要精确而严格的支持。",
       styles: {
         lesson: "表面冷淡，实际听得很细。课堂内容会被她转化成对自己的苛责。",
@@ -40,6 +42,7 @@
     "花海咲季": {
       tag: "胜利 / 姐姐骄傲",
       theme: "#ff783f",
+      background: "./assets/idols/hanami-saki.jpeg",
       core: "骄傲、好胜、害怕输给重要对手，但会把恐惧转回胜利计划。",
       styles: {
         lesson: "她会把课堂当成赢的工具。被指出弱点会先炸毛，然后要求具体胜利方案。",
@@ -47,6 +50,19 @@
         outing: "外出也要服务于胜利：观察舞台、研究对手、恢复状态，最后转化成下一次赢的方案。",
         companion: "喜欢被夸，但会装作理所当然。真正准确的夸奖会让她害羞。",
         rest: "休息必须被包装成胜利准备。她会确认这不是退让，而是为了下一次压倒性表现。"
+      }
+    },
+    "花海祐芽": {
+      tag: "直觉 / 追逐姐姐",
+      theme: "#ff5f4f",
+      core: "直觉型行动力、对姐姐咲季的憧憬与胜负心、压倒性成长欲、把失败立刻转成下一次挑战。",
+      aliases: ["花海佑芽"],
+      styles: {
+        lesson: "把课堂理解成追上姐姐的捷径。她不懂就直问，抓住要点后会立刻想试试看。",
+        training: "冲得很快，失败也很快，但不会停下。越接近咲季，她越能感到兴奋和害怕同时存在。",
+        outing: "外出也会被她变成发现新目标的冒险。她会拉着制作人到处跑，最后把所见全部转成下一次胜负的燃料。",
+        companion: "亲近、直率、热烈。会毫不犹豫地说喜欢、相信和想赢，也会把制作人的话当成前进的信号。",
+        rest: "休息对她很难。必须告诉她休息也是为了下一次用压倒性数值挑战姐姐，她才会乖乖停下。"
       }
     },
     "篠泽广": {
@@ -91,6 +107,66 @@
         lesson: "美铃比上课铃晚了十分钟推门进来，手里还捧着一杯茶。她说路上的阳光太舒服，所以稍微绕了远路。你以为她没听，她却托着脸轻声说出老师刚讲的核心：不是追着观众的视线跑，而是让他们觉得看着自己很安心。练习结束后，她笑着说只是稍微加快了一下脚步。",
         outing: "美铃用天气很好这个理由把你带出了训练楼。茶水、点心和最适合晒太阳的长椅都像早就被她安排好，话题不知何时从散步变成了你也该休息。她闭着眼说，能理解她步调的制作人很珍贵，所以她也想照顾你。"
       }
+    },
+    "仓本千奈": {
+      tag: "坚持 / 真心回礼",
+      theme: "#f8ac5e",
+      core: "能力不足与优渥出身带来的羞耻、总想放弃却会回来完成下一步、把他人的支持变成真心回礼。",
+      styles: {
+        lesson: "常常听懂得慢、做得更慢，沮丧和惊喜都写在脸上。哪怕喊着做不到，她仍会把老师要求的最后一步认真完成。",
+        training: "基础能力不足会让训练显得格外艰难。重点不是突然变强，而是她在抱怨、落泪后仍选择再试一次。",
+        outing: "她会自然想到昂贵而周到的安排，却会在意这是否只是依靠家境；真正令她开心的是普通、亲手参与且能留下共同回忆的体验。",
+        companion: "礼貌天真、情绪外露，但并不迟钝。她能敏锐察觉善意，也会认真追问别人是否只是顾虑她的身份。",
+        rest: "她会把酸痛夸张地说成世界末日，却又因这是努力留下的证据而暗自自豪，恢复后还会主动确认下一次训练。"
+      }
+    },
+    "葛城莉莉娅": {
+      tag: "勇气 / 从零开始",
+      theme: "#8fcbdc",
+      core: "从零开始的异国少女、自我否定与害羞、即使害怕也会行动的坚韧、把得到的支持认真还给观众。",
+      styles: {
+        lesson: "她会把每条指导记得很细，却因为看不见自己的进步而不安。具体的前后对比比空泛鼓励更能让她建立信心。",
+        training: "零基础让每一步都显得笨拙，但她几乎不会主动停下。需要防止她把拼命练习当成唯一能证明诚意的方式。",
+        outing: "陌生环境会让她拘谨，熟悉的动画、游戏、甜点或清夏的话题则会打开话匣子，露出安静外表下强烈的热爱。",
+        companion: "礼貌、害羞，习惯先贬低自己。被明确需要时会鼓起勇气回应，也会把很小的支持牢牢记住。",
+        rest: "她会因为休息而产生落后感，必须让她理解接受照顾也是共同计划的一部分，而不是辜负期待。"
+      }
+    },
+    "紫云清夏": {
+      tag: "保护色 / 再次起舞",
+      theme: "#a7d63b",
+      core: "开朗轻佻的保护色、芭蕾伤痛留下的恐惧、害怕认真后再次失去、以渐进训练重新选择舞台。",
+      styles: {
+        lesson: "她擅长用玩笑和社交技巧把课题轻轻带过。真正认真时理解很快，却会在被准确夸奖后慌忙恢复随便的语气。",
+        training: "舞蹈能力与身体记忆仍在，但奔跑、跳跃和高强度动作可能唤起恐惧。训练应强调渐进、停止线和她主动选择继续。",
+        outing: "她熟悉时尚、流行和好玩的去处，会主动带节奏。轻松闲逛中偶尔露出的沉默，比直接逼问更接近她藏起来的真心。",
+        companion: "会用昵称、玩笑和亲近动作拉近距离，也会把严肃话题化开。真正信任后，她才允许制作人看见害怕与不甘。",
+        rest: "休息不能被写成懒散惩罚，而是她重新学习听从身体的过程。能在想逞强时停下，本身就是一次进步。"
+      }
+    },
+    "有村麻央": {
+      tag: "王子 / 可爱与帅气",
+      theme: "#bb68d8",
+      core: "保护他人的王子理想、成长后的身体与旧角色冲突、拒绝被可爱否定、把帅气与脆弱都纳入真实自我。",
+      styles: {
+        lesson: "经验丰富、理解迅速，常会自然照顾周围学生。真正的课题是停止用完美王子形象遮住不安和不擅长。",
+        training: "武术、体能和舞台基础让动作可靠利落。面对需要柔软或可爱表达的训练，她会先僵硬，再寻找不背叛王子理想的方式。",
+        outing: "她习惯替制作人开门、提东西和规划路线。试衣、发型或普通约会感会让她在帅气从容与明显害羞之间摇摆。",
+        companion: "待人温柔可靠，喜欢保护后辈。被反过来照顾或被称赞可爱时会失去余裕，却也逐渐学会接受。",
+        rest: "她会把疲惫藏在照顾别人之后。休息剧情应让她卸下宿舍长和王子的责任，允许自己成为被关心的一方。"
+      }
+    },
+    "姬崎莉波": {
+      tag: "自然照顾 / 也想被保护",
+      theme: "#d985aa",
+      core: "温柔成熟的姐姐气质、过去扮演妹妹偶像的失败、从刻意营销到自然照顾、也承认自己想被保护与喜欢竞争。",
+      styles: {
+        lesson: "她会先照顾同学与课堂气氛，反而在刻意展示姐姐魅力时变得僵硬。自然反应比设计好的营业更有吸引力。",
+        training: "动作稳妥、善于配合别人，但容易把自己的需求放到最后。训练重点是让温柔、少女心和竞争欲同时出现在舞台上。",
+        outing: "她会提前准备饮料、路线和应急用品，像照顾年幼伙伴一样周到；甜食、祭典和被制作人反过来照顾会显出真实少女感。",
+        companion: "自然亲切、擅长安抚别人，却会因关系不再只是姐姐与弟弟而害羞。她也期待被理解、被依靠和被保护。",
+        rest: "她习惯确认所有人都没问题后才休息。制作人若认真接过照顾者的位置，她会从不习惯逐渐变得安心。"
+      }
     }
   };
 
@@ -100,13 +176,146 @@
     "花海咲季": [100, 100, 105, 16.5, 16.5, 20.5, 1280, 1280, 1360, 1930, 1930, 2030],
     "秦谷美铃": [95, 125, 140, 27, 13, 20, 1480, 1080, 1390, 2180, 1680, 2050],
     "篠泽广": [70, 55, 120, 22, 8, 26, 1180, 820, 1450, 1880, 1420, 2150],
-    "十王星南": [160, 160, 160, 12, 12, 12, 1600, 1600, 1600, 2300, 2300, 2300]
+    "十王星南": [160, 160, 160, 12, 12, 12, 1600, 1600, 1600, 2300, 2300, 2300],
+    "花海祐芽": [120, 115, 110, 24, 24, 20, 1500, 1480, 1380, 2200, 2180, 2080],
+    "仓本千奈": [75, 115, 125, 10, 24, 20.5, 1050, 1520, 1450, 1650, 2220, 2150],
+    "葛城莉莉娅": [80, 100, 115, 18, 20, 18, 1300, 1380, 1450, 2000, 2080, 2150],
+    "紫云清夏": [100, 115, 90, 9, 23, 23, 1050, 1500, 1450, 1650, 2200, 2150],
+    "有村麻央": [125, 90, 100, 22, 8, 23, 1480, 950, 1500, 2180, 1550, 2200],
+    "姬崎莉波": [85, 120, 125, 13, 21.5, 25.5, 1100, 1430, 1580, 1800, 2130, 2280]
   };
 
   const exactPresetIdols = new Set(["藤田琴音", "月村手毬", "花海咲季", "秦谷美铃"]);
-  const interactionCharacters = ["藤田琴音", "月村手毬", "花海咲季", "秦谷美铃", "篠泽广", "十王星南", "花海佑芽", "仓本千奈", "紫云清夏", "葛城莉波", "有村麻央", "姬崎莉波"];
-  const eventScenes = ["训练室临时合练", "走廊偶遇", "课后复盘", "小舞台试演", "学生会临时检查", "茶道室短暂停留", "器材室帮忙", "操场边观察练习"];
-  const eventMoods = ["对方主动指出了一个意外盲点", "对方被这次训练状态吸引过来", "双方因为节奏不合产生轻微摩擦", "对方的一句话让训练方向突然清晰", "一次小失误变成了临时合作", "对方用完全不同的方式理解了这次训练"];
+  const idolAliases = { "花海佑芽": "花海祐芽" };
+  const interactionCharacters = ["藤田琴音", "月村手毬", "花海咲季", "秦谷美铃", "篠泽广", "十王星南", "花海祐芽", "仓本千奈", "紫云清夏", "葛城莉莉娅", "有村麻央", "姬崎莉波"];
+  const actionEventPools = {
+    lesson: {
+      Vo: ["课堂临时试唱", "分组和声练习", "训练员点名示范", "课后换气复盘", "同桌交换声乐笔记"],
+      Da: ["课堂动作示范", "分组节奏练习", "训练员纠正重心", "课后舞步复盘", "同桌互相检查动作"],
+      Vi: ["课堂镜头测试", "分组表情练习", "训练员临时拍摄", "课后姿态复盘", "同桌交换表现建议"]
+    },
+    training: {
+      Vo: ["录音室回放检查", "耐力演唱合练", "发声训练临时搭档", "休息间隙讨论音准", "器材室寻找录音设备"],
+      Da: ["训练室临时合练", "镜前动作纠正", "操场耐力训练", "休息间隙讨论节奏", "器材室整理训练道具"],
+      Vi: ["镜前表情训练", "舞台走位测试", "临时摄影练习", "休息间隙讨论镜头感", "器材室挑选拍摄道具"]
+    }
+  };
+  const eventMoods = ["对方主动指出了一个意外盲点", "对方注意到了担当此刻的表现", "双方因为节奏不合产生轻微摩擦", "对方的一句话让当前课题突然清晰", "一次小失误变成了临时合作", "对方用完全不同的方式理解了这次练习"];
+  const outingDestinations = [
+    { name: "商店街", description: "小吃、饮料和便宜日用品，适合放学后闲逛与偶遇。" },
+    { name: "购物中心", description: "买衣服、逛店，寻找舞台服装或私服灵感。" },
+    { name: "游戏厅", description: "轻松竞技、游戏反差和不服输挑战。" },
+    { name: "游乐园", description: "约会感、胆量与体力对比，适合关系推进。" },
+    { name: "拉面店", description: "高热量美食与饮食管理，尤其容易触发手毬的反应。" },
+    { name: "琴音打工的快餐店", description: "打工、收入、家庭压力，以及努力被看见的地方。" }
+  ];
+  const affinityThresholds = [20, 40, 60, 80, 100];
+  const affinityNodes = {
+    0: { title: "担当开场", theme: "制作人与担当偶像正式建立育成关系，确认 First Live 前的共同目标。", timing: "选择担当后立即触发，读完后进入育成主界面。" },
+    20: { title: "相互试探", theme: "围绕“为什么选择她、她为什么愿意接受你”推进早期信任。", timing: "好感度达到 20 后解锁。" },
+    40: { title: "核心问题暴露", theme: "揭示该偶像最主要的矛盾与弱点，让数值育成和个人主线接上。", timing: "好感度达到 40 后解锁。" },
+    60: { title: "关系转折", theme: "制作人与偶像的信任关系发生明确变化，角色开始把支持视为自己的力量。", timing: "好感度达到 60 后解锁。" },
+    80: { title: "舞台前夜", theme: "First Live 前夜的最后深谈，面对上台前的心结、恐惧和决心。", timing: "好感度达到 80，且进入第 18 天前才解锁。" },
+    100: { title: "First Live 之后", theme: "演出成功后的故事收尾，让角色关系完成 First Live 篇章的闭环。", timing: "First Live 成功且好感度达到 100 后解锁。" }
+  };
+  const affinityRouteSeeds = {
+    "藤田琴音": {
+      0: "被选择却不敢相信，第一反应是确认这不是搭讪或玩笑。",
+      20: "她想知道自己为什么会被选择，害怕制作人看见真实实力后撤回决定。",
+      40: "贫困、打工、现实收益和成绩差交织在一起，她把偶像活动看成翻身机会。",
+      60: "制作人把辛苦的现实工作转化为偶像成长资源，她开始接受这份安排也是认真看待。",
+      80: "First Live 前夜，她把多年被否定的不安沉淀成想被观众看见的燃料。",
+      100: "演出之后，她用自己的话说出家庭、责任和一发逆转的愿望，真正相信制作人与自己。"
+    },
+    "月村手毬": {
+      0: "冷淡拒绝，但因为制作人知道她的失败与丑闻仍然选择她而动摇。",
+      20: "她嘴硬地设下界限，实际在观察制作人是否能理解现在的自己。",
+      40: "体力、体重、心理疲劳和组合崩坏暴露出来，她害怕再次失控。",
+      60: "饮食、录像和训练逐渐拆解问题，她第一次承认自己只有一点点相信制作人。",
+      80: "First Live 前夜，她必须承认努力过头也是脆弱，接受被严格支撑。",
+      100: "演出之后，她用别扭的方式承认自己已经不再是孤身一人。"
+    },
+    "花海咲季": {
+      0: "自信、好胜、完美姐姐登场，要求制作人证明自己了解她的烦恼。",
+      20: "她把制作人纳入胜利计划，确认自己必须一直是第一。",
+      40: "佑芽作为最大竞争轴出现，她既骄傲于妹妹又害怕妹妹追上。",
+      60: "训练、饮食和照顾他人的责任感让她看见强大背后的压力。",
+      80: "First Live 前夜，她第一次把对失败的恐惧说出口，并把恐惧转成胜利方案。",
+      100: "演出之后，她承认脆弱也属于最强的自己，继续以第一为目标。"
+    },
+    "篠泽广": {
+      0: "天才少女身体极弱，却因为偶像是最不适合自己的困难而主动请求担当。",
+      20: "制作人给她最低评价反而让她高兴，因为困难本身让她感到有趣。",
+      40: "复健式训练和想象训练开始，她把微小进步当成巨大事件。",
+      60: "佑芽、千奈和身边人的进步让她逐渐理解朋友、羡慕和舞台。",
+      80: "First Live 前夜，她第一次认真面对自己也想站上舞台的愿望。",
+      100: "演出之后，她明白愿望被实现不一定会失落，困难仍然可以继续。"
+    },
+    "十王星南": {
+      0: "一等星拒绝普通招揽，但承认自己停滞，需要新的制作人视角。",
+      20: "她展示学园顶点的能力，同时发现自己从去年起没有真正成长。",
+      40: "直播、访谈和出丑让她开始打破完美学生会长形象。",
+      60: "她面对粉丝和对手的期待，学习数值之外的偶像魅力。",
+      80: "First Live 前夜，她决定让一等星不再只是学园第一，而是更高处的指路灯。",
+      100: "演出之后，她承担起宣言带来的影响力，作为不完美的人继续闪耀。"
+    },
+    "秦谷美铃": {
+      0: "茶道室午睡般登场，温柔地确认制作人是否能接受她的步调。",
+      20: "她看似偷懒，却在观察制作人是否能看懂自己的努力方式。",
+      40: "SyngUp! 与手毬旧关系浮现，她必须从辅助者走向自己的单人演唱。",
+      60: "她开始主动表达照顾欲和温柔独占欲，关系从旁观变成共犯。",
+      80: "First Live 前夜，她用自己的步调面对舞台，也面对想让重要的人听见的心意。",
+      100: "演出之后，她不再只做温柔旁观者，而是主动选择继续向顶点走。"
+    },
+    "花海祐芽": {
+      0: "迟到入学后凭直觉请求制作人担当，单纯又热烈地相信对方能成为力量。",
+      20: "她的目标极其直接：打败姐姐咲季，成为学园第一。",
+      40: "制作人指出她对偶像的热情几乎都来自咲季，她开始分辨追姐姐和成为偶像。",
+      60: "失败经验被转成下一次挑战，她学会把直觉和训练计划结合。",
+      80: "First Live 前夜，她第一次理解对等竞争的兴奋与恐惧。",
+      100: "演出之后，她把姐姐、制作人和自己的路线合在一起，继续追求压倒性成长。"
+    },
+    "仓本千奈": {
+      0: "从家族安排的委托开始，她追问制作人是否会抛开仓本家的身份，亲自选择这个什么都做不好的自己。",
+      20: "她坦白入学成绩垫底，也怀疑所有机会都来自祖父与家境，想听到制作人不留情面的真实评价。",
+      40: "最基础的训练也让她浑身酸痛、哭着想退出；在曾经反复放弃的历史面前，她第一次自己回来完成下一步。",
+      60: "杂志、舞台和同伴帮助接连出现，她学习接受支持，却不再把支持误认为自己已经付出了同等努力。",
+      80: "First Live 前夜，她害怕在众目睽睽下失败、浪费所有人的期待，最终决定相信日复一日完成的基础训练。",
+      100: "演出中即使发生失误，她仍靠自己的力量站稳并完成舞台；演出后，她第一次把坚持到底当作属于自己的才能。"
+    },
+    "葛城莉莉娅": {
+      0: "迷路的异国少女与制作人相遇。她虽害羞又毫无经验，仍为成为能给别人力量的偶像主动迈出第一步。",
+      20: "从发声、呼吸到表情都必须从零学习，她无法感知进步，制作人用训练记录让微小变化变得具体。",
+      40: "旁人的疑问让她害怕制作人终会选择更优秀的学生；她必须面对自己总把被选择解释成运气的习惯。",
+      60: "她逐渐理解真正的才能是害怕时仍愿意行动，也开始把粉丝和制作人的每份支持当成必须认真回应的约定。",
+      80: "First Live 前夜，她想用过度练习偿还期待，却终于接受休息、求助和共同计划也是站上舞台的勇气。",
+      100: "演出之后，她不再只说自己什么都不会，而是承认从零走到这里的脚步，并约定把收到的力量继续还给观众。"
+    },
+    "紫云清夏": {
+      0: "她用轻松玩笑躲开招揽，还把制作人推向莉莉娅；制作人却看出她一直在等待别人先放弃自己。",
+      20: "她承认曾经真心喜欢舞蹈，也承认受伤后最害怕的不是疼痛，而是认真投入后再次失去一切。",
+      40: "渐进训练触碰到芭蕾留下的恐惧，身体明明已经痊愈，跳跃和落地仍会引发僵硬、慌乱与呼吸失控。",
+      60: "她学会在停止线前主动停下，也学会在安全范围内主动要求再试一次；玩笑之外，竞争心和不甘重新出现。",
+      80: "First Live 前夜，她不再保证自己毫不害怕，而是明确选择带着恐惧再次起舞，并接受制作人守住退路。",
+      100: "演出之后，她确认舞台没有夺走自己，而是把选择权还给了她；伤痛未被奇迹抹去，她却已经能认真期待下一次。"
+    },
+    "有村麻央": {
+      0: "她把制作人当成可疑人物挡在后辈面前，自然流露出的保护欲让制作人看见了无需扮演的王子魅力。",
+      20: "她讲起童星时期的王子角色，以及身体成长后失去旧角色的经历，坚持自己想成为的是令人憧憬的王子。",
+      40: "面对可爱的服装、发型和表达，她担心接受可爱就等于否定理想；制作人提出真实的她并不只有一个侧面。",
+      60: "她停止机械维持王子姿态，在歌曲与舞台中寻找只属于自己的帅气，也第一次允许制作人反过来保护自己。",
+      80: "First Live 前夜，她直面曾经厌恶身体变化的自己，决定让可爱、脆弱和帅气共同构成新的王子偶像。",
+      100: "演出之后，她证明不必舍弃任何一面也能获得憧憬，带着被接纳的安心继续成为既可爱又帅气的无敌王子。"
+    },
+    "姬崎莉波": {
+      0: "与制作人重逢后，她害怕自己已被忘记，也害怕过去扮演妹妹偶像的失败再次发生，仍接受了新的担当关系。",
+      20: "她试着把制作人当作弟弟来找回自然状态，却逐渐发现真正有效的不是设定，而是她下意识关心对方的瞬间。",
+      40: "刻意营业姐姐魅力使表演僵硬；照顾孩子、同伴和观众时，她成熟温柔的魅力反而自然地被所有人看见。",
+      60: "她越来越无法把制作人只当弟弟，也开始承认自己除了照顾别人，还想被理解、被保护，并享受势均力敌的竞争。",
+      80: "First Live 前夜，她因紧张再次想躲进姐姐角色，最终在制作人的支持下决定以完整的自己面对观众。",
+      100: "演出之后，她接受成熟、少女心、脆弱与竞争欲都属于姬崎莉波，也让两人的关系不再被姐姐与弟弟的称呼限制。"
+    }
+  };
 
   const baseState = {
     uiVersion: UI_VERSION,
@@ -124,6 +333,9 @@
     threshold: { Vo: 1030, Da: 1510, Vi: 1580 },
     cap: { Vo: 1730, Da: 2210, Vi: 2280 },
     sp: { Vo: false, Da: true, Vi: false },
+    affinity: { openingComplete: false, unlocked: [], pending: [], viewed: [] },
+    firstLive: { completed: false, success: false, result: null },
+    activeStoryNode: null,
     log: [],
     boundCharacter: null,
     lastStory: "请选择行动",
@@ -138,22 +350,25 @@
   const statShort = { Vo: "Vo.", Da: "Da.", Vi: "Vi." };
   const statIcons = { Vo: "mic", Da: "dance", Vi: "visual" };
   const statColors = { Vo: "#ff4f9a", Da: "#26a9f4", Vi: "#ffca35" };
-  const actionIcons = { lesson: "book", training: "dance", rest: "rest", outing: "map", companion: "chat" };
+  const actionIcons = { lesson: "book", training: "dance", rest: "rest", outing: "map", companion: "chat", freechat: "chat" };
   const promptPanels = { prompt: "tabPrompt", log: "tabLog", debug: "tabDebug" };
   let activePromptTab = "prompt";
   let activeModal = null;
   let activeModalTab = null;
   let pendingAiRequestId = "";
+  let activeStorageKey = STORAGE_KEY;
   let state = loadState();
 
+  ensureStateShape();
   if (state.uiVersion !== UI_VERSION || (state.idol && !idols[state.idol])) {
     state = clone(baseState);
+    ensureStateShape();
     saveState();
   }
 
   function loadState() {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(activeStorageKey);
       return saved ? { ...clone(baseState), ...JSON.parse(saved) } : clone(baseState);
     } catch {
       return clone(baseState);
@@ -161,7 +376,43 @@
   }
 
   function saveState() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    localStorage.setItem(activeStorageKey, JSON.stringify(state));
+  }
+
+  function storageKeyForScope(scope) {
+    const normalized = String(scope || "").trim();
+    if (!normalized) return STORAGE_KEY;
+    const safe = normalized.replace(/[^a-zA-Z0-9_.:-]+/g, "_").slice(0, 160);
+    return `${STORAGE_KEY}:${safe}`;
+  }
+
+  function switchStorageScope(scope) {
+    const nextKey = storageKeyForScope(scope);
+    if (nextKey === activeStorageKey) return false;
+    activeStorageKey = nextKey;
+    state = loadState();
+    ensureStateShape();
+    return true;
+  }
+
+  function canonicalIdolName(name) {
+    return idolAliases[name] || name;
+  }
+
+  function ensureStateShape() {
+    state.idol = state.idol ? canonicalIdolName(state.idol) : state.idol;
+    state.affinity = {
+      openingComplete: false,
+      unlocked: [],
+      pending: [],
+      viewed: [],
+      ...(state.affinity || {})
+    };
+    state.affinity.unlocked = Array.from(new Set(state.affinity.unlocked || [])).map(Number).sort((a, b) => a - b);
+    state.affinity.pending = Array.from(new Set(state.affinity.pending || [])).map(Number).sort((a, b) => a - b);
+    state.affinity.viewed = Array.from(new Set(state.affinity.viewed || [])).map(Number).sort((a, b) => a - b);
+    state.firstLive = { completed: false, success: false, result: null, ...(state.firstLive || {}) };
+    state.activeStoryNode = state.activeStoryNode || null;
   }
 
   function clamp(value, min, max) {
@@ -194,6 +445,7 @@
   }
 
   function presetFor(idolName) {
+    idolName = canonicalIdolName(idolName);
     const preset = idolPresets[idolName] || idolPresets["藤田琴音"];
     return {
       Vo: preset[0],
@@ -207,6 +459,7 @@
   }
 
   function applyIdolPreset(idolName, resetProgress = false) {
+    idolName = canonicalIdolName(idolName);
     const preset = presetFor(idolName);
     state.idol = idolName;
     state.uiVersion = UI_VERSION;
@@ -223,6 +476,9 @@
       state.stress = 0;
       state.trust = 0;
       state.liveReady = false;
+      state.affinity = { openingComplete: false, unlocked: [], pending: [], viewed: [] };
+      state.firstLive = { completed: false, success: false, result: null };
+      state.activeStoryNode = null;
       state.log = [];
       state.lastStory = `${idolName}的育成档案已经建立。`;
       state.lastDebug = "已建立新的育成档案。";
@@ -238,13 +494,23 @@
     };
   }
 
-  function rollActionEvent(action) {
+  function eventScenesFor(action, attribute) {
+    const pool = [...(actionEventPools[action]?.[attribute] || [])];
+    if (action === "training" && (state.day >= 13 || state.sp?.[attribute])) {
+      pool.push("小舞台试演");
+    }
+    return pool;
+  }
+
+  function rollActionEvent(action, attribute) {
     const chance = action === "training" ? trainingEventChance : lessonEventChance;
     if (!["lesson", "training"].includes(action) || Math.random() * 100 >= chance) return null;
+    const scenePool = eventScenesFor(action, attribute);
+    if (!scenePool.length) return null;
     const character = sample(interactionCharacters.filter((name) => name !== state.idol));
     const rewardAttribute = sample(["Vo", "Da", "Vi", "trust"]);
     const reward = rewardAttribute === "trust" ? { trust: rollInclusive(1, 5) } : { [rewardAttribute]: 10 };
-    return { character, scene: sample(eventScenes), mood: sample(eventMoods), reward };
+    return { character, scene: sample(scenePool), mood: sample(eventMoods), reward, action, attribute };
   }
 
   function formatDelta(delta) {
@@ -256,6 +522,36 @@
 
   function formatRandomEvent(event) {
     return `随机互动：${event.scene}，${event.character}登场，${event.mood}，额外奖励 ${formatDelta(event.reward)}`;
+  }
+
+  function markAffinityUnlocked(threshold) {
+    if (!state.affinity.unlocked.includes(threshold)) state.affinity.unlocked.push(threshold);
+    if (!state.affinity.viewed.includes(threshold) && !state.affinity.pending.includes(threshold)) {
+      state.affinity.pending.push(threshold);
+    }
+    state.affinity.unlocked.sort((a, b) => a - b);
+    state.affinity.pending.sort((a, b) => a - b);
+  }
+
+  function markAffinityViewed(threshold) {
+    if (!state.affinity.viewed.includes(threshold)) state.affinity.viewed.push(threshold);
+    state.affinity.pending = state.affinity.pending.filter((item) => item !== threshold);
+    state.affinity.viewed.sort((a, b) => a - b);
+  }
+
+  function refreshAffinityUnlocks() {
+    ensureStateShape();
+    if (!state.idol) return;
+    [20, 40, 60].forEach((threshold) => {
+      if (state.trust >= threshold) markAffinityUnlocked(threshold);
+    });
+    if (state.trust >= 80 && state.day >= 18) markAffinityUnlocked(80);
+    if (state.trust >= 100 && state.firstLive.success) markAffinityUnlocked(100);
+  }
+
+  function pendingAffinityCount() {
+    ensureStateShape();
+    return state.affinity.pending.filter((threshold) => threshold !== 0 || !state.affinity.openingComplete).length;
   }
 
   function actionLabel(action, attribute) {
@@ -288,25 +584,25 @@
       return;
     }
     state.round = 1;
-    if (state.day >= 18) {
+    if (state.day >= 17) {
+      state.day = 18;
       state.liveReady = true;
       return;
     }
     state.day += 1;
   }
 
-  function settleAction(action, attribute) {
+  function settleAction(action, attribute, actionContext = {}) {
     if (!state.idol) {
       showToast("需要担当偶像", "请先选择本次育成的担当。", "warn");
       return;
     }
+    if (!state.affinity.openingComplete) {
+      triggerAffinityStory(0);
+      return;
+    }
     if (state.liveReady) {
-      state.lastStory = "18 天育成已经结束。接下来应进入 First Live 综合考核。";
-      state.lastPrompt = buildLivePrompt();
-      saveState();
-      render();
-      openNotebook("prompt");
-      showToast("育成已完成", "请复制提示词进入考核叙事。", "info");
+      startFirstLive();
       return;
     }
     if (!isActionAvailable(action)) {
@@ -321,7 +617,7 @@
       delta[attribute] = 65;
       delta.stamina = -10;
       delta.stress = 1;
-      randomEvent = rollActionEvent(action);
+      randomEvent = rollActionEvent(action, attribute);
     } else if (action === "training") {
       const spActive = Boolean(state.sp?.[attribute]);
       ["Vo", "Da", "Vi"].forEach((item) => {
@@ -332,7 +628,7 @@
       });
       delta.stamina = -12;
       delta.stress = spActive ? 3 : 2;
-      randomEvent = rollActionEvent(action);
+      randomEvent = rollActionEvent(action, attribute);
     } else if (action === "rest") {
       delta.stamina = 30;
     } else if (action === "outing") {
@@ -359,18 +655,20 @@
     const actionName = actionLabel(action, attribute);
     const resultText = formatDelta(delta);
     const eventText = randomEvent ? formatRandomEvent(randomEvent) : "";
-    const resultSummary = eventText ? `${resultText}，${eventText}` : resultText;
+    const locationText = action === "outing" && actionContext.destination ? `外出地点：${actionContext.destination}` : "";
+    const resultSummary = [locationText, resultText, eventText].filter(Boolean).join("，");
     const requestId = createRequestId();
-    const story = buildPendingStory(actionName, resultSummary, randomEvent);
-    const prompt = buildPrompt(action, attribute, resultText, randomEvent);
+    const story = buildPendingStory(actionName, resultSummary, randomEvent, actionContext);
+    const prompt = buildPrompt(action, attribute, resultText, randomEvent, actionContext);
 
     state.lastStory = story;
     state.lastPrompt = prompt;
-    state.lastDebug = buildDebugText(actionName, delta, randomEvent);
+    state.lastDebug = buildDebugText(actionName, delta, randomEvent, actionContext);
     state.log.unshift({ day: state.day, round: state.round, phase: getPhase(), action: actionName, result: resultSummary });
     state.log = state.log.slice(0, 24);
 
     advanceRound();
+    refreshAffinityUnlocks();
     rollSpCandidates();
     saveState();
     render();
@@ -394,28 +692,50 @@
     return `${story}\n\n正在等待角色卡 AI 生成本次小剧情...`;
   }
 
-  function buildDebugText(actionName, delta, randomEvent) {
+  function buildDebugText(actionName, delta, randomEvent, actionContext = {}) {
     const spList = Object.entries(state.sp || {}).filter(([, active]) => active).map(([key]) => `${key}训练`).join("、") || "无";
     return [
       `行动：${actionName}`,
+      actionContext.destination ? `外出地点：${actionContext.destination}` : null,
       `结算：${formatDelta(delta) || "无数值变化"}`,
       randomEvent ? `随机事件：${formatRandomEvent(randomEvent)}` : "随机事件：未触发",
       `下一轮 SP 候选：${spList}`,
       "规则：前端只负责结算与提示词构造，LLM 负责把已结算结果改写成角色叙事。"
-    ].join("\n");
+    ].filter(Boolean).join("\n");
   }
 
-  function buildPendingStory(actionName, resultSummary, randomEvent = null) {
+  function buildPendingStory(actionName, resultSummary, randomEvent = null, actionContext = {}) {
     const eventLine = randomEvent
       ? `\n\n本次触发随机互动：${randomEvent.scene}，${randomEvent.character}${randomEvent.mood}。`
       : "";
-    return `${actionName}已经由前端完成结算。\n\n${resultSummary}\n\n剧情正文等待角色卡 AI 回复生成。点击“让 AI 生成后续”后，可以先编辑提示词，再发送给当前 SillyTavern 对话。${eventLine}`;
+    const locationLine = actionContext.destination ? `\n\n本次外出地点：${actionContext.destination}。` : "";
+    return `${actionName}已经由前端完成结算。\n\n${resultSummary}\n\n剧情正文等待角色卡 AI 回复生成。点击“让 AI 生成后续”后，可以先编辑提示词，再发送给当前 SillyTavern 对话。${locationLine}${eventLine}`;
   }
 
-  function buildPrompt(action, attribute, resultText, randomEvent = null) {
+  function outputContract(maxText) {
+    return `输出格式要求：
+- 最终展示给玩家的剧情正文必须放在两行纯文本分隔符之间：
+【初星正文开始】
+这里写剧情正文
+【初星正文结束】
+- 分隔符之间只写角色剧情正文，不要写思考、规划、规则复述、标题、列表、系统说明或数值复盘。
+- 如果需要内部规划、检查、背景信息或思维过程，必须放在正文分隔符之外。
+- 前端只会优先展示【初星正文开始】与【初星正文结束】之间的内容；没有该分隔符时才会尝试自动清理。
+- ${maxText}`;
+  }
+
+  function buildPrompt(action, attribute, resultText, randomEvent = null, actionContext = {}) {
     const profile = idols[state.idol];
     const actionName = actionLabel(action, attribute);
     const actionStyle = profile.styles[action] || profile.styles.rest;
+    const destinationPrompt = action === "outing" && actionContext.destination ? `
+本次外出地点：${actionContext.destination}
+
+外出场景要求：
+- 制作人与担当偶像确实来到该地点活动，不要把地点只当作一句背景说明。
+- 利用该地点可见的设施、商品、声音、气味或人群推动互动。
+- 在本次回复内完成抵达、游玩/交流和当天收束，不要停在刚到目的地。
+` : "";
     const eventPrompt = randomEvent ? `
 
 本次行动触发随机互动事件：
@@ -429,6 +749,10 @@
 - 互动必须服务于本次行动结果，不要写成完全独立的支线。
 - 先承认随机结果已经由前端结算，再用角色关系和性格解释为什么产生这个额外增益。
 - 不要额外增加未列出的数值。` : "";
+
+    const narrativeLength = ["outing", "companion"].includes(action)
+      ? "请写一段 900 字以内的完整场景叙事。本次回复需要把外出/交流的情景从开始、互动推进到当天收束完整写完，不要停在待续。"
+      : "请写一段 400 字以内的短叙事。";
 
     return `[初星育成系统：行动已经由前端结算]
 
@@ -446,9 +770,9 @@
 ${profile.core}
 
 本行动叙事规则：
-${actionStyle}${eventPrompt}
+${actionStyle}${destinationPrompt}${eventPrompt}
 
-请写一段 400 字以内的短叙事。
+${outputContract(narrativeLength)}
 不要重新计算数值。
 不要改变系统结果。
 不要让角色偏离上述主线矛盾。`;
@@ -456,26 +780,237 @@ ${actionStyle}${eventPrompt}
 
   function buildOpeningPrompt() {
     const profile = idols[state.idol];
-    return `[初星育成系统：新育成档案已建立]
+    const seed = affinityRouteSeeds[state.idol]?.[0] || affinityNodes[0].theme;
+    return `[初星育成系统：好感度0担当开场]
 
 担当偶像：${state.idol}
+绑定角色卡：${state.boundCharacter?.name || "未绑定，按担当偶像写"}
 当前阶段：${getPhase()}
 初始状态：Vo ${state.Vo} / Da ${state.Da} / Vi ${state.Vi} / 体力 ${state.stamina} / 压力 ${state.stress} / 信赖 ${state.trust}
-角色核心：${profile.core}
 
-请写一段 300 字以内的开局短叙事，让制作人与担当偶像确认 First Live 前的育成目标。`;
+角色核心：
+${profile.core}
+
+本节点主题：
+${affinityNodes[0].theme}
+
+剧情种子：
+${seed}
+
+叙事要求：
+- 这是玩家选择担当偶像后的开场剧情。
+- 写出制作人选择她的理由、她对被选择的反应，以及是否愿意接受担当。
+- 结尾停在“育成正式开始”的感觉。
+- 不要推进日程。
+- 不要增加或改变任何数值。
+
+${outputContract("请写一段 500 字以内的开场剧情。")}`;
   }
 
   function buildLivePrompt() {
-    return `[初星育成系统：18天育成已经结束]
+    return `[初星育成系统：First Live 候场]
 
 担当偶像：${state.idol}
 最终状态：Vo ${state.Vo} / Da ${state.Da} / Vi ${state.Vi} / 体力 ${state.stamina} / 压力 ${state.stress} / 信赖 ${state.trust}
 成长率：Vo ${state.growth?.Vo} / Da ${state.growth?.Da} / Vi ${state.growth?.Vi}
 
-请准备进入 First Live 综合考核剧情。
+请准备进入 First Live 最终演出。
 不要重新计算数值。
-先写考核前的短暂候场与制作人确认状态，等待玩家决定是否开始考核。`;
+先写考核前的短暂候场与制作人确认状态，等待玩家点击开始 First Live。`;
+  }
+
+  function buildAffinityPrompt(threshold) {
+    const profile = idols[state.idol];
+    const node = affinityNodes[threshold];
+    const seed = affinityRouteSeeds[state.idol]?.[threshold] || node.theme;
+    return `[初星育成系统：好感度剧情触发]
+
+担当偶像：${state.idol}
+绑定角色卡：${state.boundCharacter?.name || "未绑定，按担当偶像写"}
+剧情节点：好感度 ${threshold} / ${node.title}
+当前阶段：${getPhase()}
+当前日程：第 ${state.day} 天，${roundLabel()}
+当前状态：Vo ${state.Vo} / Da ${state.Da} / Vi ${state.Vi} / 体力 ${state.stamina} / 压力 ${state.stress} / 信赖 ${state.trust}
+First Live 状态：${state.firstLive.completed ? (state.firstLive.success ? "已成功" : "已失败") : "尚未演出"}
+
+角色核心：
+${profile.core}
+
+本节点主题：
+${node.theme}
+
+参考剧情种子：
+${seed}
+
+叙事要求：
+- 这是角色专属好感度剧情，不是普通行动短叙事。
+- 参考种子只提供矛盾结构，不要复述原剧情原句。
+- 好感度80固定写成 First Live 前夜。
+- 好感度100固定写成 First Live 成功后的故事结尾。
+- 不要重新计算数值。
+- 不要改变前端已经结算的结果。
+
+${outputContract("请写一段 1200 字以内的完整好感度剧情。本次回复需要把整个情景从开端、冲突/交流推进到情绪收束完整写完，不要停在待续。")}`;
+  }
+
+  function buildFreeChatPrompt(topic) {
+    const profile = idols[state.idol];
+    return `[初星育成系统：自由闲聊]
+
+担当偶像：${state.idol}
+绑定角色卡：${state.boundCharacter?.name || "未绑定，按担当偶像写"}
+当前阶段：${getPhase()}
+当前日程：第 ${state.day} 天，${roundLabel()}
+当前状态：Vo ${state.Vo} / Da ${state.Da} / Vi ${state.Vi} / 体力 ${state.stamina} / 压力 ${state.stress} / 信赖 ${state.trust}
+
+玩家想聊的话题：
+${topic}
+
+角色核心：
+${profile.core}
+
+闲聊规则：
+- 这是制作人与担当偶像之间的一次自由闲聊，不是育成行动。
+- 不消耗行动次数，不推进轮次、日期或 First Live 日程。
+- 不增加或减少任何数值，不触发随机奖励。
+- 围绕玩家输入的话题自然回应，可以加入简短动作、表情和现场氛围。
+- 不要擅自把闲聊升级为重大剧情突破或解决尚未到阶段的角色矛盾。
+
+${outputContract("请写一段 800 字以内的完整闲聊场景，在本次回复内自然收束话题，不要停在待续。")}`;
+  }
+
+  function evaluateFirstLive() {
+    const stats = ["Vo", "Da", "Vi"].map((key) => ({
+      key,
+      label: statLabels[key],
+      value: state[key],
+      target: state.threshold[key],
+      margin: state[key] - state.threshold[key]
+    }));
+    const success = stats.every((item) => item.margin >= 0);
+    const highest = [...stats].sort((a, b) => b.value - a.value)[0];
+    const weakest = [...stats].sort((a, b) => a.margin - b.margin)[0];
+    const surplus = stats.reduce((sum, item) => sum + Math.max(0, item.margin), 0);
+    const tone = success
+      ? surplus >= 600 ? "三项都明显超过审查基准，First Live 大获成功。" : `${highest.label} 表现最突出，整体达到审查基准。`
+      : `${weakest.label} 未达到审查基准，演出留下明确课题。`;
+    return { success, stats, highest, weakest, surplus, tone };
+  }
+
+  function formatLiveResult(result) {
+    const lines = result.stats.map((item) => `${item.label} ${item.value} / ${item.target} ${item.margin >= 0 ? "达标" : "未达标"}`);
+    return `${lines.join("\n")}\n\n结果：${result.success ? "First Live 成功" : "First Live 失败"}\n叙事侧重：${result.tone}`;
+  }
+
+  function buildFirstLivePrompt(result) {
+    const profile = idols[state.idol];
+    return `[初星育成系统：First Live 最终演出]
+
+担当偶像：${state.idol}
+绑定角色卡：${state.boundCharacter?.name || "未绑定，按担当偶像写"}
+当前状态：Vo ${state.Vo} / Da ${state.Da} / Vi ${state.Vi} / 体力 ${state.stamina} / 压力 ${state.stress} / 信赖 ${state.trust}
+
+前端判定：
+${formatLiveResult(result)}
+
+最高项：${result.highest.label} ${result.highest.value}
+最低项：${result.weakest.label} ${result.weakest.value}
+
+角色核心：
+${profile.core}
+
+叙事时间范围：
+- 正文必须从舞台灯光亮起、担当偶像登台开始。
+- 正文至少90%的篇幅必须发生在 First Live 正在进行时。
+- 按演出顺序描写登台、开场、主歌推进、舞台高潮、最终动作和观众反应。
+- 结尾停在最后一个音落下、舞台动作定格、现场响起掌声的瞬间。
+
+舞台描写要求：
+- 使用实时舞台镜头，不要用演出后的回忆或总结代替演出过程。
+- 具体描写歌声、呼吸、舞步、重心、表情、视线、灯光、镜头和观众反应。
+- 通过实际舞台表现体现前端数值，不要只写“某项能力很优秀”。
+- 最高属性必须成为本场演出的核心高光，其他达标属性也要在舞台上得到表现。
+- 体力与压力可以影响演出中的状态，但不能改变前端成功或失败结论。
+- 制作人可以从侧台或观众席观察，但不能抢走担当偶像的舞台主体。
+
+叙事要求：
+- 必须承认 First Live 的前端判定结果。
+- 不要重新计算数值。
+- 不要改变成功或失败结论。
+- 如果成功，通过正在发生的舞台表现写出阶段性胜利，并突出最高项表现。
+- 如果失败，在舞台过程中写出失误、挣扎或未达标之处，以及她如何坚持完成演出。
+- 不要跳到后台、休息室、归途、庆功或演出后的长篇感想。
+- 不要描写演出后的关系确认，也不要提前进入好感度100剧情。
+- 演出后的故事统一留给好感度100剧情。
+
+${outputContract("请写一段 1000 字以内、以实时舞台表现为主体的 First Live 演出剧情。")}`;
+  }
+
+  function startOpeningStory() {
+    markAffinityUnlocked(0);
+    const prompt = buildOpeningPrompt();
+    const requestId = createRequestId();
+    state.activeStoryNode = { type: "affinity", threshold: 0, ready: false };
+    state.lastPrompt = prompt;
+    state.lastStory = `${state.idol}的担当开场正在生成。`;
+    saveState();
+    render();
+    pendingAiRequestId = requestId;
+    openEventOverlay("好感度 0：担当开场", "已向当前角色卡发送开场剧情请求。", buildAiWaitingStory("选择担当偶像后，开场剧情将由 AI 生成。"));
+    if (!requestHostPromptSend(prompt, requestId)) {
+      state.activeStoryNode.ready = true;
+      saveState();
+      openEventOverlay("好感度 0：担当开场", "当前页面未连接 SillyTavern。提示词已准备，可手动发送给 AI；本地测试时也可以确认进入育成。", "开场剧情等待手动生成。你可以在提示词窗口复制或编辑好感度0开场提示词。");
+      openAiPromptOverlay("当前页面未连接 SillyTavern。请编辑或复制好感度0开场提示词后手动发送。");
+    }
+  }
+
+  function triggerAffinityStory(threshold) {
+    ensureStateShape();
+    refreshAffinityUnlocks();
+    if (!state.affinity.unlocked.includes(threshold)) {
+      showToast("剧情尚未解锁", affinityNodes[threshold]?.timing || "继续推进育成即可解锁。", "warn");
+      return;
+    }
+    const node = affinityNodes[threshold];
+    const prompt = threshold === 0 ? buildOpeningPrompt() : buildAffinityPrompt(threshold);
+    const requestId = createRequestId();
+    state.activeStoryNode = { type: "affinity", threshold, ready: false };
+    state.lastPrompt = prompt;
+    state.lastStory = `好感度 ${threshold}：${node.title} 正在生成。`;
+    saveState();
+    closeModal();
+    render();
+    pendingAiRequestId = requestId;
+    openEventOverlay(`好感度 ${threshold}：${node.title}`, `已向当前角色卡发送${node.title}剧情请求。`, buildAiWaitingStory(`${node.title}剧情正文等待 AI 回复。`));
+    if (!requestHostPromptSend(prompt, requestId)) {
+      openAiPromptOverlay("当前页面未连接 SillyTavern。请编辑或复制好感度剧情提示词后手动发送。");
+    }
+  }
+
+  function startFirstLive() {
+    if (!state.idol || !state.liveReady) return;
+    if (state.firstLive.completed) {
+      showToast("First Live 已完成", state.firstLive.success ? "成功后可在羁绊事件中触发好感度100。" : "本轮演出已经结束。", "info");
+      return;
+    }
+    const result = evaluateFirstLive();
+    state.firstLive = { completed: true, success: result.success, result };
+    state.activeStoryNode = { type: "firstLive", ready: false };
+    state.lastPrompt = buildFirstLivePrompt(result);
+    state.lastStory = `First Live 判定完成：${result.success ? "成功" : "失败"}。`;
+    refreshAffinityUnlocks();
+    state.lastDebug = formatLiveResult(result);
+    state.log.unshift({ day: state.day, round: "Live", phase: "First Live", action: "最终演出", result: result.success ? "演出成功" : "演出失败" });
+    state.log = state.log.slice(0, 24);
+    saveState();
+    render();
+    const requestId = createRequestId();
+    pendingAiRequestId = requestId;
+    openEventOverlay("First Live 最终演出", buildAiWaitingResult(formatLiveResult(result)), buildAiWaitingStory("最终演出剧情等待角色卡 AI 回复生成。"));
+    if (!requestHostPromptSend(state.lastPrompt, requestId)) {
+      openAiPromptOverlay("当前页面未连接 SillyTavern。请编辑或复制 First Live 提示词后手动发送。");
+    }
   }
 
   function render() {
@@ -490,8 +1025,9 @@ ${actionStyle}${eventPrompt}
 
   function renderShellMode() {
     const hasIdol = Boolean(state.idol);
+    const canShowGame = hasIdol && state.affinity.openingComplete;
     document.getElementById("selectionStage").classList.toggle("is-hidden", hasIdol);
-    document.getElementById("gameStage").classList.toggle("is-hidden", !hasIdol);
+    document.getElementById("gameStage").classList.toggle("is-hidden", !canShowGame);
   }
 
   function renderIdols() {
@@ -505,9 +1041,8 @@ ${actionStyle}${eventPrompt}
       button.innerHTML = `<strong>${name}</strong><span>${profile.tag}</span>`;
       button.addEventListener("click", () => {
         applyIdolPreset(name, true);
-        state.lastPrompt = buildOpeningPrompt();
+        startOpeningStory();
         saveState();
-        render();
         showToast("担当已确认", `${name}进入 First Live 育成路线。`, "gold");
       });
       list.appendChild(button);
@@ -516,7 +1051,14 @@ ${actionStyle}${eventPrompt}
 
   function renderHud() {
     const profile = idols[state.idol];
+    const gameStage = document.getElementById("gameStage");
     document.documentElement.style.setProperty("--idol-theme", profile.theme);
+    gameStage.classList.toggle("has-idol-background", Boolean(profile.background));
+    if (profile.background) {
+      gameStage.style.setProperty("--idol-scene-image", `url("${profile.background}")`);
+    } else {
+      gameStage.style.removeProperty("--idol-scene-image");
+    }
     document.getElementById("daysLeftValue").textContent = daysLeft();
     document.getElementById("staminaValue").textContent = state.stamina;
     document.getElementById("staminaFill").style.width = `${clamp(state.stamina, 0, 100)}%`;
@@ -526,7 +1068,8 @@ ${actionStyle}${eventPrompt}
     document.getElementById("currentIdolLabel").textContent = "当前担当";
     document.getElementById("idolName").textContent = state.idol;
     document.getElementById("phaseBadge").textContent = getPhase();
-    document.getElementById("advisorText").textContent = shortAdvisor(state.lastStory || "请选择行动");
+    const badge = document.getElementById("affinityPendingBadge");
+    if (badge) badge.textContent = String(pendingAffinityCount());
   }
 
   function renderStatMeters() {
@@ -573,10 +1116,20 @@ ${actionStyle}${eventPrompt}
   function renderActionButtons() {
     const container = document.getElementById("actionButtons");
     container.innerHTML = "";
+    if (state.liveReady) {
+      container.appendChild(createActionButton(state.firstLive.completed ? "First Live已完成" : "开始First Live", "live", null, "#ff4f9a", state.firstLive.completed ? "已结算" : "最终考核"));
+      container.appendChild(createActionButton("闲聊", "freechat", null, "#8c73ff", "行动0"));
+      document.getElementById("actionModeLabel").textContent = state.firstLive.completed
+        ? (state.firstLive.success ? "First Live成功，最终剧情已解锁" : "First Live结束，等待下一阶段")
+        : "最终日程：First Live";
+      renderActionHighlights();
+      return;
+    }
     const actions = isExtraRound()
       ? [
           ["外出", "outing", null, "#20dfad", "体力+38"],
-          ["交流", "companion", null, "#ff4f9a", "信赖+15"]
+          ["交流", "companion", null, "#ff4f9a", "信赖+15"],
+          ["闲聊", "freechat", null, "#8c73ff", "行动0"]
         ]
       : [
           ["Vo公开课", "lesson", "Vo", statColors.Vo, "体力-10"],
@@ -585,7 +1138,8 @@ ${actionStyle}${eventPrompt}
           ["Vo训练", "training", "Vo", statColors.Vo, "体力-12"],
           ["Da训练", "training", "Da", statColors.Da, "体力-12"],
           ["Vi训练", "training", "Vi", statColors.Vi, "体力-12"],
-          ["休息", "rest", null, "#20dfad", "体力+30"]
+          ["休息", "rest", null, "#20dfad", "体力+30"],
+          ["闲聊", "freechat", null, "#8c73ff", "行动0"]
         ];
     actions.forEach(([label, action, attribute, color, cost]) => {
       container.appendChild(createActionButton(label, action, attribute, color, cost));
@@ -598,7 +1152,13 @@ ${actionStyle}${eventPrompt}
 
   function renderActionHighlights() {
     document.querySelectorAll(".action-button").forEach((button) => {
-      button.disabled = Boolean(state.liveReady) || !isActionAvailable(button.dataset.action);
+      if (button.dataset.action === "freechat") {
+        button.disabled = false;
+      } else if (button.dataset.action === "live") {
+        button.disabled = Boolean(state.firstLive.completed);
+      } else {
+        button.disabled = Boolean(state.liveReady) || !isActionAvailable(button.dataset.action);
+      }
     });
   }
 
@@ -674,19 +1234,23 @@ ${actionStyle}${eventPrompt}
     return true;
   }
 
-  function applyHostCharacter(character) {
+  function applyHostCharacter(character, saveScope = "") {
     if (!character?.name) return;
+    const switched = switchStorageScope(saveScope);
     state.boundCharacter = {
       name: String(character.name),
       avatar: character.avatar ? String(character.avatar) : ""
     };
-    if (!state.idol && idols[character.name]) {
-      applyIdolPreset(character.name, true);
-      state.lastPrompt = buildOpeningPrompt();
+    const characterIdol = canonicalIdolName(character.name);
+    if (!state.idol && idols[characterIdol]) {
+      applyIdolPreset(characterIdol, true);
+      startOpeningStory();
+      return;
     }
     saveState();
     render();
-    showToast("已绑定角色卡", `当前角色卡：${state.boundCharacter.name}`, "info");
+    resumeOpeningIfNeeded();
+    showToast(switched ? "已切换对话存档" : "已绑定角色卡", `当前角色卡：${state.boundCharacter.name}`, "info");
   }
 
   function closeNotebook() {
@@ -702,8 +1266,84 @@ ${actionStyle}${eventPrompt}
     document.getElementById("aiPromptTextarea").focus();
   }
 
+  function resumeOpeningIfNeeded() {
+    if (!state.idol || state.affinity.openingComplete) return;
+    markAffinityUnlocked(0);
+    if (!state.activeStoryNode) state.activeStoryNode = { type: "affinity", threshold: 0, ready: false };
+    if (!state.lastPrompt) state.lastPrompt = buildOpeningPrompt();
+    saveState();
+    openEventOverlay("好感度 0：担当开场", "开场剧情尚未确认。", state.lastStory || "请生成并阅读担当开场后开始育成。");
+  }
+
   function closeAiPromptOverlay() {
     document.getElementById("aiPromptOverlay").hidden = true;
+  }
+
+  function openFreeChatOverlay() {
+    document.getElementById("freeChatPhaseBadge").textContent = getPhase();
+    document.getElementById("freeChatTextarea").value = "";
+    document.getElementById("freeChatOverlay").hidden = false;
+    document.getElementById("freeChatTextarea").focus();
+  }
+
+  function closeFreeChatOverlay() {
+    document.getElementById("freeChatOverlay").hidden = true;
+  }
+
+  function openOutingOverlay() {
+    document.getElementById("outingPhaseBadge").textContent = getPhase();
+    document.getElementById("outingCustomInput").value = "";
+    const list = document.getElementById("outingDestinationList");
+    list.innerHTML = "";
+    outingDestinations.forEach((destination, index) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.id = `outing-destination-${index + 1}`;
+      button.className = "outing-destination-button";
+      button.innerHTML = `<strong>${destination.name}</strong><span>${destination.description}</span>`;
+      button.addEventListener("click", () => confirmOutingDestination(destination.name));
+      list.appendChild(button);
+    });
+    document.getElementById("outingOverlay").hidden = false;
+  }
+
+  function closeOutingOverlay() {
+    document.getElementById("outingOverlay").hidden = true;
+  }
+
+  function confirmOutingDestination(destination) {
+    const location = String(destination || "").trim();
+    if (!location) {
+      showToast("还没有地点", "请选择预设地点，或输入自定义外出地点。", "warn");
+      return;
+    }
+    closeOutingOverlay();
+    settleAction("outing", null, { destination: location });
+  }
+
+  function submitCustomOutingDestination() {
+    confirmOutingDestination(document.getElementById("outingCustomInput").value);
+  }
+
+  function submitFreeChat() {
+    const topic = document.getElementById("freeChatTextarea").value.trim();
+    if (!topic) {
+      showToast("还没有话题", "输入这次想和担当聊的内容后再发送。", "warn");
+      return;
+    }
+    const prompt = buildFreeChatPrompt(topic);
+    const requestId = createRequestId();
+    state.activeStoryNode = { type: "freechat", topic, ready: false };
+    state.lastPrompt = prompt;
+    state.lastStory = `正在和${state.idol}聊：${topic}`;
+    saveState();
+    renderNotebook();
+    closeFreeChatOverlay();
+    pendingAiRequestId = requestId;
+    openEventOverlay("担当闲聊", "闲聊不消耗行动次数，也不会推进日程或改变数值。", buildAiWaitingStory(`正在等待${state.idol}回应这个话题。`));
+    if (!requestHostPromptSend(prompt, requestId)) {
+      openAiPromptOverlay("当前页面未连接 SillyTavern。请编辑或复制闲聊提示词后手动发送。出于本地测试需要，本次闲聊不会推进日程。 ");
+    }
   }
 
   function submitAiPrompt() {
@@ -733,11 +1373,49 @@ ${actionStyle}${eventPrompt}
     document.getElementById("eventPhaseBadge").textContent = getPhase();
     document.getElementById("eventResult").textContent = result || "本次行动已经完成结算。";
     document.getElementById("eventStory").textContent = story || state.lastStory || "本次行动已经完成。";
+    const confirm = document.getElementById("eventConfirmBtn");
+    const node = state.activeStoryNode;
+    confirm.textContent = node?.type === "affinity" && node.threshold === 0 ? "确认开始育成" : "确定";
     document.getElementById("eventOverlay").hidden = false;
-    document.getElementById("eventConfirmBtn").focus();
+    confirm.focus();
   }
 
   function closeEventOverlay() {
+    const node = state.activeStoryNode;
+    if (node?.type === "affinity") {
+      if (!node.ready) {
+        if (Number(node.threshold) === 0) {
+          showToast("开场仍在生成", "请等待 AI 回复写入开场剧情后再开始育成。", "warn");
+          return;
+        }
+        document.getElementById("eventOverlay").hidden = true;
+        return;
+      }
+      markAffinityViewed(Number(node.threshold));
+      if (Number(node.threshold) === 0) {
+        state.affinity.openingComplete = true;
+      }
+      state.activeStoryNode = null;
+      saveState();
+      render();
+    } else if (node?.type === "firstLive") {
+      if (!node.ready) {
+        document.getElementById("eventOverlay").hidden = true;
+        return;
+      }
+      state.activeStoryNode = null;
+      refreshAffinityUnlocks();
+      saveState();
+      render();
+    } else if (node?.type === "freechat") {
+      if (!node.ready) {
+        document.getElementById("eventOverlay").hidden = true;
+        return;
+      }
+      state.activeStoryNode = null;
+      saveState();
+      render();
+    }
     document.getElementById("eventOverlay").hidden = true;
   }
 
@@ -749,18 +1427,130 @@ ${actionStyle}${eventPrompt}
     openEventOverlay(state.lastEventTitle, state.lastEventResult, state.lastEventStory);
   }
 
-  function applyAiReply(text, requestId = "") {
+  function openAffinityModal() {
+    if (!state.idol) {
+      showToast("需要担当偶像", "请先选择本次育成的担当。", "warn");
+      return;
+    }
+    refreshAffinityUnlocks();
+    activeModal = "affinity";
+    activeModalTab = null;
+    document.getElementById("modalKicker").textContent = "Bond Stories";
+    document.getElementById("modalTitle").textContent = "羁绊事件";
+    const tabs = document.getElementById("modalTabs");
+    tabs.innerHTML = "";
+    const body = document.getElementById("modalBody");
+    body.innerHTML = "";
+    const grid = document.createElement("div");
+    grid.className = "modal-grid affinity-grid";
+    [0, ...affinityThresholds].forEach((threshold) => {
+      const node = affinityNodes[threshold];
+      const unlocked = state.affinity.unlocked.includes(threshold);
+      const viewed = state.affinity.viewed.includes(threshold);
+      const pending = state.affinity.pending.includes(threshold);
+      const card = document.createElement("article");
+      card.className = `modal-card affinity-card${unlocked ? " unlocked" : " locked"}${pending ? " pending" : ""}`;
+      card.id = `affinity-card-${threshold}`;
+      const status = viewed ? "已观看" : pending ? "可观看" : unlocked ? "可重看" : "未解锁";
+      const actionText = viewed ? "重新生成" : unlocked ? "生成剧情" : "继续育成";
+      card.innerHTML = `
+        <strong>好感度 ${threshold}：${node.title}</strong>
+        <p>${node.theme}</p>
+        <small>${node.timing}</small>
+        <button id="affinity-trigger-${threshold}" class="affinity-trigger" type="button" ${unlocked ? "" : "disabled"}>${status} / ${actionText}</button>
+      `;
+      const button = card.querySelector("button");
+      button.addEventListener("click", () => triggerAffinityStory(threshold));
+      grid.appendChild(card);
+    });
+    body.appendChild(grid);
+    document.getElementById("appModal").hidden = false;
+    document.getElementById("closeModal").focus();
+  }
+
+  function extractReplyText(candidates) {
+    const results = candidates
+      .map((candidate) => extractReplyCandidate(candidate))
+      .filter((result) => result.text);
+    const delimited = results.find((result) => result.method === "hatsu")
+      || results.find((result) => result.method === "maintext");
+    if (delimited) return delimited.text;
+    return results
+      .filter((result) => result.text.replace(/\s+/g, "").length >= 12 && !isJunkReply(result.text))
+      .sort((a, b) => b.text.length - a.text.length)[0]?.text || "";
+  }
+
+  function extractReplyCandidate(value) {
+    const raw = String(value || "")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&amp;/g, "&")
+      .replace(/\u200b/g, "");
+    const hatsu = raw.match(/[【\[]\s*初星正文开始\s*[】\]]([\s\S]*?)[【\[]\s*初星正文结束\s*[】\]]/);
+    if (hatsu?.[1]?.trim()) return { method: "hatsu", text: cleanReplyText(hatsu[1]) };
+    const hatsuStart = raw.match(/[【\[]\s*初星正文开始\s*[】\]]([\s\S]*)/);
+    if (hatsuStart?.[1]?.trim()) {
+      return { method: "hatsu", text: cleanReplyText(hatsuStart[1].replace(/[【\[]\s*初星正文结束\s*[】\]][\s\S]*$/u, "")) };
+    }
+    const main = raw.match(/<maintext\b[^>]*>([\s\S]*?)<\/maintext>/i);
+    if (main?.[1]?.trim()) return { method: "maintext", text: cleanReplyText(main[1]) };
+    return { method: "fallback", text: cleanReplyText(raw) };
+  }
+
+  function cleanReplyText(value) {
+    return String(value || "")
+      .replace(/<!--[\s\S]*?-->/g, "")
+      .replace(/<(thinking|details|summary|sum|vars|analysis|planning|plan|konatan_planning|bginfo|bginfor)\b[^>]*>[\s\S]*?<\/\1>/gi, "")
+      .replace(/<\/?[a-zA-Z_][\w:-]*\b[^>]*>/g, "")
+      .replace(/以下为本次回复的梳理[:：]?[\s\S]*?(?=[【\[]\s*初星正文开始\s*[】\]]|$)/g, "")
+      .replace(/\[\s*\{[\s\S]*?\}\s*\]\s*$/g, "")
+      .replace(/^\s*\*{1,2}\s*/gm, "")
+      .replace(/\s*\*{1,2}\s*$/gm, "")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+  }
+
+  function isJunkReply(value) {
+    const compact = String(value || "").replace(/\s+/g, "");
+    return !compact || compact.length < 2 || /^[.…。·\-—_]+$/.test(compact) || /^正文$/.test(compact) || /^…正文…$/.test(compact);
+  }
+
+  function chooseLongestReply(...values) {
+    return values
+      .map((value) => String(value || "").trim())
+      .filter(Boolean)
+      .sort((a, b) => b.replace(/\s+/g, "").length - a.replace(/\s+/g, "").length)[0] || "";
+  }
+
+  function applyAiReply(text, requestId = "", rawText = "", renderedText = "") {
     if (requestId && pendingAiRequestId && requestId !== pendingAiRequestId) return;
-    const reply = String(text || "").trim();
-    if (!reply) return;
+    const source = chooseLongestReply(rawText, renderedText, text);
+    const reply = extractReplyText([source]);
+    if (!reply) {
+      showToast("原始回复为空", "没有收到可展示文本，已保留当前事件页不覆盖。", "warn");
+      return;
+    }
+    if (reply.replace(/\s+/g, "").length < 12 || isJunkReply(reply)) {
+      showToast("收到短片段", "酒馆回复仍在生成或扩展未刷新，已保留当前事件页不覆盖。", "warn");
+      return;
+    }
     pendingAiRequestId = "";
     state.lastStory = reply;
+    if (state.activeStoryNode) state.activeStoryNode.ready = true;
     if (state.log[0]) {
       state.log[0].aiReply = reply;
     }
     saveState();
     render();
-    openEventOverlay("AI 后续剧情", "已收到 SillyTavern 角色回复", reply);
+    const node = state.activeStoryNode;
+    const title = node?.type === "affinity"
+      ? `好感度 ${node.threshold}：${affinityNodes[node.threshold]?.title || "羁绊事件"}`
+      : node?.type === "firstLive"
+        ? "First Live 最终演出"
+        : node?.type === "freechat"
+          ? "担当闲聊"
+        : "AI 后续剧情";
+    openEventOverlay(title, "已收到 SillyTavern 角色回复", reply);
   }
 
   function showToast(title, message, tone = "info") {
@@ -804,7 +1594,7 @@ ${actionStyle}${eventPrompt}
           ["复制出口", "P 手账中的提示词可直接送入酒馆或其他 LLM 对话。"]
         ],
         "存档": [
-          ["本地存储", `存档键：${STORAGE_KEY}`],
+          ["本地存储", `存档键：${activeStorageKey}`],
           ["版本", `UI Version ${UI_VERSION}，结构变化时会重建档案。`],
           ["当前担当", state.idol || "未选择"]
         ],
@@ -822,7 +1612,8 @@ ${actionStyle}${eventPrompt}
         "日程": [
           ["第 1-6 天", "First Live 前期，建立基础数值与担当关系。"],
           ["第 7-12 天", "First Live 中期，随机互动与信赖剧情开始成为主要变量。"],
-          ["第 13-18 天", "First Live 后期，数值门槛与角色矛盾共同推向考核。"]
+          ["第 13-17 天", "First Live 后期，数值门槛与角色矛盾共同推向考核。"],
+          ["第 18 天", "最终日程固定为 First Live，不再进行普通行动。"]
         ],
         "轮次": [
           ["普通轮次", "每天第 1、2、3 轮，只显示上课、训练和休息。"],
@@ -830,8 +1621,9 @@ ${actionStyle}${eventPrompt}
           ["防误操作", "体力危险时仍可选择休息，避免路线被单次失误锁死。"]
         ],
         "考核": [
-          ["First Live", "第 18 天后进入综合考核提示词。"],
-          ["信赖阈值", "后续可接入角色专属好感度阶段剧情。"],
+          ["First Live", "第 18 天点击开始最终演出，由前端判定三项数值是否达标。"],
+          ["好感度80", "好感度达到 80 后，会在第 18 天前解锁舞台前夜。"],
+          ["好感度100", "First Live 成功且好感度达到 100 后解锁最终剧情。"],
           ["数值门槛", "Vo、Da、Vi 的门槛与上限来自角色成长率预设。"]
         ]
       }
@@ -847,8 +1639,8 @@ ${actionStyle}${eventPrompt}
         ],
         "输出标签": [
           ["短叙事", "默认 400 字以内，适合直接插入酒馆对话。"],
-          ["阶段剧情", "可由信赖阈值触发，写角色专属突破与矛盾解决。"],
-          ["考核剧情", "18 天后由最终状态进入 First Live。"]
+          ["好感剧情", "0 为强制开场，20/40/60/80/100 由羁绊事件按钮主动触发。"],
+          ["考核剧情", "第 18 天由最终状态进入 First Live 数值判定。"]
         ],
         "边界": [
           ["禁止改数值", "模型不得改变当前状态、行动结果或随机奖励。"],
@@ -871,7 +1663,15 @@ ${actionStyle}${eventPrompt}
           ["信赖奖励", "随机追加信赖 +1 到 +5。"],
           ["叙事解释", "奖励先由前端确定，再要求 LLM 用角色关系解释结果。"]
         ],
-        "场景池": eventScenes.map((scene) => [scene, sample(eventMoods)])
+        "场景池": [
+          ...Object.entries(actionEventPools).flatMap(([action, attributes]) =>
+            Object.entries(attributes).map(([attribute, scenes]) => [
+              `${action === "lesson" ? "上课" : "训练"} · ${attribute}`,
+              scenes.join("、")
+            ])
+          ),
+          ["小舞台试演", "仅在第13天后训练或本轮SP训练时加入候选池。"]
+        ]
       }
     }
   };
@@ -925,6 +1725,14 @@ ${actionStyle}${eventPrompt}
   document.getElementById("actionButtons").addEventListener("click", (event) => {
     const button = event.target.closest(".action-button");
     if (!button || button.disabled) return;
+    if (button.dataset.action === "freechat") {
+      openFreeChatOverlay();
+      return;
+    }
+    if (button.dataset.action === "outing") {
+      openOutingOverlay();
+      return;
+    }
     settleAction(button.dataset.action, button.dataset.attribute);
   });
 
@@ -950,29 +1758,42 @@ ${actionStyle}${eventPrompt}
   });
   document.getElementById("eventConfirmBtn").addEventListener("click", closeEventOverlay);
   document.getElementById("eventAiBtn").addEventListener("click", () => {
-    closeEventOverlay();
+    document.getElementById("eventOverlay").hidden = true;
     openAiPromptOverlay();
   });
   document.getElementById("eventOverlay").addEventListener("click", (event) => {
     if (event.target.id === "eventOverlay") closeEventOverlay();
   });
   document.getElementById("sideItemLastEvent").addEventListener("click", reopenLastEvent);
+  document.getElementById("sideItemStory").addEventListener("click", openAffinityModal);
   document.getElementById("aiPromptCancelBtn").addEventListener("click", closeAiPromptOverlay);
   document.getElementById("aiPromptSendBtn").addEventListener("click", submitAiPrompt);
   document.getElementById("aiPromptOverlay").addEventListener("click", (event) => {
     if (event.target.id === "aiPromptOverlay") closeAiPromptOverlay();
   });
+  document.getElementById("freeChatCancelBtn").addEventListener("click", closeFreeChatOverlay);
+  document.getElementById("freeChatSendBtn").addEventListener("click", submitFreeChat);
+  document.getElementById("freeChatOverlay").addEventListener("click", (event) => {
+    if (event.target.id === "freeChatOverlay") closeFreeChatOverlay();
+  });
+  document.getElementById("outingCancelBtn").addEventListener("click", closeOutingOverlay);
+  document.getElementById("outingCustomConfirmBtn").addEventListener("click", submitCustomOutingDestination);
+  document.getElementById("outingOverlay").addEventListener("click", (event) => {
+    if (event.target.id === "outingOverlay") closeOutingOverlay();
+  });
   window.addEventListener("message", (event) => {
     if (event.origin !== window.location.origin) return;
     const data = event.data || {};
     if (data.source !== "hatsuboshi-produce-host") return;
-    if (data.type === "character") applyHostCharacter(data.character);
-    if (data.type === "aiReply") applyAiReply(data.text, data.requestId);
+    if (data.type === "character") applyHostCharacter(data.character, data.saveScope);
+    if (data.type === "aiReply") applyAiReply(data.text, data.requestId, data.rawText, data.renderedText);
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
       closeEventOverlay();
       closeAiPromptOverlay();
+      closeFreeChatOverlay();
+      closeOutingOverlay();
       if (activeModal) closeModal();
       closeNotebook();
     }
@@ -983,9 +1804,7 @@ ${actionStyle}${eventPrompt}
     const idolName = state.idol;
     state = clone(baseState);
     applyIdolPreset(idolName, true);
-    state.lastPrompt = buildOpeningPrompt();
-    saveState();
-    render();
+    startOpeningStory();
     showToast("育成已重置", "保留当前担当并重建第 1 天档案。", "warn");
   });
 
@@ -1026,7 +1845,10 @@ ${actionStyle}${eventPrompt}
   if ("fatigue" in state) delete state.fatigue;
   if (typeof state.liveReady !== "boolean") state.liveReady = false;
   if (state.idol && (!state.growth || !state.cap || !state.sp)) applyIdolPreset(state.idol);
+  ensureStateShape();
+  refreshAffinityUnlocks();
   saveState();
   render();
+  if (!isSillyTavernHost()) resumeOpeningIfNeeded();
   requestHostCharacter();
 })();
