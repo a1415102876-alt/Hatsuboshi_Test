@@ -1832,15 +1832,18 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
   }
 
   function applyAiReply(text, requestId = "", rawText = "", renderedText = "") {
-    if (!shouldAcceptAiReply(requestId, pendingAiRequestId)) return;
+    if (!shouldAcceptAiReply(requestId, pendingAiRequestId)) {
+      sendAiReplyAck(requestId, false, false);
+      return;
+    }
     const source = chooseLongestReply(rawText, renderedText, text);
     const reply = extractReplyText([source]);
     if (!reply) {
-      showToast("原始回复为空", "没有收到可展示文本，已保留当前事件页不覆盖。", "warn");
+      sendAiReplyAck(requestId, false, true);
       return;
     }
     if (reply.replace(/\s+/g, "").length < 12 || isJunkReply(reply)) {
-      showToast("收到短片段", "酒馆回复仍在生成或扩展未刷新，已保留当前事件页不覆盖。", "warn");
+      sendAiReplyAck(requestId, false, true);
       return;
     }
     pendingAiRequestId = "";
@@ -1862,6 +1865,18 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
             ? "偶像互动"
         : "AI 后续剧情";
     openEventOverlay(title, "已收到 SillyTavern 角色回复", reply);
+    sendAiReplyAck(requestId, true, false);
+  }
+
+  function sendAiReplyAck(requestId, accepted, retry) {
+    if (!isSillyTavernHost() || !requestId) return;
+    window.parent.postMessage({
+      source: "hatsuboshi-produce",
+      type: "aiReplyAck",
+      requestId,
+      accepted,
+      retry
+    }, window.location.origin);
   }
 
   function shouldAcceptAiReply(requestId, currentRequestId) {
