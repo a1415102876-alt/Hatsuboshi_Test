@@ -208,6 +208,20 @@
 
   const exactPresetIdols = new Set(["藤田琴音", "月村手毬", "花海咲季", "秦谷美铃"]);
   const idolAliases = { "花海佑芽": "花海祐芽" };
+  const affinityIdolCodes = {
+    "藤田琴音": "KOTONE",
+    "月村手毬": "TEMARI",
+    "花海咲季": "SAKI",
+    "花海祐芽": "UME",
+    "篠泽广": "HIRO",
+    "十王星南": "SENA",
+    "秦谷美铃": "MISUZU",
+    "仓本千奈": "CHINA",
+    "葛城莉莉娅": "LILJA",
+    "紫云清夏": "SUMIKA",
+    "有村麻央": "MAO",
+    "姬崎莉波": "RINAMI"
+  };
   const interactionCharacters = ["藤田琴音", "月村手毬", "花海咲季", "秦谷美铃", "篠泽广", "十王星南", "花海祐芽", "仓本千奈", "紫云清夏", "葛城莉莉娅", "有村麻央", "姬崎莉波"];
   const actionEventPools = {
     lesson: {
@@ -231,6 +245,27 @@
     { name: "琴音打工的快餐店", description: "打工、收入、家庭压力，以及努力被看见的地方。" }
   ];
   const affinityThresholds = [20, 40, 60, 80, 100];
+
+  function getAffinityStageThreshold(trust) {
+    const value = Number.isFinite(Number(trust)) ? Number(trust) : 0;
+    if (value >= 100) return 100;
+    if (value >= 80) return 80;
+    if (value >= 60) return 60;
+    if (value >= 40) return 40;
+    if (value >= 20) return 20;
+    return 0;
+  }
+
+  function getAffinityStageTag(idolName, trust) {
+    const code = affinityIdolCodes[idolName];
+    return code ? `AFF_${code}_${getAffinityStageThreshold(trust)}` : "";
+  }
+
+  function getAffinityStageLine(idolName, trust) {
+    const tag = getAffinityStageTag(idolName, trust);
+    return tag ? `好感度阶段标签：${tag}` : "";
+  }
+
   const affinityNodes = {
     0: { title: "担当开场", theme: "制作人与担当偶像正式建立育成关系，确认 First Live 前的共同目标。", timing: "选择担当后立即触发，读完后进入育成主界面。" },
     20: { title: "相互试探", theme: "围绕“为什么选择她、她为什么愿意接受你”推进早期信任。", timing: "好感度达到 20 后解锁。" },
@@ -794,6 +829,7 @@
     return `[初星育成系统：行动已经由前端结算]
 
 担当偶像：${state.idol}
+${getAffinityStageLine(state.idol, state.trust)}
 绑定角色卡：${state.boundCharacter?.name || "未绑定，按担当偶像写"}
 当前阶段：${getPhase()}
 当前日程：第 ${state.day} 天，${roundLabel()}
@@ -821,6 +857,7 @@ ${outputContract(narrativeLength)}
     return `[初星育成系统：好感度0担当开场]
 
 担当偶像：${state.idol}
+${getAffinityStageLine(state.idol, state.trust)}
 绑定角色卡：${state.boundCharacter?.name || "未绑定，按担当偶像写"}
 当前阶段：${getPhase()}
 初始状态：Vo ${state.Vo} / Da ${state.Da} / Vi ${state.Vi} / 体力 ${state.stamina} / 压力 ${state.stress} / 信赖 ${state.trust}
@@ -848,6 +885,7 @@ ${outputContract("请写一段 500 字以内的开场剧情。")}`;
     return `[初星育成系统：First Live 候场]
 
 担当偶像：${state.idol}
+${getAffinityStageLine(state.idol, state.trust)}
 最终状态：Vo ${state.Vo} / Da ${state.Da} / Vi ${state.Vi} / 体力 ${state.stamina} / 压力 ${state.stress} / 信赖 ${state.trust}
 成长率：Vo ${state.growth?.Vo} / Da ${state.growth?.Da} / Vi ${state.growth?.Vi}
 
@@ -863,6 +901,7 @@ ${outputContract("请写一段 500 字以内的开场剧情。")}`;
     return `[初星育成系统：好感度剧情触发]
 
 担当偶像：${state.idol}
+${getAffinityStageLine(state.idol, state.trust)}
 绑定角色卡：${state.boundCharacter?.name || "未绑定，按担当偶像写"}
 剧情节点：好感度 ${threshold} / ${node.title}
 当前阶段：${getPhase()}
@@ -895,6 +934,7 @@ ${outputContract("请写一段 1200 字以内的完整好感度剧情。本次�
     return `[初星育成系统：自由闲聊]
 
 担当偶像：${state.idol}
+${getAffinityStageLine(state.idol, state.trust)}
 绑定角色卡：${state.boundCharacter?.name || "未绑定，按担当偶像写"}
 当前阶段：${getPhase()}
 当前日程：第 ${state.day} 天，${roundLabel()}
@@ -928,6 +968,7 @@ ${outputContract("请写一段 800 字以内的完整闲聊场景，在本次回
     return `[初星育成系统：偶像互动]
 
 担当偶像：${state.idol}
+${getAffinityStageLine(state.idol, state.trust)}
 绑定角色卡：${state.boundCharacter?.name || "未绑定，按担当偶像写"}
 当前阶段：${getPhase()}
 当前日程：第 ${state.day} 天，${roundLabel()}
@@ -980,6 +1021,7 @@ ${outputContract("请写一段 1200 字以内的完整偶像互动剧情，在�
     return `[初星育成系统：First Live 最终演出]
 
 担当偶像：${state.idol}
+${getAffinityStageLine(state.idol, state.trust)}
 绑定角色卡：${state.boundCharacter?.name || "未绑定，按担当偶像写"}
 当前状态：Vo ${state.Vo} / Da ${state.Da} / Vi ${state.Vi} / 体力 ${state.stamina} / 压力 ${state.stress} / 信赖 ${state.trust}
 

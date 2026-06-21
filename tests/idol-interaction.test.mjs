@@ -49,6 +49,7 @@ const context = {
   idols: { "藤田琴音": { core: "现实收益、被选择的不安与夸奖燃料。" } },
   interactionCharacters: ["藤田琴音", "月村手毬", "花海咲季", "葛城莉莉娅"],
   getPhase: () => "First Live 前期",
+  getAffinityStageLine: () => "好感度阶段标签：AFF_KOTONE_20",
   roundLabel: () => "第 2 / 3 轮行动",
   outputContract: (text) => `OUTPUT:${text}`
 };
@@ -63,6 +64,7 @@ test("selected idols are all required in a zero-cost interaction", () => {
   assert.match(prompt, /不推进轮次、日期/);
   assert.match(prompt, /不增加或减少任何数值/);
   assert.match(prompt, /1200 字以内/);
+  assert.match(prompt, /好感度阶段标签：AFF_KOTONE_20/);
 });
 
 test("AI-decides mode receives the valid supporting cast", () => {
