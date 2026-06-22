@@ -2396,11 +2396,12 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       return { method: "hatsu", text: cleanReplyText(content) };
     }
 
-    const mainMatches = [...withoutThinking.matchAll(/<maintext\b[^>]*>([\s\S]*?)<\/maintext>/gi)];
-    if (mainMatches.length > 0) {
-      const lastMainMatch = mainMatches[mainMatches.length - 1];
-      return { method: "maintext", text: cleanReplyText(lastMainMatch[1]) };
-    }
+  const mainMatches = [...withoutThinking.matchAll(/<maintext\b[^>]*>([\s\S]*)/gi)];
+  if (mainMatches.length > 0) {
+    const lastMainMatch = mainMatches[mainMatches.length - 1];
+    const content = lastMainMatch[1].replace(/<\/maintext>[\s\S]*$/gi, "");
+    return { method: "maintext", text: cleanReplyText(content) };
+  }
 
     return { method: "fallback", text: cleanReplyText(withoutThinking) };
   }
