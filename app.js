@@ -430,6 +430,237 @@
   let activeModal = null;
   let activeModalTab = null;
   let selectedIdol = null;
+
+  const BGM_CONFIG = {
+    select: "./assets/bgm/select.mp3",
+    lobby: "./assets/bgm/lobby.mp3",
+    lesson: "./assets/bgm/lesson.mp3",
+    outing: "./assets/bgm/outing.mp3",
+    talk: "./assets/bgm/talk.mp3",
+    rest: "./assets/bgm/rest.mp3",
+    live_prep: "./assets/bgm/live_prep.mp3"
+  };
+
+  const bgmManager = {
+    audioA: null,
+    audioB: null,
+    currentAudio: null,
+    currentKey: null,
+    targetKey: null,
+    volume: 0.5,
+    muted: false,
+    initialized: false,
+    fadeInterval: null,
+
+    init() {
+      if (this.initialized) return;
+      this.audioA = new Audio();
+      this.audioB = new Audio();
+      this.audioA.loop = true;
+      this.audioB.loop = true;
+      this.currentAudio = this.audioA;
+      
+      const savedVolume = localStorage.getItem("hatsuProduceBgmVolume");
+      if (savedVolume !== null) this.volume = parseFloat(savedVolume);
+      
+      const savedMuted = localStorage.getItem("hatsuProduceBgmMuted");
+      if (savedMuted !== null) this.muted = savedMuted === "true";
+
+      this.initialized = true;
+      console.log("[BgmManager] Initialized with volume:", this.volume, "muted:", this.muted);
+
+      if (this.targetKey) {
+        this.play(this.targetKey, true);
+      }
+    },
+
+    play(key, force = false) {
+      this.targetKey = key;
+      if (!this.initialized) return;
+      if (this.currentKey === key && !force) return;
+
+      const src = BGM_CONFIG[key];
+      if (!src) {
+        this.stop();
+        return;
+      }
+
+      console.log(`[BgmManager] Transitioning from ${this.currentKey} to ${key}`);
+      this.currentKey = key;
+
+      const nextAudio = this.currentAudio === this.audioA ? this.audioB : this.audioA;
+      const prevAudio = this.currentAudio;
+
+      nextAudio.src = src;
+      nextAudio.volume = 0;
+      
+      nextAudio.play()
+        .then(() => {
+          this.currentAudio = nextAudio;
+          this.crossfade(prevAudio, nextAudio);
+        })
+        .catch((err) => {
+          console.warn("[BgmManager] Play blocked by browser, waiting for user interaction.", err);
+          const startPlay = () => {
+            if (this.currentKey === key) {
+              nextAudio.play().then(() => {
+                this.currentAudio = nextAudio;
+                this.crossfade(prevAudio, nextAudio);
+              }).catch(e => console.error("[BgmManager] Force play failed:", e));
+            }
+            window.removeEventListener("click", startPlay);
+            window.removeEventListener("keydown", startPlay);
+          };
+          window.addEventListener("click", startPlay);
+          window.addEventListener("keydown", startPlay);
+        });
+    },
+
+    crossfade(prevAudio, nextAudio) {
+      if (this.fadeInterval) clearInterval(this.fadeInterval);
+
+      const targetVolume = this.muted ? 0 : this.volume;
+      const step = 0.05;
+      const intervalMs = 50;
+      
+      let prevVol = prevAudio.volume;
+      let nextVol = 0;
+      
+      this.fadeInterval = setInterval(() => {
+        let done = true;
+
+        if (prevVol > 0) {
+          prevVol = Math.max(0, prevVol - step);
+          prevAudio.volume = prevVol;
+          done = false;
+        } else {
+          prevAudio.pause();
+        }
+
+        if (nextVol < targetVolume) {
+          nextVol = Math.min(targetVolume, nextVol + step);
+          nextAudio.volume = nextVol;
+          done = false;
+        }
+
+        if (done) {
+          clearInterval(this.fadeInterval);
+          prevAudio.volume = 0;
+          nextAudio.volume = targetVolume;
+        }
+      }, intervalMs);
+    },
+
+    stop() {
+      this.targetKey = null;
+      this.currentKey = null;
+      if (this.fadeInterval) clearInterval(this.fadeInterval);
+      
+      const fadeOut = (audio) => {
+        if (!audio || audio.paused) return;
+        let vol = audio.volume;
+        const interval = setInterval(() => {
+          vol = Math.max(0, vol - 0.05);
+          audio.volume = vol;
+          if (vol <= 0) {
+            clearInterval(interval);
+            audio.pause();
+          }
+        }, 50);
+      };
+      
+      fadeOut(this.audioA);
+      fadeOut(this.audioB);
+    },
+
+    setVolume(vol) {
+      this.volume = clamp(vol, 0, 1);
+      localStorage.setItem("hatsuProduceBgmVolume", this.volume);
+      if (!this.muted && this.currentAudio) {
+        this.currentAudio.volume = this.volume;
+      }
+    },
+
+    setMuted(muted) {
+      this.muted = muted;
+      localStorage.setItem("hatsuProduceBgmMuted", this.muted);
+      if (this.currentAudio) {
+        this.currentAudio.volume = this.muted ? 0 : this.volume;
+      }
+    }
+  };
+
+  function updateBgm() {
+    const liveTheater = document.getElementById("liveTheater");
+    if (liveTheater && !liveTheater.hidden) {
+      bgmManager.stop();
+      return;
+    }
+
+    const selectionStage = document.getElementById("selectionStage");
+    if (selectionStage && !selectionStage.classList.contains("is-hidden")) {
+      bgmManager.play("select");
+      return;
+    }
+
+    const eventOverlay = document.getElementById("eventOverlay");
+    if (eventOverlay && !eventOverlay.hidden) {
+      const title = document.getElementById("eventTitle").textContent || "";
+      if (title.includes("上课") || title.includes("课程") || title.includes("试唱") || title.includes("和声") || title.includes("声乐")) {
+        bgmManager.play("lesson");
+        return;
+      }
+      if (title.includes("训练") || title.includes("动作") || title.includes("节奏") || title.includes("重心") || title.includes("舞步")) {
+        bgmManager.play("lesson");
+        return;
+      }
+      if (title.includes("休息") || title.includes("体力恢复")) {
+        bgmManager.play("rest");
+        return;
+      }
+      if (title.includes("外出")) {
+        bgmManager.play("outing");
+        return;
+      }
+      if (title.includes("交流") || title.includes("好感度") || title.includes("同桌") || title.includes("闲聊") || title.includes("对话")) {
+        bgmManager.play("talk");
+        return;
+      }
+      bgmManager.play("lobby");
+      return;
+    }
+
+    const freeChatOverlay = document.getElementById("freeChatOverlay");
+    if (freeChatOverlay && !freeChatOverlay.hidden) {
+      bgmManager.play("talk");
+      return;
+    }
+
+    const interactionOverlay = document.getElementById("interactionOverlay");
+    if (interactionOverlay && !interactionOverlay.hidden) {
+      bgmManager.play("talk");
+      return;
+    }
+
+    const outingOverlay = document.getElementById("outingOverlay");
+    if (outingOverlay && !outingOverlay.hidden) {
+      bgmManager.play("outing");
+      return;
+    }
+
+    if (state.liveReady) {
+      bgmManager.play("live_prep");
+      return;
+    }
+
+    bgmManager.play("lobby");
+  }
+
+  function setElementHidden(id, hidden) {
+    const el = document.getElementById(id);
+    if (el) el.hidden = hidden;
+    updateBgm();
+  }
   let pendingAiRequestId = "";
   let aiReplyRetryCount = 0;
   let interactionMode = "specified";
@@ -1205,7 +1436,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       return;
     }
 
-    overlay.hidden = false;
+    setElementHidden("liveTheater", false);
     requestAnimationFrame(() => {
       overlay.style.opacity = "1";
     });
@@ -1283,7 +1514,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
 
       overlay.style.opacity = "0";
       setTimeout(() => {
-        overlay.hidden = true;
+        setElementHidden("liveTheater", true);
         video.src = "";
         onComplete();
       }, 500);
@@ -1795,7 +2026,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   }
 
   function closeNotebook() {
-    document.getElementById("notebookDrawer").hidden = true;
+    setElementHidden("notebookDrawer", true);
   }
 
   function openAiPromptOverlay(note) {
@@ -1803,7 +2034,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     const noteNode = document.querySelector(".ai-prompt-note");
     if (noteNode && note) noteNode.textContent = note;
     document.getElementById("aiPromptTextarea").value = state.lastPrompt || "";
-    document.getElementById("aiPromptOverlay").hidden = false;
+    setElementHidden("aiPromptOverlay", false);
     document.getElementById("aiPromptTextarea").focus();
   }
 
@@ -1817,18 +2048,18 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   }
 
   function closeAiPromptOverlay() {
-    document.getElementById("aiPromptOverlay").hidden = true;
+    setElementHidden("aiPromptOverlay", true);
   }
 
   function openFreeChatOverlay() {
     document.getElementById("freeChatPhaseBadge").textContent = getPhase();
     document.getElementById("freeChatTextarea").value = "";
-    document.getElementById("freeChatOverlay").hidden = false;
+    setElementHidden("freeChatOverlay", false);
     document.getElementById("freeChatTextarea").focus();
   }
 
   function closeFreeChatOverlay() {
-    document.getElementById("freeChatOverlay").hidden = true;
+    setElementHidden("freeChatOverlay", true);
   }
 
   function setInteractionMode(mode) {
@@ -1877,12 +2108,12 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     selectedInteractionCharacters = new Set();
     document.getElementById("interactionPhaseBadge").textContent = getPhase();
     document.getElementById("interactionPlotTextarea").value = "";
-    document.getElementById("interactionOverlay").hidden = false;
+    setElementHidden("interactionOverlay", false);
     setInteractionMode("specified");
   }
 
   function closeInteractionOverlay() {
-    document.getElementById("interactionOverlay").hidden = true;
+    setElementHidden("interactionOverlay", true);
   }
 
   function openOutingOverlay() {
@@ -1899,11 +2130,11 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       button.addEventListener("click", () => confirmOutingDestination(destination.name));
       list.appendChild(button);
     });
-    document.getElementById("outingOverlay").hidden = false;
+    setElementHidden("outingOverlay", false);
   }
 
   function closeOutingOverlay() {
-    document.getElementById("outingOverlay").hidden = true;
+    setElementHidden("outingOverlay", true);
   }
 
   function confirmOutingDestination(destination) {
@@ -2012,7 +2243,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       confirm.disabled = false;
     }
 
-    document.getElementById("eventOverlay").hidden = false;
+    setElementHidden("eventOverlay", false);
     confirm.focus();
   }
 
@@ -2031,10 +2262,10 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
           skipPendingOpening();
           saveState();
           render();
-          document.getElementById("eventOverlay").hidden = true;
+          setElementHidden("eventOverlay", true);
           return;
         }
-        document.getElementById("eventOverlay").hidden = true;
+        setElementHidden("eventOverlay", true);
         return;
       }
       markAffinityViewed(Number(node.threshold));
@@ -2046,13 +2277,13 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       render();
     } else if (node?.type === "firstLivePre") {
       if (!node.ready) {
-        document.getElementById("eventOverlay").hidden = true;
+        setElementHidden("eventOverlay", true);
         return;
       }
       startFirstLivePostStage();
     } else if (node?.type === "firstLivePost") {
       if (!node.ready) {
-        document.getElementById("eventOverlay").hidden = true;
+        setElementHidden("eventOverlay", true);
         return;
       }
       state.activeStoryNode = null;
@@ -2061,14 +2292,14 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       render();
     } else if (["freechat", "interaction"].includes(node?.type)) {
       if (!node.ready) {
-        document.getElementById("eventOverlay").hidden = true;
+        setElementHidden("eventOverlay", true);
         return;
       }
       state.activeStoryNode = null;
       saveState();
       render();
     }
-    document.getElementById("eventOverlay").hidden = true;
+    setElementHidden("eventOverlay", true);
   }
 
   function reopenLastEvent() {
@@ -2116,7 +2347,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       grid.appendChild(card);
     });
     body.appendChild(grid);
-    document.getElementById("appModal").hidden = false;
+    setElementHidden("appModal", false);
     document.getElementById("closeModal").focus();
   }
 
@@ -2352,6 +2583,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
           ["普通行动", "上课、训练、休息。休息回复 30 体力。"],
           ["额外行动", "外出回复较多体力并增加信赖，交流增加更多信赖并回复少量体力。"]
         ],
+        "音频设置": [],
         "开发测试": []
       }
     },
@@ -2430,12 +2662,12 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     activeModal = modalRegistry[type] ? type : "system";
     activeModalTab = Object.keys(modalRegistry[activeModal].tabs)[0];
     renderModal();
-    document.getElementById("appModal").hidden = false;
+    setElementHidden("appModal", false);
     document.getElementById("closeModal").focus();
   }
 
   function closeModal() {
-    document.getElementById("appModal").hidden = true;
+    setElementHidden("appModal", true);
     activeModal = null;
     activeModalTab = null;
   }
@@ -2460,6 +2692,60 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     });
     const body = document.getElementById("modalBody");
     body.innerHTML = "";
+
+    if (activeModal === "system" && activeModalTab === "音频设置") {
+      const audioPanel = document.createElement("div");
+      audioPanel.className = "dev-panel-content";
+      audioPanel.style.display = "flex";
+      audioPanel.style.flexDirection = "column";
+      audioPanel.style.gap = "14px";
+      audioPanel.style.padding = "10px";
+      audioPanel.style.width = "100%";
+      audioPanel.innerHTML = `
+        <style>
+          .audio-setting-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 10px 0; border-bottom: 1px solid rgba(0, 0, 0, 0.05); }
+          .audio-setting-row:last-child { border-bottom: none; }
+          .audio-label { display: flex; flex-direction: column; gap: 4px; }
+          .audio-title { font-weight: bold; font-size: 15px; color: var(--ink); }
+          .audio-desc { font-size: 12px; color: var(--soft-ink); }
+          .audio-control { display: flex; align-items: center; gap: 12px; }
+          .audio-slider { width: 120px; cursor: pointer; accent-color: var(--pink); }
+          .audio-toggle-btn { padding: 8px 16px; font-size: 13px; font-weight: bold; border-radius: 8px; border: 2px solid rgba(0,0,0,0.1); background: #fff; color: var(--ink); cursor: pointer; transition: all 0.2s; }
+          .audio-toggle-btn.active { background: var(--pink); color: #fff; border-color: var(--pink); }
+        </style>
+        <div class="audio-setting-row">
+          <div class="audio-label"><span class="audio-title">背景音乐 (BGM)</span><span class="audio-desc">开启或关闭育成的背景音乐</span></div>
+          <div class="audio-control"><button id="bgmMuteBtn" class="audio-toggle-btn ${bgmManager.muted ? "" : "active"}">${bgmManager.muted ? "已静音" : "播放中"}</button></div>
+        </div>
+        <div class="audio-setting-row">
+          <div class="audio-label"><span class="audio-title">BGM 音量</span><span class="audio-desc">调整背景音乐的播放音量</span></div>
+          <div class="audio-control">
+            <input id="bgmVolumeSlider" type="range" class="audio-slider" min="0" max="1" step="0.05" value="${bgmManager.volume}">
+            <span id="bgmVolumeLabel" style="font-weight:bold; font-size:14px; width:30px; text-align:right;">${Math.round(bgmManager.volume * 100)}%</span>
+          </div>
+        </div>
+      `;
+      body.appendChild(audioPanel);
+      const muteBtn = document.getElementById("bgmMuteBtn");
+      if (muteBtn) {
+        muteBtn.addEventListener("click", () => {
+          const newMuted = !bgmManager.muted;
+          bgmManager.setMuted(newMuted);
+          muteBtn.textContent = newMuted ? "已静音" : "播放中";
+          muteBtn.classList.toggle("active", !newMuted);
+        });
+      }
+      const slider = document.getElementById("bgmVolumeSlider");
+      const volLabel = document.getElementById("bgmVolumeLabel");
+      if (slider) {
+        slider.addEventListener("input", (e) => {
+          const vol = parseFloat(e.target.value);
+          bgmManager.setVolume(vol);
+          if (volLabel) volLabel.textContent = `${Math.round(vol * 100)}%`;
+        });
+      }
+      return;
+    }
 
     if (activeModal === "system" && activeModalTab === "开发测试") {
       const devPanel = document.createElement("div");
@@ -2656,7 +2942,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   });
   document.getElementById("eventConfirmBtn").addEventListener("click", closeEventOverlay);
   document.getElementById("eventAiBtn").addEventListener("click", () => {
-    document.getElementById("eventOverlay").hidden = true;
+    setElementHidden("eventOverlay", true);
     openAiPromptOverlay();
   });
   document.getElementById("eventOverlay").addEventListener("click", (event) => {
@@ -2768,6 +3054,8 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   refreshAffinityUnlocks();
   saveState();
   render();
+  bgmManager.init();
+  updateBgm();
   if (!isSillyTavernHost()) resumeOpeningIfNeeded();
   requestHostCharacter();
 
