@@ -12,6 +12,7 @@
   const idols = {
     "藤田琴音": {
       tag: "翻身欲 / 夸奖燃料",
+      bio: "藤田琴音，自称是“为了钱而成为偶像”的现实少女。然而在金钱至上的表象下，隐藏着对“不被选择”的深深不安，以及极度渴望被认可的纯粹之心。只要给予夸奖，她就会将其作为动力爆发性成长。",
       theme: "#ff4f9a",
       background: "./assets/idols/fujita-kotone.jpeg",
       avatar: "./assets/avatars/fujita-kotone.png",
@@ -29,6 +30,7 @@
     },
     "月村手毬": {
       tag: "冷面 / 手制羽翼",
+      bio: "月村手毬，拥有卓越歌唱才能但性格冷酷、不擅社交的少女。对旧日的失败充满厌恶，表面上像带刺的猫一样用冷漠和苛责伪装自己，内心却极度渴望被理解与守护。需要制作人精准而严格的指导。",
       theme: "#26a9f4",
       background: "./assets/idols/tsukimura-temari.jpeg",
       avatar: "./assets/avatars/tsukimura-temari.png",
@@ -43,6 +45,7 @@
     },
     "花海咲季": {
       tag: "胜利 / 姐姐骄傲",
+      bio: "花海咲季，拥有极高自尊心与好胜心的元气少女。以“胜利”为唯一的目标，对成为学园第一抱有绝对的执念。虽然害怕失败，但总能将恐惧转化为完美的训练计划，并期待与重要对手展开堂堂正正的对决。",
       theme: "#ff783f",
       background: "./assets/idols/hanami-saki.jpeg",
       avatar: "./assets/avatars/hanami-saki.png",
@@ -57,6 +60,7 @@
     },
     "花海祐芽": {
       tag: "直觉 / 追逐姐姐",
+      bio: "花海祐芽，花海咲季的妹妹，拥有惊人直觉与运动天赋的活力少女。一直追赶着姐姐的背影，既对姐姐抱有深深的憧憬，又有着强烈的胜负欲。即使经历失败也绝不气馁，会立刻把挫折转为下一次挑战的燃料。",
       theme: "#ff5f4f",
       background: "./assets/idols/hanami-ume.png",
       avatar: "./assets/avatars/hanami-ume.png",
@@ -72,6 +76,7 @@
     },
     "篠泽广": {
       tag: "困难 / 从零开始",
+      bio: "篠泽广，智商极高、理论完美但体能极差的天才少女。不喜欢轻松的成功，反而热衷于挑战不可能的难关，甚至享受在极限训练中不断挣扎的过程。在制作人面前展现出极其直白和亲近的一面。",
       theme: "#8c73ff",
       background: "./assets/idols/shinosawa-hiro.png",
       avatar: "./assets/avatars/shinosawa-hiro.png",
@@ -89,6 +94,7 @@
     },
     "十王星南": {
       tag: "一等星 / 数值之外",
+      bio: "十王星南，学园的顶点偶像，以完美的姿态君临学园。然而，长期处于顶点的她也渐渐被“完美”的形象所束缚。在制作人的引导下，她开始学着放下包袱，重新寻找数值之外、属于普通少女的偶像魅力。",
       theme: "#20dfad",
       background: "./assets/idols/juo-sena.png",
       avatar: "./assets/avatars/juo-sena.png",
@@ -103,6 +109,7 @@
     },
     "秦谷美铃": {
       tag: "慢步调 / 温柔野心",
+      bio: "秦谷美铃，性格慵懒、按自己步调行事的少女。有着温和的野心和安静的自负，表面上经常迟到或走神，却能一眼看穿事物的本质。对制作人有着强烈的照顾欲与独占欲，享受两人之间的“共犯”关系。",
       theme: "#ffca35",
       background: "./assets/idols/hataya-misuzu.png",
       avatar: "./assets/avatars/hataya-misuzu.png",
@@ -121,6 +128,7 @@
     },
     "仓本千奈": {
       tag: "坚持 / 真心回礼",
+      bio: "仓本千奈，出身优渥的大小姐。因自身基础能力不足而常感到羞耻和沮丧，甚至经常喊着要放弃，但在被支持后总能克服万难完成目标。她会将制作人的陪伴与鼓励，转化为最真心的回礼。",
       theme: "#f8ac5e",
       background: "./assets/idols/kuramoto-china.png",
       avatar: "./assets/avatars/kuramoto-china.png",
@@ -135,6 +143,7 @@
     },
     "葛城莉莉娅": {
       tag: "勇气 / 从零开始",
+      bio: "葛城莉莉娅，来自异国的害羞少女，几乎没有任何偶像基础。性格坚韧且极具勇气，即使面对未知的恐惧也绝不退缩。她习惯把每条指导牢记在心，并默默将得到的支持化为最真挚的舞台表演。",
       theme: "#8fcbdc",
       background: "./assets/idols/katsuragi-lilja.png",
       avatar: "./assets/avatars/katsuragi-lilja.png",
@@ -149,6 +158,7 @@
     },
     "紫云清夏": {
       tag: "保护色 / 再次起舞",
+      bio: "紫云清夏，表面上轻佻开朗、擅长社交的辣妹。实际上，因过去芭蕾舞留下的伤痛而害怕再次认真。她用玩笑作为保护色，只有在建立深厚的信赖关系后，才会卸下防备，展现出不甘与渴望。",
       theme: "#a7d63b",
       background: "./assets/idols/shiun-sumika.png",
       avatar: "./assets/avatars/shiun-sumika.png",
@@ -163,6 +173,7 @@
     },
     "有村麻央": {
       tag: "王子 / 可爱与帅气",
+      bio: "有村麻央，在学园中扮演“王子”角色、深受后辈爱戴的少女。有着帅气利落的舞台风范和保护他人的强烈理想。但在面对需要展现可爱或被照顾的场合时，会流露出极其慌乱和害羞的真实反差。",
       theme: "#bb68d8",
       background: "./assets/idols/arimura-mao.png",
       avatar: "./assets/avatars/arimura-mao.png",
@@ -177,6 +188,7 @@
     },
     "姬崎莉波": {
       tag: "自然照顾 / 也想被保护",
+      bio: "姬崎莉波，温柔体贴、充满成熟气质的“姐姐”型偶像。过去曾因刻意营销“妹妹”形象而失败，如今在制作人的引导下，逐渐学会接受自己真实成熟、但也想被保护、渴望竞争的多元一面。",
       theme: "#d985aa",
       background: "./assets/idols/himesaki-rinami.png",
       avatar: "./assets/avatars/himesaki-rinami.png",
@@ -417,6 +429,7 @@
   let activePromptTab = "prompt";
   let activeModal = null;
   let activeModalTab = null;
+  let selectedIdol = null;
   let pendingAiRequestId = "";
   let aiReplyRetryCount = 0;
   let interactionMode = "specified";
@@ -1372,12 +1385,100 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     document.getElementById("gameStage").classList.toggle("is-hidden", !canShowGame);
   }
 
+  function applySelectStageBackground(idolName) {
+    const selectVisual = document.querySelector(".select-visual");
+    const selectVisualBg = document.getElementById("selectVisualBg");
+    if (!selectVisual || !selectVisualBg) return;
+
+    if (!idolName) {
+      selectVisualBg.classList.remove("has-image");
+      selectVisual.classList.remove("has-hover-bg");
+      selectVisualBg.style.backgroundImage = "";
+      return;
+    }
+
+    const idolCode = affinityIdolCodes[idolName]?.toLowerCase();
+    if (!idolCode) return;
+
+    const extensions = [".png", ".jpg", ".jpeg"];
+    const tryLoadImage = (extIndex) => {
+      if (extIndex >= extensions.length) {
+        selectVisualBg.classList.remove("has-image");
+        selectVisual.classList.remove("has-hover-bg");
+        selectVisualBg.style.backgroundImage = "";
+        return;
+      }
+
+      const ext = extensions[extIndex];
+      const imgPath = `./assets/select-bg/${idolCode}${ext}`;
+      const img = new Image();
+      img.onload = () => {
+        const activeHoverIdol = document.querySelector(".idol-card:hover");
+        const hoveredName = activeHoverIdol ? activeHoverIdol.id.replace("idol-", "") : null;
+        const currentExpected = hoveredName || selectedIdol;
+        if (currentExpected === idolName) {
+          selectVisualBg.style.backgroundImage = `url("${imgPath}")`;
+          selectVisualBg.classList.add("has-image");
+          selectVisual.classList.add("has-hover-bg");
+        }
+      };
+      img.onerror = () => {
+        tryLoadImage(extIndex + 1);
+      };
+      img.src = imgPath;
+    };
+    tryLoadImage(0);
+  }
+
+  function updateSelectVisual(name) {
+    const kicker = document.getElementById("selectKicker");
+    const title = document.getElementById("selectTitle");
+    const desc = document.getElementById("selectDesc");
+    const rules = document.getElementById("selectRules");
+    const confirmContainer = document.getElementById("selectConfirmContainer");
+    const confirmBtn = document.getElementById("confirmIdolBtn");
+
+    if (!name) {
+      if (kicker) kicker.textContent = "Hatsuboshi Produce";
+      if (title) title.textContent = "选择担当偶像";
+      if (desc) desc.textContent = "18 天 First Live 育成。前端裁定数值、行动与随机事件，LLM 负责把结果写成角色叙事。";
+      if (rules) rules.style.display = "";
+      if (confirmContainer) {
+        confirmContainer.style.display = "none";
+        confirmContainer.classList.remove("is-visible");
+      }
+      applySelectStageBackground(null);
+      return;
+    }
+
+    const profile = idols[name];
+    if (!profile) return;
+
+    if (kicker) kicker.textContent = profile.tag || "Hatsuboshi Produce";
+    if (title) title.textContent = name;
+    if (desc) desc.textContent = profile.bio || "（暂无简介，请在 app.js 中配置该偶像的 bio 字段）";
+    if (rules) rules.style.display = "none";
+
+    if (confirmContainer) {
+      confirmContainer.style.display = "flex";
+      confirmContainer.offsetHeight; // Force reflow
+      confirmContainer.classList.add("is-visible");
+    }
+
+    if (confirmBtn) {
+      confirmBtn.style.backgroundColor = profile.theme;
+      confirmBtn.style.boxShadow = `0 8px 24px ${profile.theme}66`;
+    }
+
+    applySelectStageBackground(name);
+  }
+
   function renderIdols() {
     const list = document.getElementById("idolList");
     list.innerHTML = "";
-    const selectVisual = document.querySelector(".select-visual");
-    const selectVisualBg = document.getElementById("selectVisualBg");
-    let activeHoverIdol = null;
+    
+    selectedIdol = null;
+    updateSelectVisual(null);
 
     Object.entries(idols).forEach(([name, profile]) => {
       const button = document.createElement("button");
@@ -1394,63 +1495,28 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       button.querySelector(".idol-avatar img").addEventListener("error", (event) => {
         event.currentTarget.classList.add("is-missing");
       });
+      
       button.addEventListener("click", () => {
-        applyIdolPreset(name, true);
-        startOpeningStory();
-        saveState();
-        showToast("担当已确认", `${name}进入 First Live 育成路线。`, "gold");
+        if (selectedIdol === name) return;
+        selectedIdol = name;
+
+        document.querySelectorAll(".idol-card").forEach((card) => {
+          card.classList.remove("is-selected");
+          card.style.borderColor = "";
+          card.style.boxShadow = "";
+        });
+        button.classList.add("is-selected");
+        button.style.borderColor = profile.theme;
+        button.style.boxShadow = `0 12px 28px ${profile.theme}40`;
+
+        updateSelectVisual(name);
       });
 
-      // 悬停动态背景切换事件
       button.addEventListener("mouseenter", () => {
-        const idolCode = affinityIdolCodes[name]?.toLowerCase();
-        if (selectVisual && selectVisualBg && idolCode) {
-          activeHoverIdol = idolCode;
-          console.log(`[HatsuProduce] Hovered on: ${name} (${idolCode})`);
-
-          const tryLoadImage = (extIndex) => {
-            const extensions = [".png", ".jpg", ".jpeg"];
-            if (extIndex >= extensions.length) {
-              console.warn(`[HatsuProduce] Failed to load background image for ${name} in all formats (png, jpg, jpeg).`);
-              // 所有可能的文件格式都加载失败，回退到原本的默认渐变背景
-              if (activeHoverIdol === idolCode) {
-                selectVisualBg.classList.remove("has-image");
-                selectVisual.classList.remove("has-hover-bg");
-              }
-              return;
-            }
-
-            const ext = extensions[extIndex];
-            const imgPath = `./assets/select-bg/${idolCode}${ext}`;
-            const img = new Image();
-            img.onload = () => {
-              // 确保加载完成时当前悬停的依然是此偶像
-              if (activeHoverIdol === idolCode) {
-                console.log(`[HatsuProduce] Successfully loaded select background: ${imgPath}`);
-                selectVisualBg.style.backgroundImage = `url("${imgPath}")`;
-                selectVisualBg.classList.add("has-image");
-                selectVisual.classList.add("has-hover-bg");
-              }
-            };
-            img.onerror = () => {
-              console.log(`[HatsuProduce] Format ${ext} not found for ${idolCode}, trying next...`);
-              tryLoadImage(extIndex + 1);
-            };
-            img.src = imgPath;
-          };
-
-          tryLoadImage(0);
-        }
+        applySelectStageBackground(name);
       });
       button.addEventListener("mouseleave", () => {
-        const idolCode = affinityIdolCodes[name]?.toLowerCase();
-        if (activeHoverIdol === idolCode) {
-          activeHoverIdol = null;
-        }
-        if (selectVisual && selectVisualBg) {
-          selectVisualBg.classList.remove("has-image");
-          selectVisual.classList.remove("has-hover-bg");
-        }
+        applySelectStageBackground(selectedIdol);
       });
 
       list.appendChild(button);
@@ -2558,6 +2624,14 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       return;
     }
     settleAction(button.dataset.action, button.dataset.attribute);
+  });
+
+  document.getElementById("confirmIdolBtn").addEventListener("click", () => {
+    if (!selectedIdol) return;
+    applyIdolPreset(selectedIdol, true);
+    startOpeningStory();
+    saveState();
+    showToast("担当已确认", `${selectedIdol}进入 First Live 育成路线。`, "gold");
   });
 
   document.querySelectorAll("[data-modal]").forEach((button) => {

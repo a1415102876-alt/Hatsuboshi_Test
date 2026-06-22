@@ -53,13 +53,19 @@
     <section class="select-screen" id="selectionStage" aria-labelledby="selectTitle">
       <div class="select-visual">
         <div class="select-visual-bg" id="selectVisualBg"></div>
-        <p class="ui-kicker">Hatsuboshi Produce</p>
+        <p class="ui-kicker" id="selectKicker">Hatsuboshi Produce</p>
         <h1 id="selectTitle">选择担当偶像</h1>
-        <p>18 天 First Live 育成。前端裁定数值、行动与随机事件，LLM 负责把结果写成角色叙事。</p>
-        <div class="select-rules" aria-label="育成规则">
+        <p id="selectDesc">18 天 First Live 育成。前端裁定数值、行动与随机事件，LLM 负责把结果写成角色叙事。</p>
+        <div class="select-rules" aria-label="育成规则" id="selectRules">
           <span>3 次普通行动</span>
           <span>1 次额外行动</span>
           <span>随机互动事件</span>
+        </div>
+        <div id="selectConfirmContainer" class="select-confirm-container" style="display: none;">
+          <button id="confirmIdolBtn" class="confirm-idol-btn" type="button">
+            <span>开始育成</span>
+            <svg class="btn-arrow" viewBox="0 0 24 24" width="18" height="18"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
         </div>
       </div>
       <section class="select-panel" aria-label="担当偶像列表">

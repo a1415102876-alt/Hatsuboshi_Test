@@ -290,6 +290,58 @@ p {
   box-shadow: 0 16px 30px rgba(37, 32, 52, 0.14);
 }
 
+.idol-card.is-selected {
+  transform: translateY(-2px) scale(1.02);
+  border-width: 2px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 1), rgba(255, 245, 250, 0.95));
+}
+
+.select-confirm-container {
+  margin-top: clamp(20px, 4vw, 36px);
+  display: flex;
+  opacity: 0;
+  transform: translateY(15px);
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.select-confirm-container.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.confirm-idol-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 36px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  background-color: var(--accent, #ff4f9a);
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(255, 79, 154, 0.4);
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.confirm-idol-btn:hover {
+  transform: translateY(-3px) scale(1.02);
+  filter: brightness(1.05);
+}
+
+.confirm-idol-btn:active {
+  transform: translateY(-1px) scale(0.99);
+}
+
+.confirm-idol-btn svg {
+  transition: transform 0.2s ease;
+}
+
+.confirm-idol-btn:hover svg {
+  transform: translateX(4px);
+}
+
 .idol-card-copy,
 .idol-card-copy strong,
 .idol-card-copy span {
