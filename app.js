@@ -402,7 +402,9 @@
     lastEventResult: "",
     lastEventStory: "",
     lastPrompt: "",
-    lastDebug: "尚未结算行动。"
+    lastDebug: "尚未结算行动。",
+    pendingAiRequestId: "",
+    lastRequestId: ""
   };
 
   const statLabels = { Vo: "Vocal", Da: "Dance", Vi: "Visual", stamina: "体力", stress: "压力", trust: "信赖" };
@@ -416,6 +418,7 @@
   let activeModal = null;
   let activeModalTab = null;
   let pendingAiRequestId = "";
+  let aiReplyRetryCount = 0;
   let interactionMode = "specified";
   let selectedInteractionCharacters = new Set();
   let activeStorageKey = STORAGE_KEY;
@@ -433,13 +436,21 @@
   function loadState() {
     try {
       const saved = localStorage.getItem(activeStorageKey);
-      return saved ? { ...clone(baseState), ...JSON.parse(saved) } : clone(baseState);
+      const loaded = saved ? { ...clone(baseState), ...JSON.parse(saved) } : clone(baseState);
+      if (loaded.pendingAiRequestId) {
+        pendingAiRequestId = loaded.pendingAiRequestId;
+      }
+      return loaded;
     } catch {
       return clone(baseState);
     }
   }
 
   function saveState() {
+    state.pendingAiRequestId = pendingAiRequestId;
+    if (pendingAiRequestId) {
+      state.lastRequestId = pendingAiRequestId;
+    }
     localStorage.setItem(activeStorageKey, JSON.stringify(state));
     if (hostStateReady) requestHostStateSave();
   }
@@ -1045,16 +1056,42 @@ ${outputContract("请写一段 1200 字以内的完整偶像互动剧情，在�
     return `${lines.join("\n")}\n\n结果：${result.success ? "First Live 成功" : "First Live 失败"}\n叙事侧重：${result.tone}`;
   }
 
-  function buildFirstLivePrompt(result) {
+  function buildFirstLivePrePrompt() {
     const profile = idols[state.idol];
-    return `[初星育成系统：First Live 最终演出]
+    return `[初星育成系统：First Live 最终演出 - 登台前夜候场]
 
 担当偶像：${state.idol}
 ${getAffinityStageLine(state.idol, state.trust)}
 绑定角色卡：${state.boundCharacter?.name || "未绑定，按担当偶像写"}
 当前状态：Vo ${state.Vo} / Da ${state.Da} / Vi ${state.Vi} / 体力 ${state.stamina} / 压力 ${state.stress} / 信赖 ${state.trust}
 
-前端判定：
+角色核心：
+${profile.core}
+
+叙事时间范围：
+- 正文必须限定在后台准备室/候场区，直到登台前的一刻。
+- 重点描写偶像与制作人登台前的交流、心理活动、整理服饰、互相打气、做好觉悟的细节。
+- 结尾停在偶像推开门走入登台通道，或者踏上台阶、强光照射过来、即将登台的瞬间。
+- 绝对不要描写舞台上的具体表演过程。
+
+叙事要求：
+- 结合当前的体力、压力 and 信赖度，表现出担当偶像临近大考时的心理张力。
+- 突出偶像对制作人至今为止陪伴与付出的内心回应。
+- 语言细节符合《初星学园》角色卡设定。
+
+${outputContract(`请写一段 600 字左右、以登台前后台沟通和觉悟为主体的剧情。`)}`;
+  }
+
+  function buildFirstLivePostPrompt(result) {
+    const profile = idols[state.idol];
+    return `[初星育成系统：First Live 最终演出 - 演后总结]
+
+担当偶像：${state.idol}
+${getAffinityStageLine(state.idol, state.trust)}
+绑定角色卡：${state.boundCharacter?.name || "未绑定，按担当偶像写"}
+当前状态：Vo ${state.Vo} / Da ${state.Da} / Vi ${state.Vi} / 信赖 ${state.trust}
+
+最终演出判定结果：
 ${formatLiveResult(result)}
 
 最高项：${result.highest.label} ${result.highest.value}
@@ -1064,30 +1101,18 @@ ${formatLiveResult(result)}
 ${profile.core}
 
 叙事时间范围：
-- 正文必须从舞台灯光亮起、担当偶像登台开始。
-- 正文至少90%的篇幅必须发生在 First Live 正在进行时。
-- 按演出顺序描写登台、开场、主歌推进、舞台高潮、最终动作和观众反应。
-- 结尾停在最后一个音落下、舞台动作定格、现场响起掌声的瞬间。
-
-舞台描写要求：
-- 使用实时舞台镜头，不要用演出后的回忆或总结代替演出过程。
-- 具体描写歌声、呼吸、舞步、重心、表情、视线、灯光、镜头和观众反应。
-- 通过实际舞台表现体现前端数值，不要只写“某项能力很优秀”。
-- 最高属性必须成为本场演出的核心高光，其他达标属性也要在舞台上得到表现。
-- 体力与压力可以影响演出中的状态，但不能改变前端成功或失败结论。
-- 制作人可以从侧台或观众席观察，但不能抢走担当偶像的舞台主体。
+- 正文必须发生在 First Live 演出刚刚结束、偶像走下舞台回到后台休息室的场景。
+- 重点描写偶像走下台后的喘息、兴奋、疲惫，以及与制作人就刚才 Live 表现的面对面交流。
+- 绝对不要详细描写舞台演出的进行过程。
 
 叙事要求：
-- 必须承认 First Live 的前端判定结果。
-- 不要重新计算数值。
-- 不要改变成功或失败结论。
-- 如果成功，通过正在发生的舞台表现写出阶段性胜利，并突出最高项表现。
-- 如果失败，在舞台过程中写出失误、挣扎或未达标之处，以及她如何坚持完成演出。
-- 不要跳到后台、休息室、归途、庆功或演出后的长篇感想。
-- 不要描写演出后的关系确认，也不要提前进入好感度100剧情。
-- 演出后的故事统一留给好感度100剧情。
+- 必须承认并扣紧 First Live 的前端判定结果（演出成功或失败）。
+- 结合最高项和最低项属性，让偶像和制作人讨论刚才舞台上的亮点（最高项）和不足（最低项/未达标项）。
+- 成功：偶像释放压力，体验到胜利和成长，流露出对制作人的感激与进一步的野心。
+- 失败：偶像面对不甘与泪水，与制作人共同承担失误，并重新坚定继续努力的觉悟。
+- 描写结束后的情感变化，为好感度 100 剧情做铺垫。
 
-${outputContract("请写一段 1000 字以内、以实时舞台表现为主体的 First Live 演出剧情。")}`;
+${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结为主体的剧情。`)}`;
   }
 
   function startOpeningStory() {
@@ -1132,6 +1157,171 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
     }
   }
 
+  const idolLiveVideos = {
+    "藤田琴音": "./assets/videos/fujita-kotone-live.mp4",
+    "月村手毬": "./assets/videos/tsukimura-temari-live.mp4",
+    "花海咲季": "./assets/videos/hanami-saki-live.mp4",
+    "花海祐芽": "./assets/videos/hanami-yume-live.mp4",
+    "篠泽广": "./assets/videos/shinosawa-hiro-live.mp4",
+    "十王星南": "./assets/videos/juo-sena-live.mp4",
+    "秦谷美铃": "./assets/videos/hataya-misuzu-live.mp4",
+    "仓本千奈": "./assets/videos/kuramoto-china-live.mp4",
+    "葛城莉莉娅": "./assets/videos/katsuragi-lilja-live.mp4",
+    "紫云清夏": "./assets/videos/shiun-sumika-live.mp4",
+    "有村麻央": "./assets/videos/arimura-mao-live.mp4",
+    "姬崎莉波": "./assets/videos/himesaki-rinami-live.mp4"
+  };
+
+  function playLiveVideo(videoUrl, onComplete) {
+    const overlay = document.getElementById("liveTheater");
+    const video = document.getElementById("liveVideo");
+    const skipBtn = document.getElementById("liveSkipBtn");
+    const volBtn = document.getElementById("liveVolumeBtn");
+    const playPrompt = document.getElementById("livePlayPrompt");
+
+    if (!overlay || !video) {
+      onComplete();
+      return;
+    }
+
+    overlay.hidden = false;
+    requestAnimationFrame(() => {
+      overlay.style.opacity = "1";
+    });
+
+    video.src = videoUrl;
+    video.load();
+
+    // Start unmuted by default
+    video.muted = false;
+    let isMuted = false;
+
+    function updateVolumeIcon() {
+      if (isMuted) {
+        volBtn.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.21.05-.42.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>`;
+        volBtn.classList.add("muted");
+      } else {
+        volBtn.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>`;
+        volBtn.classList.remove("muted");
+      }
+    }
+
+    updateVolumeIcon();
+
+    const playPromise = video.play();
+    if (playPromise !== undefined) {
+      playPromise.then(() => {
+        playPrompt.hidden = true;
+      }).catch(error => {
+        playPrompt.hidden = false;
+        console.log("Autoplay blocked, showing click prompt.", error);
+      });
+    }
+
+    volBtn.onclick = (e) => {
+      e.stopPropagation();
+      isMuted = !isMuted;
+      video.muted = isMuted;
+      updateVolumeIcon();
+    };
+
+    overlay.onclick = () => {
+      if (video.paused) {
+        video.play().then(() => {
+          playPrompt.hidden = true;
+        });
+      } else {
+        isMuted = !isMuted;
+        video.muted = isMuted;
+        updateVolumeIcon();
+      }
+    };
+
+    playPrompt.onclick = (e) => {
+      e.stopPropagation();
+      video.play().then(() => {
+        playPrompt.hidden = true;
+        isMuted = false;
+        video.muted = false;
+        updateVolumeIcon();
+      });
+    };
+
+    let finished = false;
+    function cleanupAndFinish() {
+      if (finished) return;
+      finished = true;
+      video.pause();
+
+      volBtn.onclick = null;
+      overlay.onclick = null;
+      playPrompt.onclick = null;
+      skipBtn.onclick = null;
+      video.onended = null;
+      video.onerror = null;
+
+      overlay.style.opacity = "0";
+      setTimeout(() => {
+        overlay.hidden = true;
+        video.src = "";
+        onComplete();
+      }, 500);
+    }
+
+    skipBtn.onclick = (e) => {
+      e.stopPropagation();
+      cleanupAndFinish();
+    };
+
+    video.onended = () => {
+      cleanupAndFinish();
+    };
+
+    video.onerror = (e) => {
+      console.warn("Video load error, skipping theater mode.", e);
+      cleanupAndFinish();
+    };
+  }
+
+  function startFirstLivePostStage() {
+    const result = state.firstLive.result;
+    state.activeStoryNode = { type: "firstLivePost", ready: false };
+    const postRequestId = createRequestId();
+    pendingAiRequestId = postRequestId;
+    state.lastPrompt = buildFirstLivePostPrompt(result);
+    state.lastStory = "演出后后台沟通与总结中...";
+    saveState();
+    render();
+
+    const sentSuccess = requestHostPromptSend(state.lastPrompt, postRequestId);
+
+    const showPostLiveOverlay = () => {
+      if (state.activeStoryNode?.ready) {
+        openEventOverlay(
+          "First Live 演后记",
+          "已收到 SillyTavern 角色回复",
+          state.lastStory
+        );
+      } else {
+        openEventOverlay(
+          "First Live 演后记", 
+          buildAiWaitingResult(formatLiveResult(result)), 
+          buildAiWaitingStory("演出后后台剧情等待角色卡 AI 回复生成。")
+        );
+      }
+      if (!sentSuccess) {
+        openAiPromptOverlay("当前页面未连接 SillyTavern。请编辑或复制 First Live 演后记提示词后手动发送。");
+      }
+    };
+
+    const videoUrl = idolLiveVideos[state.idol];
+    if (videoUrl) {
+      playLiveVideo(videoUrl, showPostLiveOverlay);
+    } else {
+      showPostLiveOverlay();
+    }
+  }
+
   function startFirstLive() {
     if (!state.idol || !state.liveReady) return;
     if (state.firstLive.completed) {
@@ -1140,9 +1330,9 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
     }
     const result = evaluateFirstLive();
     state.firstLive = { completed: true, success: result.success, result };
-    state.activeStoryNode = { type: "firstLive", ready: false };
-    state.lastPrompt = buildFirstLivePrompt(result);
-    state.lastStory = `First Live 判定完成：${result.success ? "成功" : "失败"}。`;
+    state.activeStoryNode = { type: "firstLivePre", ready: false };
+    state.lastPrompt = buildFirstLivePrePrompt();
+    state.lastStory = "登台前候场准备中...";
     refreshAffinityUnlocks();
     state.lastDebug = formatLiveResult(result);
     state.log.unshift({ day: state.day, round: "Live", phase: "First Live", action: "最终演出", result: result.success ? "演出成功" : "演出失败" });
@@ -1151,7 +1341,7 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
     render();
     const requestId = createRequestId();
     pendingAiRequestId = requestId;
-    openEventOverlay("First Live 最终演出", buildAiWaitingResult(formatLiveResult(result)), buildAiWaitingStory("最终演出剧情等待角色卡 AI 回复生成。"));
+    openEventOverlay("First Live 登台前准备", "正在后台进行登台前的最后准备和交流...", buildAiWaitingStory("正在等待角色卡 AI 回复生成登台前的准备剧情..."));
     if (!requestHostPromptSend(state.lastPrompt, requestId)) {
       openAiPromptOverlay("当前页面未连接 SillyTavern。请编辑或复制 First Live 提示词后手动发送。");
     }
@@ -1177,6 +1367,10 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
   function renderIdols() {
     const list = document.getElementById("idolList");
     list.innerHTML = "";
+    const selectVisual = document.querySelector(".select-visual");
+    const selectVisualBg = document.getElementById("selectVisualBg");
+    let activeHoverIdol = null;
+
     Object.entries(idols).forEach(([name, profile]) => {
       const button = document.createElement("button");
       button.type = "button";
@@ -1198,6 +1392,59 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
         saveState();
         showToast("担当已确认", `${name}进入 First Live 育成路线。`, "gold");
       });
+
+      // 悬停动态背景切换事件
+      button.addEventListener("mouseenter", () => {
+        const idolCode = affinityIdolCodes[name]?.toLowerCase();
+        if (selectVisual && selectVisualBg && idolCode) {
+          activeHoverIdol = idolCode;
+          console.log(`[HatsuProduce] Hovered on: ${name} (${idolCode})`);
+
+          const tryLoadImage = (extIndex) => {
+            const extensions = [".png", ".jpg", ".jpeg"];
+            if (extIndex >= extensions.length) {
+              console.warn(`[HatsuProduce] Failed to load background image for ${name} in all formats (png, jpg, jpeg).`);
+              // 所有可能的文件格式都加载失败，回退到原本的默认渐变背景
+              if (activeHoverIdol === idolCode) {
+                selectVisualBg.classList.remove("has-image");
+                selectVisual.classList.remove("has-hover-bg");
+              }
+              return;
+            }
+
+            const ext = extensions[extIndex];
+            const imgPath = `./assets/select-bg/${idolCode}${ext}`;
+            const img = new Image();
+            img.onload = () => {
+              // 确保加载完成时当前悬停的依然是此偶像
+              if (activeHoverIdol === idolCode) {
+                console.log(`[HatsuProduce] Successfully loaded select background: ${imgPath}`);
+                selectVisualBg.style.backgroundImage = `url("${imgPath}")`;
+                selectVisualBg.classList.add("has-image");
+                selectVisual.classList.add("has-hover-bg");
+              }
+            };
+            img.onerror = () => {
+              console.log(`[HatsuProduce] Format ${ext} not found for ${idolCode}, trying next...`);
+              tryLoadImage(extIndex + 1);
+            };
+            img.src = imgPath;
+          };
+
+          tryLoadImage(0);
+        }
+      });
+      button.addEventListener("mouseleave", () => {
+        const idolCode = affinityIdolCodes[name]?.toLowerCase();
+        if (activeHoverIdol === idolCode) {
+          activeHoverIdol = null;
+        }
+        if (selectVisual && selectVisualBg) {
+          selectVisualBg.classList.remove("has-image");
+          selectVisual.classList.remove("has-hover-bg");
+        }
+      });
+
       list.appendChild(button);
     });
   }
@@ -1419,6 +1666,8 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
     const prompt = promptText || state.lastPrompt || document.getElementById("promptText").value || "";
     if (!prompt.trim()) return false;
     pendingAiRequestId = requestId;
+    aiReplyRetryCount = 0;
+    saveState();
     window.parent.postMessage({
       source: "hatsuboshi-produce",
       type: "sendPrompt",
@@ -1674,7 +1923,21 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
     document.getElementById("eventStory").textContent = story || state.lastStory || "本次行动已经完成。";
     const confirm = document.getElementById("eventConfirmBtn");
     const node = state.activeStoryNode;
-    confirm.textContent = node?.type === "affinity" && node.threshold === 0 ? "确认开始育成" : "确定";
+    
+    confirm.textContent = 
+      node?.type === "affinity" && node.threshold === 0 
+        ? "确认开始育成" 
+        : node?.type === "firstLivePre" 
+          ? "Live 开始" 
+          : "确定";
+
+    if (pendingAiRequestId) {
+      confirm.disabled = true;
+      confirm.textContent = "正在生成中...";
+    } else {
+      confirm.disabled = false;
+    }
+
     document.getElementById("eventOverlay").hidden = false;
     confirm.focus();
   }
@@ -1707,7 +1970,13 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
       state.activeStoryNode = null;
       saveState();
       render();
-    } else if (node?.type === "firstLive") {
+    } else if (node?.type === "firstLivePre") {
+      if (!node.ready) {
+        document.getElementById("eventOverlay").hidden = true;
+        return;
+      }
+      startFirstLivePostStage();
+    } else if (node?.type === "firstLivePost") {
       if (!node.ready) {
         document.getElementById("eventOverlay").hidden = true;
         return;
@@ -1795,23 +2064,52 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
       .replace(/&gt;/g, ">")
       .replace(/&amp;/g, "&")
       .replace(/\u200b/g, "");
-    const hatsu = raw.match(/[【\[]\s*初星正文开始\s*[】\]]([\s\S]*?)[【\[]\s*初星正文结束\s*[】\]]/);
-    if (hatsu?.[1]?.trim()) return { method: "hatsu", text: cleanReplyText(hatsu[1]) };
-    const hatsuStart = raw.match(/[【\[]\s*初星正文开始\s*[】\]]([\s\S]*)/);
-    if (hatsuStart?.[1]?.trim()) {
-      return { method: "hatsu", text: cleanReplyText(hatsuStart[1].replace(/[【\[]\s*初星正文结束\s*[】\]][\s\S]*$/u, "")) };
+    
+    // 1. 过滤掉无前缀但带结束注释的思考段 (从开头到 <!-- end_of_Subtext_think --> 或者是草稿说明)
+    let withoutThinking = raw
+      .replace(/^[\s\S]*?<!--\s*end_of_Subtext_think\s*-->/gi, "")
+      .replace(/<!--[\s\S]*?-->/g, "");
+
+    // 2. 过滤掉所有已闭合和未闭合的思考块/思维链/草稿标签，防止匹配到里面的设定或样例分隔符
+    const thinkTags = "thinking|think|details|summary|sum|vars|analysis|planning|plan|konatan_planning|bginfo|bginfor|draft_notes|bginfor";
+    const closedRegex = new RegExp("<(" + thinkTags + ")\\b[^>]*>[\\s\\S]*?<\\/\\1>", "gi");
+    const unclosedRegex = new RegExp("<(" + thinkTags + ")\\b[^>]*>[\\s\\S]*$", "gi");
+    
+    withoutThinking = withoutThinking
+      .replace(closedRegex, "")
+      .replace(unclosedRegex, "");
+
+    // 3. 使用【倒数匹配】查找最末尾的“初星正文开始”作为故事正文起点，彻底避开前置的样例与检查表干扰
+    const startMatches = [...withoutThinking.matchAll(/[【\[]\s*初星正文开始\s*[】\]]/g)];
+    if (startMatches.length > 0) {
+      const lastStartMatch = startMatches[startMatches.length - 1];
+      const startIndex = lastStartMatch.index + lastStartMatch[0].length;
+      let content = withoutThinking.slice(startIndex);
+      
+      // 剥离结束符及其后面的所有内容 (包括 HatsuStatus 等状态块)
+      content = content.replace(/[【\[]\s*初星正文结束\s*[】\]][\s\S]*$/u, "");
+      return { method: "hatsu", text: cleanReplyText(content) };
     }
-    const main = raw.match(/<maintext\b[^>]*>([\s\S]*?)<\/maintext>/i);
-    if (main?.[1]?.trim()) return { method: "maintext", text: cleanReplyText(main[1]) };
-    return { method: "fallback", text: cleanReplyText(raw) };
+
+    const mainMatches = [...withoutThinking.matchAll(/<maintext\b[^>]*>([\s\S]*?)<\/maintext>/gi)];
+    if (mainMatches.length > 0) {
+      const lastMainMatch = mainMatches[mainMatches.length - 1];
+      return { method: "maintext", text: cleanReplyText(lastMainMatch[1]) };
+    }
+
+    return { method: "fallback", text: cleanReplyText(withoutThinking) };
   }
 
   function cleanReplyText(value) {
+    const thinkTags = "thinking|think|details|summary|sum|vars|analysis|planning|plan|konatan_planning|bginfo|bginfor|draft_notes|bginfor";
+    const closedRegex = new RegExp("<(" + thinkTags + ")\\b[^>]*>[\\s\\S]*?<\\/\\1>", "gi");
+    const unclosedRegex = new RegExp("<(" + thinkTags + ")\\b[^>]*>[\\s\\S]*$", "gi");
+
     return String(value || "")
       .replace(/<!--[\s\S]*?-->/g, "")
-      .replace(/<(thinking|details|summary|sum|vars|analysis|planning|plan|konatan_planning|bginfo|bginfor)\b[^>]*>[\s\S]*?<\/\1>/gi, "")
+      .replace(closedRegex, "")
+      .replace(unclosedRegex, "")
       .replace(/<\/?[a-zA-Z_][\w:-]*\b[^>]*>/g, "")
-      .replace(/以下为本次回复的梳理[:：]?[\s\S]*?(?=[【\[]\s*初星正文开始\s*[】\]]|$)/g, "")
       .replace(/\[\s*\{[\s\S]*?\}\s*\]\s*$/g, "")
       .replace(/^\s*\*{1,2}\s*/gm, "")
       .replace(/\s*\*{1,2}\s*$/gm, "")
@@ -1831,21 +2129,62 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
       .sort((a, b) => b.replace(/\s+/g, "").length - a.replace(/\s+/g, "").length)[0] || "";
   }
 
-  function applyAiReply(text, requestId = "", rawText = "", renderedText = "") {
+  function applyAiReply(text, requestId = "", rawText = "", renderedText = "", isFinal = true) {
     if (!shouldAcceptAiReply(requestId, pendingAiRequestId)) {
       sendAiReplyAck(requestId, false, false);
       return;
     }
     const source = chooseLongestReply(rawText, renderedText, text);
     const reply = extractReplyText([source]);
-    if (!reply) {
-      sendAiReplyAck(requestId, false, true);
+
+    if (reply) {
+      const storyEl = document.getElementById("eventStory");
+      if (storyEl) {
+        storyEl.textContent = reply;
+        storyEl.scrollTop = storyEl.scrollHeight;
+      }
+    }
+
+    if (!isFinal) {
+      const confirm = document.getElementById("eventConfirmBtn");
+      if (confirm) {
+        confirm.disabled = true;
+        confirm.textContent = "正在生成中...";
+      }
+      sendAiReplyAck(requestId, true, false, false);
       return;
     }
-    if (reply.replace(/\s+/g, "").length < 12 || isJunkReply(reply)) {
-      sendAiReplyAck(requestId, false, true);
+
+    if (!reply || reply.replace(/\s+/g, "").length < 12 || isJunkReply(reply)) {
+      if (aiReplyRetryCount < 2) {
+        aiReplyRetryCount++;
+        sendAiReplyAck(requestId, false, true);
+        return;
+      }
+      aiReplyRetryCount = 0;
+      pendingAiRequestId = "";
+      const errorText = "生成剧情失败，未获取到酒馆角色的有效回复。请点击右侧“编辑提示词重发”重试。";
+      state.lastStory = errorText;
+      if (state.activeStoryNode) state.activeStoryNode.ready = true;
+      saveState();
+      render();
+      const node = state.activeStoryNode;
+      const title = node?.type === "affinity"
+        ? `好感度 ${node.threshold}：${affinityNodes[node.threshold]?.title || "羁绊事件"}`
+        : node?.type === "firstLivePre"
+          ? "First Live 登台前准备"
+          : node?.type === "firstLivePost"
+            ? "First Live 演后记"
+            : node?.type === "freechat"
+              ? "担当闲聊"
+              : node?.type === "interaction"
+                ? "偶像互动"
+                : "AI 后续剧情";
+      openEventOverlay(title, "生成失败，未收到有效回复", errorText);
+      sendAiReplyAck(requestId, false, false);
       return;
     }
+    aiReplyRetryCount = 0;
     pendingAiRequestId = "";
     state.lastStory = reply;
     if (state.activeStoryNode) state.activeStoryNode.ready = true;
@@ -1857,30 +2196,36 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
     const node = state.activeStoryNode;
     const title = node?.type === "affinity"
       ? `好感度 ${node.threshold}：${affinityNodes[node.threshold]?.title || "羁绊事件"}`
-      : node?.type === "firstLive"
-        ? "First Live 最终演出"
-        : node?.type === "freechat"
-          ? "担当闲聊"
-          : node?.type === "interaction"
-            ? "偶像互动"
-        : "AI 后续剧情";
+      : node?.type === "firstLivePre"
+        ? "First Live 登台前准备"
+        : node?.type === "firstLivePost"
+          ? "First Live 演后记"
+          : node?.type === "freechat"
+            ? "担当闲聊"
+            : node?.type === "interaction"
+              ? "偶像互动"
+              : "AI 后续剧情";
     openEventOverlay(title, "已收到 SillyTavern 角色回复", reply);
     sendAiReplyAck(requestId, true, false);
   }
 
-  function sendAiReplyAck(requestId, accepted, retry) {
+  function sendAiReplyAck(requestId, accepted, retry, isFinal = true) {
     if (!isSillyTavernHost() || !requestId) return;
     window.parent.postMessage({
       source: "hatsuboshi-produce",
       type: "aiReplyAck",
       requestId,
       accepted,
-      retry
+      retry,
+      isFinal
     }, window.location.origin);
   }
 
   function shouldAcceptAiReply(requestId, currentRequestId) {
-    return Boolean(requestId) && requestId === currentRequestId;
+    if (!requestId) return false;
+    const activeRequestId = currentRequestId || state.pendingAiRequestId;
+    if (!activeRequestId) return false;
+    return requestId === activeRequestId;
   }
 
   function showToast(title, message, tone = "info") {
@@ -1932,7 +2277,8 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
           ["日程", "18 天育成，每天 3 次普通行动与 1 次额外行动。"],
           ["普通行动", "上课、训练、休息。休息回复 30 体力。"],
           ["额外行动", "外出回复较多体力并增加信赖，交流增加更多信赖并回复少量体力。"]
-        ]
+        ],
+        "开发测试": []
       }
     },
     schedule: {
@@ -2040,6 +2386,142 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
     });
     const body = document.getElementById("modalBody");
     body.innerHTML = "";
+
+    if (activeModal === "system" && activeModalTab === "开发测试") {
+      const devPanel = document.createElement("div");
+      devPanel.className = "dev-panel-content";
+      devPanel.style.display = "flex";
+      devPanel.style.flexDirection = "column";
+      devPanel.style.gap = "14px";
+      devPanel.style.padding = "10px";
+      devPanel.style.width = "100%";
+      
+      devPanel.innerHTML = `
+        <style>
+          .dev-form-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+          }
+          .dev-form-row label {
+            font-weight: bold;
+            font-size: 13px;
+            color: var(--ink);
+            width: 70px;
+          }
+          .dev-form-row input[type="number"] {
+            flex: 1;
+            padding: 6px 10px;
+            border: 2px solid rgba(0,0,0,0.1);
+            border-radius: 8px;
+            font-family: inherit;
+            background: #fff;
+            color: var(--ink);
+            text-align: center;
+            font-weight: bold;
+          }
+          .dev-btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+          }
+          .dev-action-btn {
+            background: linear-gradient(135deg, var(--pink), var(--violet));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s;
+          }
+          .dev-action-btn:hover {
+            opacity: 0.9;
+          }
+          .dev-action-btn.secondary {
+            background: #6c757d;
+          }
+        </style>
+        <div class="dev-form-row">
+          <label>育成天数</label>
+          <input type="number" id="devInputDay" min="1" max="18" value="${state.day}">
+          <label>日程轮次</label>
+          <input type="number" id="devInputRound" min="1" max="4" value="${state.round}">
+        </div>
+        <div class="dev-form-row">
+          <label>Vocal</label>
+          <input type="number" id="devInputVo" min="0" max="3000" value="${state.Vo}">
+          <label>Dance</label>
+          <input type="number" id="devInputDa" min="0" max="3000" value="${state.Da}">
+        </div>
+        <div class="dev-form-row">
+          <label>Visual</label>
+          <input type="number" id="devInputVi" min="0" max="3000" value="${state.Vi}">
+          <label>信赖度</label>
+          <input type="number" id="devInputTrust" min="0" max="1000" value="${state.trust}">
+        </div>
+        <div class="dev-form-row">
+          <label>当前体力</label>
+          <input type="number" id="devInputStamina" min="0" max="100" value="${state.stamina}">
+          <label>当前压力</label>
+          <input type="number" id="devInputStress" min="0" max="100" value="${state.stress}">
+        </div>
+        <div class="dev-btn-group">
+          <button type="button" id="devApplyBtn" class="dev-action-btn">保存并应用数值</button>
+          <button type="button" id="devLiveReadyBtn" class="dev-action-btn secondary">${state.liveReady ? "取消 Live 准备就绪" : "直接准备好 First Live"}</button>
+        </div>
+        <div class="dev-btn-group" style="margin-top: 0;">
+          <button type="button" id="devResetLiveStateBtn" class="dev-action-btn secondary">重置 First Live 状态</button>
+          <button type="button" id="devInstantLiveBtn" class="dev-action-btn">直接启动最终演出</button>
+        </div>
+      `;
+      
+      body.appendChild(devPanel);
+      
+      document.getElementById("devApplyBtn").addEventListener("click", () => {
+        state.day = clamp(parseInt(document.getElementById("devInputDay").value) || 1, 1, 18);
+        state.round = clamp(parseInt(document.getElementById("devInputRound").value) || 1, 1, 4);
+        state.Vo = Math.max(0, parseInt(document.getElementById("devInputVo").value) || 0);
+        state.Da = Math.max(0, parseInt(document.getElementById("devInputDa").value) || 0);
+        state.Vi = Math.max(0, parseInt(document.getElementById("devInputVi").value) || 0);
+        state.trust = Math.max(0, parseInt(document.getElementById("devInputTrust").value) || 0);
+        state.stamina = clamp(parseInt(document.getElementById("devInputStamina").value) || 100, 0, 100);
+        state.stress = clamp(parseInt(document.getElementById("devInputStress").value) || 0, 0, 100);
+        
+        saveState();
+        render();
+        showToast("数值已应用", "开发数值已成功更新至本地状态。", "success");
+        closeModal();
+      });
+
+      document.getElementById("devLiveReadyBtn").addEventListener("click", () => {
+        state.liveReady = !state.liveReady;
+        saveState();
+        render();
+        showToast("Live 状态已更改", `liveReady = ${state.liveReady}`, "info");
+        closeModal();
+      });
+
+      document.getElementById("devResetLiveStateBtn").addEventListener("click", () => {
+        state.firstLive = { completed: false, success: false, result: null };
+        saveState();
+        render();
+        showToast("已重置 First Live", "First Live 状态已重置为未完成。", "info");
+        closeModal();
+      });
+
+      document.getElementById("devInstantLiveBtn").addEventListener("click", () => {
+        closeModal();
+        state.liveReady = true;
+        saveState();
+        render();
+        startFirstLive();
+      });
+      return;
+    }
+
     const grid = document.createElement("div");
     grid.className = "modal-grid";
     modal.tabs[activeModalTab].forEach(([title, text], index) => {
@@ -2127,7 +2609,7 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
     const data = event.data || {};
     if (data.source !== "hatsuboshi-produce-host") return;
     if (data.type === "character") applyHostCharacter(data.character, data.saveScope, data.savedState, data.hasSavedState);
-    if (data.type === "aiReply") applyAiReply(data.text, data.requestId, data.rawText, data.renderedText);
+    if (data.type === "aiReply") applyAiReply(data.text, data.requestId, data.rawText, data.renderedText, data.isFinal);
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
@@ -2187,10 +2669,41 @@ ${outputContract("请写一段 1000 字以内、以实时舞台表现为主体�
   if ("fatigue" in state) delete state.fatigue;
   if (typeof state.liveReady !== "boolean") state.liveReady = false;
   if (state.idol && (!state.growth || !state.cap || !state.sp)) applyIdolPreset(state.idol);
+  // Expose developer commands globally
+  window.produceDev = {
+    setDay: (d) => { state.day = clamp(d, 1, 18); saveState(); render(); return `Day set to ${state.day}`; },
+    setRound: (r) => { state.round = clamp(r, 1, 4); saveState(); render(); return `Round set to ${state.round}`; },
+    setStamina: (s) => { state.stamina = clamp(s, 0, 100); saveState(); render(); return `Stamina set to ${state.stamina}`; },
+    setStress: (s) => { state.stress = clamp(s, 0, 100); saveState(); render(); return `Stress set to ${state.stress}`; },
+    setTrust: (t) => { state.trust = Math.max(0, t); saveState(); render(); return `Trust set to ${state.trust}`; },
+    setStats: (vo, da, vi) => { state.Vo = Math.max(0, vo); state.Da = Math.max(0, da); state.Vi = Math.max(0, vi); saveState(); render(); return `Stats set to Vo: ${state.Vo}, Da: ${state.Da}, Vi: ${state.Vi}`; },
+    setLiveReady: (b) => { state.liveReady = Boolean(b); saveState(); render(); return `LiveReady set to ${state.liveReady}`; },
+    resetLiveState: () => { state.firstLive = { completed: false, success: false, result: null }; saveState(); render(); return "First Live state reset."; },
+    triggerLive: () => { state.liveReady = true; saveState(); render(); startFirstLive(); return "First Live started."; }
+  };
+
   ensureStateShape();
   refreshAffinityUnlocks();
   saveState();
   render();
   if (!isSillyTavernHost()) resumeOpeningIfNeeded();
   requestHostCharacter();
+
+  // ── Splash Screen 自动退出 ──
+  const splashEl = document.getElementById("splashScreen");
+  if (splashEl) {
+    const dismissSplash = () => {
+      if (splashEl.classList.contains("is-dismissed")) return;
+      splashEl.classList.add("is-dismissed");
+    };
+    // 点击任意位置可跳过
+    splashEl.style.pointerEvents = "auto";
+    splashEl.addEventListener("click", dismissSplash, { once: true });
+    // 动画结束后自动从 DOM 中移除
+    splashEl.addEventListener("animationend", (e) => {
+      if (e.target === splashEl) {
+        splashEl.remove();
+      }
+    });
+  }
 })();

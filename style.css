@@ -144,16 +144,43 @@ p {
 .select-visual::before {
   content: "";
   position: absolute;
-  inset: 30px 12% auto auto;
-  width: min(330px, 42vw);
-  aspect-ratio: 0.68;
-  border-radius: 48% 48% 28% 28%;
-  background:
-    radial-gradient(circle at 50% 14%, #ffe3d6 0 16%, transparent 17%),
-    linear-gradient(#2d3556 0 54%, #72b7ff 55% 100%);
-  box-shadow: inset 0 -40px 0 rgba(255, 255, 255, 0.16), 0 30px 90px rgba(21, 29, 54, 0.28);
-  opacity: 0.58;
-  transform: rotate(-3deg);
+  inset: 20px 8% auto auto;
+  width: min(360px, 45vw);
+  aspect-ratio: 0.62;
+  background: url("./assets/select-bg/bg_logo.png") center / contain no-repeat;
+  opacity: 0.55;
+  filter: drop-shadow(0 20px 60px rgba(21, 29, 54, 0.35));
+  transform: rotate(-2deg);
+  transition: opacity 0.4s ease;
+}
+
+.select-visual.has-hover-bg::before {
+  opacity: 0;
+}
+
+.select-visual > .select-visual-bg {
+  position: absolute;
+  z-index: 0;
+}
+
+.select-visual-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 0.4s ease, background-image 0.2s ease;
+}
+
+.select-visual-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(20, 22, 30, 0.12), rgba(20, 22, 30, 0.85));
+}
+
+.select-visual-bg.has-image {
+  opacity: 1;
 }
 
 .select-visual::after {
@@ -1099,8 +1126,10 @@ p {
 
 .notebook-drawer[hidden],
 .event-overlay[hidden],
-.modal-backdrop[hidden] {
-  display: none;
+.modal-backdrop[hidden],
+.live-theater-overlay[hidden],
+.live-play-prompt[hidden] {
+  display: none !important;
 }
 
 .event-overlay {
@@ -1732,6 +1761,310 @@ p {
   .modal-tabs {
     grid-template-columns: 1fr;
   }
+}
+
+/* Live Theater Overlay */
+.live-theater-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  background-color: #0b090f;
+  opacity: 0;
+  transition: opacity 500ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.live-theater-overlay:not([hidden]) {
+  display: flex;
+}
+
+.live-theater-window {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.live-video {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  z-index: 1;
+}
+
+/* Glassmorphism Controls HUD */
+.live-theater-hud {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 24px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.live-hud-btn {
+  pointer-events: auto;
+  background: rgba(25, 20, 35, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50px;
+  color: rgba(255, 255, 255, 0.85);
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 200ms ease;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+  font-family: inherit;
+}
+
+.live-hud-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.45);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 30px rgba(255, 79, 154, 0.2);
+}
+
+.live-hud-btn:active {
+  transform: translateY(0);
+}
+
+/* Position skip button in the top right corner */
+.live-hud-btn.skip-btn {
+  align-self: flex-end;
+  color: #ff4f9a;
+  border-color: rgba(255, 79, 154, 0.25);
+}
+
+.live-hud-btn.skip-btn:hover {
+  background: rgba(255, 79, 154, 0.15);
+  border-color: rgba(255, 79, 154, 0.6);
+  color: #fff;
+}
+
+/* Position volume/mute button in bottom right */
+.live-hud-btn.volume-btn {
+  align-self: flex-end;
+  margin-top: auto;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.live-hud-btn.volume-btn.muted {
+  color: rgba(255, 255, 255, 0.4);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Play/Pause indicator when autoplay is blocked */
+.live-play-prompt {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  background: rgba(11, 9, 15, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 5;
+  cursor: pointer;
+  animation: fadeIn 300ms ease;
+}
+
+.play-icon-ring {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(255, 79, 154, 0.15);
+  border: 2px solid rgba(255, 79, 154, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 0 30px rgba(255, 79, 154, 0.3);
+  animation: pulseGlow 2s infinite ease-in-out;
+}
+
+.play-arrow {
+  font-size: 32px;
+  color: #ff4f9a;
+  margin-left: 6px;
+  text-shadow: 0 0 10px rgba(255, 79, 154, 0.5);
+}
+
+.live-play-prompt p {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 16px;
+  font-weight: 500;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  letter-spacing: 2px;
+  animation: textBlink 1.5s infinite ease-in-out;
+}
+
+/* Animations */
+@keyframes pulseGlow {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 20px rgba(255, 79, 154, 0.2);
+    border-color: rgba(255, 79, 154, 0.4);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 40px rgba(255, 79, 154, 0.5);
+    border-color: rgba(255, 79, 154, 0.8);
+  }
+}
+
+@keyframes textBlink {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ── Splash Screen ── */
+.splash-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  animation: splashFadeOut 0.8s ease 3.2s forwards;
+}
+
+.splash-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 45%, rgba(255, 220, 230, 0.35), transparent 70%),
+    linear-gradient(160deg, #fdf6f0 0%, #fce8e2 30%, #fdeef5 55%, #eaf2fb 100%);
+}
+
+.splash-logo {
+  position: relative;
+  z-index: 2;
+  width: min(580px, 72vw);
+  max-width: 90%;
+  opacity: 0;
+  transform: scale(0.88) translateY(12px);
+  animation: splashLogoIn 1s cubic-bezier(0.23, 1, 0.32, 1) 0.3s forwards;
+  filter: drop-shadow(0 8px 40px rgba(240, 145, 160, 0.25));
+}
+
+.splash-shimmer {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: linear-gradient(
+    105deg,
+    transparent 38%,
+    rgba(255, 255, 255, 0.55) 44%,
+    rgba(255, 255, 255, 0.7) 50%,
+    rgba(255, 255, 255, 0.55) 56%,
+    transparent 62%
+  );
+  transform: translateX(-120%);
+  animation: splashShimmer 1.1s ease 1.4s forwards;
+  pointer-events: none;
+}
+
+/* ── Sakura Petals ── */
+.splash-petals {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.petal {
+  position: absolute;
+  display: block;
+  width: 14px;
+  height: 10px;
+  background: radial-gradient(ellipse, #f8b4c0 0%, #fcd4d8 60%, transparent 100%);
+  border-radius: 50% 0 50% 0;
+  opacity: 0;
+  /* distribute across viewport using the --i custom property */
+  left: calc(8% + (var(--i) * 8%));
+  top: calc(-10px - (var(--i) * 6px));
+  animation: petalFall calc(2.6s + var(--i) * 0.15s) ease-in calc(0.4s + var(--i) * 0.18s) forwards;
+}
+
+.petal:nth-child(even) {
+  width: 11px;
+  height: 8px;
+  background: radial-gradient(ellipse, #fcc5c0 0%, #fde4e0 60%, transparent 100%);
+  border-radius: 0 50% 0 50%;
+}
+
+/* ── Splash Keyframes ── */
+@keyframes splashLogoIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.88) translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes splashShimmer {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(120%); }
+}
+
+@keyframes splashFadeOut {
+  0% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    opacity: 0;
+    filter: blur(6px);
+    visibility: hidden;
+  }
+}
+
+@keyframes petalFall {
+  0% {
+    opacity: 0;
+    transform: translateY(0) rotate(0deg) scale(0.7);
+  }
+  12% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(calc(100vh + 30px)) rotate(calc(220deg + var(--i) * 35deg)) scale(1);
+  }
+}
+
+.splash-screen.is-dismissed {
+  animation: splashFadeOut 0.6s ease forwards !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

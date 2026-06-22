@@ -29,9 +29,30 @@
 
   <div id="toastStack" class="toast-stack" aria-live="polite" aria-atomic="false"></div>
 
+  <!-- ── Splash Screen ── -->
+  <div class="splash-screen" id="splashScreen" aria-label="启动画面">
+    <div class="splash-bg"></div>
+    <div class="splash-petals">
+      <span class="petal" style="--i:0"></span>
+      <span class="petal" style="--i:1"></span>
+      <span class="petal" style="--i:2"></span>
+      <span class="petal" style="--i:3"></span>
+      <span class="petal" style="--i:4"></span>
+      <span class="petal" style="--i:5"></span>
+      <span class="petal" style="--i:6"></span>
+      <span class="petal" style="--i:7"></span>
+      <span class="petal" style="--i:8"></span>
+      <span class="petal" style="--i:9"></span>
+      <span class="petal" style="--i:10"></span>
+    </div>
+    <img class="splash-logo" src="./assets/select-bg/logo_color_w.png" alt="学園アイドルマスター" draggable="false">
+    <div class="splash-shimmer"></div>
+  </div>
+
   <main class="produce-app">
     <section class="select-screen" id="selectionStage" aria-labelledby="selectTitle">
       <div class="select-visual">
+        <div class="select-visual-bg" id="selectVisualBg"></div>
         <p class="ui-kicker">Hatsuboshi Produce</p>
         <h1 id="selectTitle">选择担当偶像</h1>
         <p>18 天 First Live 育成。前端裁定数值、行动与随机事件，LLM 负责把结果写成角色叙事。</p>
@@ -255,6 +276,24 @@
         <div class="tab-panel active" id="tabPrompt"><textarea id="promptText" spellcheck="false"></textarea></div>
         <div class="tab-panel" id="tabLog"><div id="logList" class="log-list"></div></div>
         <div class="tab-panel" id="tabDebug"><div id="debugPanel" class="debug-panel"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="liveTheater" class="live-theater-overlay" hidden>
+    <div class="live-theater-window">
+      <video id="liveVideo" class="live-video" preload="auto" playsinline></video>
+      
+      <div id="livePlayPrompt" class="live-play-prompt" hidden>
+        <div class="play-icon-ring">
+          <span class="play-arrow">▶</span>
+        </div>
+        <p>点击播放演出</p>
+      </div>
+
+      <div class="live-theater-hud">
+        <button id="liveVolumeBtn" class="live-hud-btn volume-btn" type="button" aria-label="切换静音"></button>
+        <button id="liveSkipBtn" class="live-hud-btn skip-btn" type="button">跳过演出</button>
       </div>
     </div>
   </section>
