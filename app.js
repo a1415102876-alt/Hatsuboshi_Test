@@ -1157,20 +1157,28 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     }
   }
 
-  const idolLiveVideos = {
-    "藤田琴音": "./assets/videos/fujita-kotone-live.mp4",
-    "月村手毬": "./assets/videos/tsukimura-temari-live.mp4",
-    "花海咲季": "./assets/videos/hanami-saki-live.mp4",
-    "花海祐芽": "./assets/videos/hanami-yume-live.mp4",
-    "篠泽广": "./assets/videos/shinosawa-hiro-live.mp4",
-    "十王星南": "./assets/videos/juo-sena-live.mp4",
-    "秦谷美铃": "./assets/videos/hataya-misuzu-live.mp4",
-    "仓本千奈": "./assets/videos/kuramoto-china-live.mp4",
-    "葛城莉莉娅": "./assets/videos/katsuragi-lilja-live.mp4",
-    "紫云清夏": "./assets/videos/shiun-sumika-live.mp4",
-    "有村麻央": "./assets/videos/arimura-mao-live.mp4",
-    "姬崎莉波": "./assets/videos/himesaki-rinami-live.mp4"
+  // 视频 CDN 配置：本地开发用本地文件，远程部署用 R2
+  const VIDEO_CDN = "https://pub-cfdeb8f85de84d8193695eca002e7880.r2.dev";
+  const idolVideoFiles = {
+    "藤田琴音": "fujita-kotone-live.mp4",
+    "月村手毬": "tsukimura-temari-live.mp4",
+    "花海咲季": "hanami-saki-live.mp4",
+    "花海祐芽": "hanami-yume-live.mp4",
+    "篠泽广": "shinosawa-hiro-live.mp4",
+    "十王星南": "juo-sena-live.mp4",
+    "秦谷美铃": "hataya-misuzu-live.mp4",
+    "仓本千奈": "kuramoto-china-live.mp4",
+    "葛城莉莉娅": "katsuragi-lilja-live.mp4",
+    "紫云清夏": "shiun-sumika-live.mp4",
+    "有村麻央": "arimura-mao-live.mp4",
+    "姬崎莉波": "himesaki-rinami-live.mp4"
   };
+  const idolLiveVideos = Object.fromEntries(
+    Object.entries(idolVideoFiles).map(([name, file]) => [
+      name,
+      `${VIDEO_CDN}/${file}`
+    ])
+  );
 
   function playLiveVideo(videoUrl, onComplete) {
     const overlay = document.getElementById("liveTheater");
