@@ -2773,7 +2773,10 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       const action = context.action;
       const attr = context.attribute;
       
-      if (action === "lesson" || action === "training") {
+      if (action === "lesson") {
+        return "./assets/scenes/Class.png";
+      }
+      if (action === "training") {
         if (attr === "Vo") return "./assets/scenes/vo_class.png";
         if (attr === "Da") return "./assets/scenes/da_class.png";
         if (attr === "Vi") return "./assets/scenes/vi_class.png";
