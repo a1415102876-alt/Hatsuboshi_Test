@@ -3296,15 +3296,23 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   });
   window.addEventListener("message", (event) => {
     const data = event.data || {};
+    
+    // 安全校验：允许来自父窗口（跨域 iframe 模式）、相同窗口（同域直接载入模式）或同源的消息
+    const isFromParent = event.source === window.parent;
+    const isFromSelf = event.source === window || event.source === null;
+    const isSameOrigin = event.origin === window.location.origin;
+    
     if (data.source === "hatsuboshi-produce-host") {
-      console.log("[app.js] Received message from host:", data.type, "origin:", event.origin, "sourceMatchesParent:", event.source === window.parent);
+      console.log("[app.js] Received message from host:", data.type, "origin:", event.origin, "isFromParent:", isFromParent, "isFromSelf:", isFromSelf, "isSameOrigin:", isSameOrigin);
     }
-    if (event.origin !== window.location.origin && event.source !== window.parent) {
+    
+    if (!isFromParent && !isFromSelf && !isSameOrigin) {
       if (data.source === "hatsuboshi-produce-host") {
-        console.warn("[app.js] Origin/source validation failed.");
+        console.warn("[app.js] Origin/source validation failed. origin:", event.origin, "local:", window.location.origin);
       }
       return;
     }
+    
     if (data.source !== "hatsuboshi-produce-host") return;
     if (data.type === "character") {
       console.log("[app.js] Applying character payload. Name:", data.character?.name, "SaveScope:", data.saveScope);
