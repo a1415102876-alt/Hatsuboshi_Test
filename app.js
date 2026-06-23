@@ -14,7 +14,7 @@
       tag: "皮卡丘 / 薯鸡",
       bio: "梦想成为「能赚钱的偶像」的贪心的女孩。把偶像视为逆转人生的手段。成绩不好，自我评价也不高，但对自己可爱的外表很有自信。不擅长应对不知为何总对自己有过高评价的学生会长星南。",
       theme: "#FAD356",
-      background: "./assets/idols/fujita-kotone.jpeg",
+      background: "./assets/idols/fujita-kotone.png",
       avatar: "./assets/avatars/fujita-kotone.png",
       core: "现实收益、被选择的不安、夸奖作为燃料、从不能相信自己到相信制作人。",
       styles: {
@@ -32,7 +32,7 @@
       tag: "杰尼龟 / 搞笑艺人",
       bio: "被称作初中部第一偶像的前精英。表面上是冷静、克己的讽刺家，却也是爱撒娇、懒惰的麻烦制造者，具有两面性的少女。为了能与讨厌的自己决裂，维持对自己的喜爱，以成为顶级偶像为目标。",
       theme: "#4FA0CE",
-      background: "./assets/idols/tsukimura-temari.jpeg",
+      background: "./assets/idols/tsukimura-temari.png",
       avatar: "./assets/avatars/tsukimura-temari.png",
       core: "冷淡外壳、脆弱内心、讨厌旧日的自己、需要精确而严格的支持。",
       styles: {
@@ -47,7 +47,7 @@
       tag: "小火龙 / 赛亚人",
       bio: "入学考试中取得第一名的新生。好胜心强、讨厌失败的曾经的运动员。花海咲季自幼聪颖、擅长记忆、可以很好地完成一切事项，被人们认为是神童。与妹妹花海佑芽关系很好，也是在各种各样的运动上一较高下的宿敌。比任何人都要看好佑芽的才能的同时，也对这份才能感到害怕。",
       theme: "#EA4A5B",
-      background: "./assets/idols/hanami-saki.jpeg",
+      background: "./assets/idols/hanami-saki.png",
       avatar: "./assets/avatars/hanami-saki.png",
       core: "骄傲、好胜、害怕输给重要对手，但会把恐惧转回胜利计划。",
       styles: {
