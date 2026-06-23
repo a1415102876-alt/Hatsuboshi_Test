@@ -219,7 +219,21 @@
     let bridgeReadyPromise = null;
     if (!window.__hatsuboshiProduceLoaded) {
       window.__hatsuboshiProduceLoaded = true;
-      bridgeReadyPromise = initInPageBridge();
+
+      let resolveBridgeReady;
+      bridgeReadyPromise = new Promise((resolve) => {
+        resolveBridgeReady = resolve;
+      });
+
+      const startBridge = () => {
+        initInPageBridge().then(resolveBridgeReady).catch(resolveBridgeReady);
+      };
+
+      if (document.readyState === 'complete') {
+        setTimeout(startBridge, 200);
+      } else {
+        window.addEventListener('load', startBridge);
+      }
 
       // 1. 同步注册消息监听，避免异步 import 加载导致错过 app.js 启动时发送的 getCharacter 消息
       window.addEventListener('message', async (event) => {
