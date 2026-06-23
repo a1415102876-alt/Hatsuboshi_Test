@@ -1174,14 +1174,32 @@
   }
 
   function outputContract(maxText) {
-    return `输出格式要求：
-- 最终展示给玩家的剧情正文必须放在两行纯文本分隔符之间：
+    return `【SillyTavern 蓝灯硬编码规则：剧情文本结构化渲染规约】
+为了配合前端 Galgame 模式的对话渲染和动态立绘显示，AI 必须严格遵守以下输出格式：
+
+1. 最终展示给玩家的剧情正文必须且只能放在两行纯文本分隔符之间：
 【初星正文开始】
-这里写剧情正文
+这里写剧情正文（必须使用标签包装每一句话）
 【初星正文结束】
-- 分隔符之间只写角色剧情正文，不要写思考、规划、规则复述、标题、列表、系统说明或数值复盘。
-- 如果需要内部规划、检查、背景信息或思维过程，必须放在正文分隔符之外。
-- 前端只会优先展示【初星正文开始】与【初星正文结束】之间的内容；没有该分隔符时才会尝试自动清理。
+
+2. 在正文分隔符之间，只能且必须使用以下 XML 标签来包装每一句台词或旁白：
+   - 角色台词：<dialogue char="角色名字">“台词内容”</dialogue>
+     * 注意：char 属性必须为具体说话的角色名字。如果是当前担当偶像说话，char 填 “${state.idol}”。
+     * 如果是制作人说话，char 填 “制作人”。如果是其他角色（如其他偶像或老师），char 填其名字。
+     * 台词内容必须用引号 “...” 或 「...」 包裹。
+   - 旁白或内心活动描述：<narration>描述文本</narration>
+     * 例子：<narration>你在走廊拐角偶遇了手毬，她正拿着水杯，面带倦容。</narration>
+
+3. 示范格式：
+【初星正文开始】
+<narration>声乐练习室的琴声刚刚停下，她抚了抚鬓角被汗水黏湿的发丝。</narration>
+<dialogue char="${state.idol}">“哈啊……好累。制作人，我刚才那个转音处理得怎么样？”</dialogue>
+<dialogue char="制作人">“共鸣很完美，但是高音区需要再放松一点。”</dialogue>
+<narration>她抿着嘴，露出有些不甘但又感到高兴的复杂神情。</narration>
+【初星正文结束】
+
+4. 绝对不要在分隔符之间包含任何其他普通文本、Markdown 标题（#）、列表（-）、数值结算或系统说明。
+5. 分隔符之外的内容将被前端自动过滤，仅用于 AI 的自我调试思考。
 - ${maxText}`;
   }
 
@@ -2601,6 +2619,10 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       setElementHidden("eventChoices", true);
     }
     
+    const loadText = state.choiceStep === 2
+      ? "正在重新生成偶像的反应..."
+      : "正在重新生成剧情...";
+
     const storyEl = document.getElementById("eventStory");
     if (storyEl) {
       if (state.choiceStep === 2) {
@@ -2608,9 +2630,12 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         const chosenLine = `▶ 制作人的选择：${state.selectedChoiceText || ""} (${state.selectedChoiceRating || ""})`;
         storyEl.innerHTML = `${formatStoryText(intro + "\n\n" + chosenLine)}<br><br><span id="eventReactionLoading" style="opacity:0.6;">(正在重新生成偶像的反应...)</span>`;
       } else {
-        storyEl.textContent = "正在重新生成剧情...";
+        storyEl.textContent = loadText;
       }
     }
+    
+    // 同步 VN 播放器显示为重新生成中的加载状态
+    openEventOverlay(state.lastEventTitle, "正在重新生成...", loadText);
     
     if (isSillyTavernHost()) {
       console.log('[Hatsu Produce] 正在发送 regenerate 消息到宿主端...', requestId);
@@ -2631,11 +2656,16 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     state.lastEventResult = result || "本次行动已经完成结算。";
     state.lastEventStory = story || state.lastStory || "本次行动已经完成。";
     saveState();
-    document.getElementById("eventTitle").textContent = title || "行动事件";
-    document.getElementById("eventPhaseBadge").textContent = getPhase();
-    document.getElementById("eventResult").textContent = result || "本次行动已经完成结算。";
-    document.getElementById("eventStory").innerHTML = formatStoryText(story || state.lastStory || "本次行动已经完成。");
-    const confirm = document.getElementById("eventConfirmBtn");
+    
+    // 1. 填充古典面板（用于 LOG 切换查看）
+    const titleEl = document.getElementById("eventTitle");
+    if (titleEl) titleEl.textContent = title || "行动事件";
+    const phaseEl = document.getElementById("eventPhaseBadge");
+    if (phaseEl) phaseEl.textContent = getPhase();
+    const resultEl = document.getElementById("eventResult");
+    if (resultEl) resultEl.textContent = result || "本次行动已经完成结算。";
+    const storyEl = document.getElementById("eventStory");
+    if (storyEl) storyEl.innerHTML = formatStoryText(story || state.lastStory || "本次行动已经完成。");
     
     if (pendingAiRequestId) {
       setEventActionsEnabled(false, true);
@@ -2644,7 +2674,32 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     }
 
     setElementHidden("eventOverlay", false);
-    confirm.focus();
+    
+    // 2. 判断当前是否为加载状态
+    const isLoading = pendingAiRequestId || story.includes("等待角色卡") || story.includes("等待 AI") || story.includes("正在重新生成");
+    
+    // 同步 VN 控制按钮的可点击状态
+    const regenBtn = document.getElementById("vnBtnRegen");
+    if (regenBtn) regenBtn.disabled = !!pendingAiRequestId;
+    const editBtn = document.getElementById("vnBtnEdit");
+    if (editBtn) editBtn.disabled = !!pendingAiRequestId;
+    const autoBtn = document.getElementById("vnBtnAuto");
+    if (autoBtn) autoBtn.disabled = !!pendingAiRequestId;
+    const skipBtn = document.getElementById("vnBtnSkip");
+    if (skipBtn) skipBtn.disabled = !!pendingAiRequestId;
+
+    if (isLoading) {
+      // 如果正在加载，直接显示一行静态文本，并禁用 VN 对话框点击动作
+      const slides = [{ type: "narration", speaker: "", text: story }];
+      initVisualNovelPlayer(slides);
+      completeVnSlideText();
+      const dialogueBox = document.getElementById("vnDialogueBox");
+      if (dialogueBox) dialogueBox.onclick = null;
+    } else {
+      // 解析流式生成/已完成的剧本并启动 VN 对话播放
+      const slides = parseNovelSlides(story);
+      initVisualNovelPlayer(slides);
+    }
   }
 
   function skipPendingOpening() {
@@ -2654,7 +2709,401 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     pendingAiRequestId = "";
   }
 
+  // ==========================================
+  // Galgame Visual Novel Player State & Logic
+  // ==========================================
+  let vnSlides = [];
+  let vnCurrentIndex = 0;
+  let vnTypewriterTimer = 0;
+  let vnIsTyping = false;
+  let vnIsAuto = false;
+  let vnAutoTimer = 0;
+  let vnSpeed = 25; // Typewriter speed (ms/char)
+  let vnAutoDelay = 1800; // Auto play delay after text finished
+  let vnCurrentText = "";
+
+  function parseNovelSlides(text) {
+    if (!text) return [];
+    
+    // 清除初星开始/结束标记
+    let cleanText = text
+      .replace(/[【\[]\s*初星正文开始\s*[】\]]/g, "")
+      .replace(/[【\[]\s*初星正文结束\s*[】\]][\s\S]*$/g, "")
+      .trim();
+
+    const slides = [];
+    const xmlRegex = /<(dialogue|narration)(?:\s+char="([^"]+)")?>([\s\S]*?)<\/\1>/gi;
+    let match;
+    let hasXmlTags = false;
+    
+    while ((match = xmlRegex.exec(cleanText)) !== null) {
+      hasXmlTags = true;
+      const type = match[1].toLowerCase();
+      const speaker = match[2] || "";
+      const content = match[3].trim();
+      if (content) {
+        slides.push({ type, speaker, text: content });
+      }
+    }
+
+    if (hasXmlTags && slides.length > 0) {
+      return slides;
+    }
+
+    // 容错降级：按行/段落解析，智能提取说话人和内心活动
+    const paragraphs = cleanText
+      .split(/\n+/)
+      .map(p => p.trim())
+      .filter(Boolean);
+
+    for (const p of paragraphs) {
+      if (p.startsWith("▶") || p.startsWith("?")) {
+        slides.push({ type: "narration", speaker: "", text: p });
+        continue;
+      }
+      
+      const speakerMatch = p.match(/^([^：:「“"'\s]{1,10})\s*[：:]\s*([\s\S]+)$/);
+      if (speakerMatch) {
+        const speaker = speakerMatch[1].trim();
+        const content = speakerMatch[2].trim();
+        slides.push({ type: "dialogue", speaker, text: content });
+      } else if (p.startsWith("“") || p.startsWith("「") || p.startsWith('"') || p.startsWith("'")) {
+        slides.push({ type: "dialogue", speaker: state.idol || "偶像", text: p });
+      } else {
+        slides.push({ type: "narration", speaker: "", text: p });
+      }
+    }
+
+    return slides;
+  }
+
+  function getSceneBackground() {
+    const node = state.activeStoryNode;
+    if (node) {
+      if (node.type === "firstLivePre" || node.type === "firstLivePost") {
+        return "./assets/scenes/campus.png";
+      }
+      if (node.type === "affinity") {
+        return "./assets/scenes/campus.png";
+      }
+    }
+
+    const context = state.pendingActionContext || (state.log && state.log[0]);
+    if (context) {
+      const action = context.action;
+      const attr = context.attribute;
+      
+      if (action === "lesson" || action === "training") {
+        if (attr === "Vo") return "./assets/scenes/vo_class.png";
+        if (attr === "Da") return "./assets/scenes/da_class.png";
+        if (attr === "Vi") return "./assets/scenes/vi_class.png";
+      }
+      if (action === "rest") {
+        return "./assets/scenes/rest.png";
+      }
+      if (action === "outing") {
+        return "./assets/scenes/campus.png";
+      }
+      if (action === "companion") {
+        return "./assets/scenes/rest.png";
+      }
+    }
+    return "./assets/scenes/campus.png";
+  }
+
+  function initVisualNovelPlayer(slides) {
+    vnSlides = slides || [];
+    vnCurrentIndex = 0;
+    vnIsTyping = false;
+    stopVnAuto();
+    
+    // 切换背景
+    const bgUrl = getSceneBackground();
+    const backdropEl = document.getElementById("vnBackdrop");
+    if (backdropEl) {
+      backdropEl.style.backgroundImage = `linear-gradient(180deg, rgba(18, 18, 24, 0.08) 0%, transparent 42%, rgba(18, 18, 24, 0.22) 100%), url('${bgUrl}')`;
+    }
+    
+    // 初始化显示层
+    document.getElementById("vnContainer").style.display = "flex";
+    document.getElementById("vnClassicPanel").style.display = "none";
+    document.getElementById("vnChoicesOverlay").style.display = "none";
+    
+    const dialogueBox = document.getElementById("vnDialogueBox");
+    if (dialogueBox) {
+      dialogueBox.onclick = null;
+      dialogueBox.onclick = (e) => {
+        if (e.target.closest(".vn-controls") || e.target.closest(".vn-btn")) {
+          return;
+        }
+        handleVnBoxClick();
+      };
+    }
+    
+    renderVnSlide(0);
+  }
+
+  function handleVnBoxClick() {
+    if (vnIsTyping) {
+      completeVnSlideText();
+    } else {
+      advanceVnSlide();
+    }
+  }
+
+  function renderVnSlide(index) {
+    if (vnTypewriterTimer) {
+      clearInterval(vnTypewriterTimer);
+      vnTypewriterTimer = 0;
+    }
+    if (vnAutoTimer) {
+      clearTimeout(vnAutoTimer);
+      vnAutoTimer = 0;
+    }
+
+    vnCurrentIndex = index;
+    
+    if (index >= vnSlides.length) {
+      handleVnSlidesEnd();
+      return;
+    }
+    
+    const slide = vnSlides[index];
+    const nameplateEl = document.getElementById("vnNameplate");
+    const textEl = document.getElementById("vnText");
+    const standeeEl = document.getElementById("vnStandee");
+    
+    // 1. 设置名字框和立绘显示
+    if (slide.type === "narration" || !slide.speaker) {
+      nameplateEl.style.display = "none";
+      if (standeeEl) {
+        standeeEl.classList.remove("active");
+        standeeEl.classList.add("fade-out");
+        setTimeout(() => {
+          if (standeeEl.classList.contains("fade-out")) {
+            standeeEl.style.display = "none";
+          }
+        }, 350);
+      }
+    } else {
+      nameplateEl.style.display = "block";
+      nameplateEl.textContent = slide.speaker;
+      
+      // 决定主题色
+      let themeColor = "#7e57c2";
+      const isProducer = slide.speaker === "制作人" || slide.speaker === "P" || (state.producer && slide.speaker === state.producer.name);
+      
+      if (isProducer) {
+        themeColor = "#5c6bc0"; // 制作人专属蓝色
+      } else if (idols[slide.speaker]) {
+        themeColor = idols[slide.speaker].theme;
+      }
+      nameplateEl.style.setProperty("--speaker-theme-color", themeColor);
+      
+      // 2. 加载发言者立绘并置于中央
+      if (standeeEl) {
+        let standeeSrc = "";
+        if (isProducer) {
+          standeeSrc = "./assets/idols/producer.png";
+        } else if (idols[slide.speaker]) {
+          standeeSrc = idols[slide.speaker].background;
+        }
+        
+        if (standeeSrc) {
+          standeeEl.src = standeeSrc;
+          standeeEl.style.display = "block";
+          setTimeout(() => {
+            standeeEl.classList.remove("fade-out");
+            standeeEl.classList.add("active");
+          }, 20);
+        } else {
+          standeeEl.classList.remove("active");
+          standeeEl.classList.add("fade-out");
+          setTimeout(() => {
+            if (standeeEl.classList.contains("fade-out")) {
+              standeeEl.style.display = "none";
+            }
+          }, 350);
+        }
+      }
+    }
+
+    // 3. 启动打字机动画
+    vnCurrentText = formatStoryText(slide.text);
+    textEl.innerHTML = "";
+    vnIsTyping = true;
+    
+    let totalLength = vnCurrentText.length;
+    let step = 0;
+    
+    vnTypewriterTimer = setInterval(() => {
+      step += 2;
+      if (step >= totalLength) {
+        clearInterval(vnTypewriterTimer);
+        vnTypewriterTimer = 0;
+        textEl.innerHTML = vnCurrentText;
+        vnIsTyping = false;
+        if (vnIsAuto) {
+          scheduleVnAutoAdvance();
+        }
+      } else {
+        let sliceStr = vnCurrentText.slice(0, step);
+        const openTags = (sliceStr.match(/<[a-zA-Z1-6]+/g) || []).length;
+        const closeTags = (sliceStr.match(/<\/[a-zA-Z1-6]+/g) || []).length;
+        
+        if (openTags > closeTags) {
+          const nextClose = vnCurrentText.indexOf(">", step);
+          if (nextClose !== -1) {
+            step = nextClose + 1;
+            sliceStr = vnCurrentText.slice(0, step);
+          }
+        }
+        textEl.innerHTML = sliceStr;
+      }
+    }, vnSpeed);
+  }
+
+  function completeVnSlideText() {
+    if (vnTypewriterTimer) {
+      clearInterval(vnTypewriterTimer);
+      vnTypewriterTimer = 0;
+    }
+    const textEl = document.getElementById("vnText");
+    if (textEl) {
+      textEl.innerHTML = vnCurrentText;
+    }
+    vnIsTyping = false;
+    if (vnIsAuto) {
+      scheduleVnAutoAdvance();
+    }
+  }
+
+  function advanceVnSlide() {
+    if (vnCurrentIndex < vnSlides.length - 1) {
+      renderVnSlide(vnCurrentIndex + 1);
+    } else {
+      handleVnSlidesEnd();
+    }
+  }
+
+  function handleVnSlidesEnd() {
+    stopVnAuto();
+    
+    const hasChoices = state.choiceStep === 1 && state.pendingOptionTexts && state.pendingOptionTexts.length === 4;
+    
+    if (hasChoices) {
+      showVnChoicesOverlay();
+    } else {
+      const textEl = document.getElementById("vnText");
+      if (textEl) {
+        textEl.innerHTML = "<strong>[ 本次事件已播放完毕，点击对话框以继续 ]</strong>";
+      }
+      
+      const nameplateEl = document.getElementById("vnNameplate");
+      if (nameplateEl) nameplateEl.style.display = "none";
+      
+      const dialogueBox = document.getElementById("vnDialogueBox");
+      if (dialogueBox) {
+        dialogueBox.onclick = null;
+        dialogueBox.onclick = () => {
+          const confirmBtn = document.getElementById("eventConfirmBtn");
+          if (confirmBtn && !confirmBtn.disabled) {
+            confirmBtn.click();
+          } else {
+            closeEventOverlay();
+          }
+        };
+      }
+    }
+  }
+
+  function showVnChoicesOverlay() {
+    const overlay = document.getElementById("vnChoicesOverlay");
+    const container = document.getElementById("vnChoicesContainer");
+    if (!overlay || !container) return;
+    
+    container.innerHTML = "";
+    
+    state.pendingOptionTexts.forEach((optText, index) => {
+      const btn = document.createElement("button");
+      btn.className = "vn-choice-btn";
+      btn.textContent = optText;
+      btn.onclick = () => {
+        overlay.style.display = "none";
+        handleChoiceSelection(index);
+      };
+      container.appendChild(btn);
+    });
+    
+    overlay.style.display = "flex";
+  }
+
+  function scheduleVnAutoAdvance() {
+    if (vnAutoTimer) clearTimeout(vnAutoTimer);
+    vnAutoTimer = setTimeout(() => {
+      advanceVnSlide();
+    }, vnAutoDelay);
+  }
+
+  function toggleVnAuto() {
+    vnIsAuto = !vnIsAuto;
+    const btn = document.getElementById("vnBtnAuto");
+    if (btn) {
+      if (vnIsAuto) {
+        btn.classList.add("active");
+        btn.textContent = "自动中 (AUTO)";
+        if (!vnIsTyping) {
+          scheduleVnAutoAdvance();
+        }
+      } else {
+        btn.classList.remove("active");
+        btn.textContent = "自动 (AUTO)";
+      }
+    }
+  }
+
+  function stopVnAuto() {
+    vnIsAuto = false;
+    const btn = document.getElementById("vnBtnAuto");
+    if (btn) {
+      btn.classList.remove("active");
+      btn.textContent = "自动 (AUTO)";
+    }
+    if (vnAutoTimer) {
+      clearTimeout(vnAutoTimer);
+      vnAutoTimer = 0;
+    }
+  }
+
+  function skipAllVnDialogue() {
+    stopVnAuto();
+    if (vnSlides.length > 0) {
+      renderVnSlide(vnSlides.length - 1);
+      completeVnSlideText();
+      handleVnSlidesEnd();
+    }
+  }
+
+  function openVnLogView() {
+    document.getElementById("vnClassicPanel").style.display = "grid";
+  }
+
+  function closeVnLogView() {
+    document.getElementById("vnClassicPanel").style.display = "none";
+  }
+
+  function triggerVnEditPrompt() {
+    stopVnAuto();
+    setElementHidden("eventOverlay", true);
+    openAiPromptOverlay();
+  }
+
   function closeEventOverlay() {
+    stopVnAuto();
+    if (vnTypewriterTimer) {
+      clearInterval(vnTypewriterTimer);
+      vnTypewriterTimer = 0;
+    }
     const node = state.activeStoryNode;
     if (node?.type === "affinity") {
       if (!node.ready) {
@@ -3872,6 +4321,17 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   document.getElementById("eventOverlay").addEventListener("click", (event) => {
     if (event.target.id === "eventOverlay") closeEventOverlay();
   });
+
+  // Galgame 播放器控制按钮事件绑定
+  document.getElementById("vnBtnSkip").addEventListener("click", skipAllVnDialogue);
+  document.getElementById("vnBtnLog").addEventListener("click", openVnLogView);
+  document.getElementById("vnBtnAuto").addEventListener("click", toggleVnAuto);
+  document.getElementById("vnBtnRegen").addEventListener("click", () => {
+    stopVnAuto();
+    triggerRegeneration();
+  });
+  document.getElementById("vnBtnEdit").addEventListener("click", triggerVnEditPrompt);
+  document.getElementById("closeClassicPanelBtn").addEventListener("click", closeVnLogView);
   document.getElementById("sideItemLastEvent").addEventListener("click", reopenLastEvent);
   document.getElementById("sideItemStory").addEventListener("click", openAffinityModal);
   document.getElementById("aiPromptCancelBtn").addEventListener("click", closeAiPromptOverlay);

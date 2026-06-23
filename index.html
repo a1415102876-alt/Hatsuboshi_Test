@@ -224,13 +224,37 @@
   </main>
 
   <section id="eventOverlay" class="event-overlay" hidden aria-label="行动事件">
-    <article class="event-panel">
+    <!-- Visual Novel Play Container -->
+    <div id="vnContainer" class="vn-container">
+      <div id="vnBackdrop" class="vn-backdrop"></div>
+      <div class="vn-stage">
+        <img id="vnStandee" class="vn-standee" src="" alt="立绘" draggable="false">
+      </div>
+      <div class="vn-dialogue-box" id="vnDialogueBox">
+        <div class="vn-nameplate" id="vnNameplate">角色</div>
+        <div class="vn-text" id="vnText">文本</div>
+        <div class="vn-controls">
+          <button id="vnBtnSkip" class="vn-btn">跳过 (SKIP)</button>
+          <button id="vnBtnLog" class="vn-btn">日志 (LOG)</button>
+          <button id="vnBtnAuto" class="vn-btn">自动 (AUTO)</button>
+          <button id="vnBtnRegen" class="vn-btn">重新生成</button>
+          <button id="vnBtnEdit" class="vn-btn">编辑重发</button>
+        </div>
+      </div>
+      <div id="vnChoicesOverlay" class="vn-choices-overlay" style="display: none;">
+        <div class="vn-choices-title" id="vnChoicesTitle">请做出你的选择</div>
+        <div id="vnChoicesContainer" class="vn-choices-container"></div>
+      </div>
+    </div>
+
+    <!-- Classical Panel (Hidden by default, shown as log panel overlay) -->
+    <article id="vnClassicPanel" class="event-panel" style="display: none;">
       <header class="event-head">
         <div>
-          <p class="ui-kicker">Produce Event</p>
+          <p class="ui-kicker">Produce Event Log</p>
           <h2 id="eventTitle">行动事件</h2>
         </div>
-        <span id="eventPhaseBadge" class="event-phase">First Live 前期</span>
+        <button id="closeClassicPanelBtn" class="icon-button" type="button" aria-label="返回对话"><svg><use href="#icon-close"></use></svg></button>
       </header>
       <div class="event-result" id="eventResult">等待结算</div>
       <div class="event-story" id="eventStory"></div>
