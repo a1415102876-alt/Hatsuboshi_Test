@@ -12,7 +12,14 @@
     console.error('[st.html Rejection] ', event.reason);
   });
 
-  const targetDocument = window.parent?.document || document;
+  let targetDocument = document;
+  try {
+    if (window.parent && window.parent.document) {
+      targetDocument = window.parent.document;
+    }
+  } catch (e) {
+    console.warn('[st.html] Cannot access window.parent.document, falling back to local document:', e);
+  }
   window.isHatsuLoaderST = true;
   const BASE = 'https://hatsuboshi.vercel.app/';
 
@@ -208,7 +215,7 @@
       .replaceAll("'./assets/", "'" + abs('assets/'))
       .replaceAll('`./assets/', '`' + abs('assets/'));
 
-    const script = document.createElement('script');
+    const script = targetDocument.createElement('script');
     script.textContent = jsText + '\n//# sourceURL=' + abs('app.js');
     page.appendChild(script);
 
