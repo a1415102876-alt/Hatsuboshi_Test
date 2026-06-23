@@ -2282,6 +2282,11 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     if (typeof window.SillyTavern !== 'undefined' || document.getElementById('hatsu-fullscreen-overlay') || window.isHatsuLoaderST) {
       return true;
     }
+    try {
+      if (window.parent && window.parent !== window && (window.parent.SillyTavern || window.parent.isHatsuLoaderST)) {
+        return true;
+      }
+    } catch (e) {}
     return window.parent && window.parent !== window && new URLSearchParams(window.location.search).get("host") === "sillytavern";
   }
 
