@@ -409,6 +409,12 @@
     activeStoryNode: null,
     log: [],
     boundCharacter: null,
+    producer: {
+      name: "{{user}}",
+      personality: "",
+      style: "",
+      settings: ""
+    },
     lastStory: "请选择行动",
     lastEventTitle: "",
     lastEventResult: "",
@@ -430,6 +436,7 @@
   let activeModal = null;
   let activeModalTab = null;
   let selectedIdol = null;
+  let hoverTimeout = null;
 
   const BGM_CONFIG = {
     select: "./assets/bgm/select.mp3",
@@ -661,6 +668,33 @@
     if (el) el.hidden = hidden;
     updateBgm();
   }
+
+  function triggerWipeTransition(callback) {
+    const container = document.getElementById("wipeTransition");
+    if (!container) {
+      callback();
+      return;
+    }
+
+    let idolName = selectedIdol || state.idol;
+    let color = "#ff4f9a";
+    if (idolName && idols[idolName]) {
+      color = idols[idolName].theme || color;
+    }
+
+    container.style.setProperty("--wipe-color", color);
+    container.removeAttribute("hidden");
+    container.classList.add("animating");
+
+    setTimeout(() => {
+      callback();
+    }, 600);
+
+    setTimeout(() => {
+      container.classList.remove("animating");
+      container.setAttribute("hidden", "");
+    }, 1300);
+  }
   let pendingAiRequestId = "";
   let aiReplyRetryCount = 0;
   let interactionMode = "specified";
@@ -743,6 +777,13 @@
     state.affinity.viewed = Array.from(new Set(state.affinity.viewed || [])).map(Number).sort((a, b) => a - b);
     state.firstLive = { completed: false, success: false, result: null, ...(state.firstLive || {}) };
     state.activeStoryNode = state.activeStoryNode || null;
+    state.producer = {
+      name: "{{user}}",
+      personality: "",
+      style: "",
+      settings: "",
+      ...(state.producer || {})
+    };
   }
 
   function clamp(value, min, max) {
@@ -1080,6 +1121,17 @@
 - ${maxText}`;
   }
 
+  function buildProducerPromptSection() {
+    if (!state.producer) return "";
+    return `
+制作人（{{user}}）设定：
+- 称呼：${state.producer.name || "{{user}}"}
+- 性格：${state.producer.personality || "由 AI 自行发挥"}
+- 说话风格：${state.producer.style || "由 AI 自行发挥"}
+- 额外人设背景：${state.producer.settings || "由 AI 自行发挥"}
+`;
+  }
+
   function buildPrompt(action, attribute, resultText, randomEvent = null, actionContext = {}) {
     const profile = idols[state.idol];
     const actionName = actionLabel(action, attribute);
@@ -1125,6 +1177,7 @@ ${getAffinityStageLine(state.idol, state.trust)}
 
 角色核心：
 ${profile.core}
+${buildProducerPromptSection()}
 
 本行动叙事规则：
 ${actionStyle}${destinationPrompt}${eventPrompt}
@@ -1148,6 +1201,7 @@ ${getAffinityStageLine(state.idol, state.trust)}
 
 角色核心：
 ${profile.core}
+${buildProducerPromptSection()}
 
 本节点主题：
 ${affinityNodes[0].theme}
@@ -1172,6 +1226,7 @@ ${outputContract("请写一段 500 字以内的开场剧情。")}`;
 ${getAffinityStageLine(state.idol, state.trust)}
 最终状态：Vo ${state.Vo} / Da ${state.Da} / Vi ${state.Vi} / 体力 ${state.stamina} / 压力 ${state.stress} / 信赖 ${state.trust}
 成长率：Vo ${state.growth?.Vo} / Da ${state.growth?.Da} / Vi ${state.growth?.Vi}
+${buildProducerPromptSection()}
 
 请准备进入 First Live 最终演出。
 不要重新计算数值。
@@ -1195,6 +1250,7 @@ First Live 状态：${state.firstLive.completed ? (state.firstLive.success ? "�
 
 角色核心：
 ${profile.core}
+${buildProducerPromptSection()}
 
 本节点主题：
 ${node.theme}
@@ -1229,6 +1285,7 @@ ${topic}
 
 角色核心：
 ${profile.core}
+${buildProducerPromptSection()}
 
 闲聊规则：
 - 这是制作人与担当偶像之间的一次自由闲聊，不是育成行动。
@@ -1264,6 +1321,7 @@ ${plotSection}
 
 担当角色核心：
 ${profile.core}
+${buildProducerPromptSection()}
 
 互动规则：
 - 这是担当偶像与其他偶像之间的一次自由互动，不是育成行动。
@@ -1311,6 +1369,7 @@ ${getAffinityStageLine(state.idol, state.trust)}
 
 角色核心：
 ${profile.core}
+${buildProducerPromptSection()}
 
 叙事时间范围：
 - 正文必须限定在后台准备室/候场区，直到登台前的一刻。
@@ -1343,6 +1402,7 @@ ${formatLiveResult(result)}
 
 角色核心：
 ${profile.core}
+${buildProducerPromptSection()}
 
 叙事时间范围：
 - 正文必须发生在 First Live 演出刚刚结束、偶像走下舞台回到后台休息室的场景。
@@ -1617,48 +1677,124 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   }
 
   function applySelectStageBackground(idolName) {
-    const selectVisual = document.querySelector(".select-visual");
-    const selectVisualBg = document.getElementById("selectVisualBg");
-    if (!selectVisual || !selectVisualBg) return;
+    try {
+      const selectVisual = document.querySelector(".select-visual");
+      if (!selectVisual) return;
 
-    if (!idolName) {
-      selectVisualBg.classList.remove("has-image");
-      selectVisual.classList.remove("has-hover-bg");
-      selectVisualBg.style.backgroundImage = "";
-      return;
-    }
+      // Find the currently active background element by ID
+      let currentBg = document.getElementById("selectVisualBg");
 
-    const idolCode = affinityIdolCodes[idolName]?.toLowerCase();
-    if (!idolCode) return;
-
-    const extensions = [".png", ".jpg", ".jpeg"];
-    const tryLoadImage = (extIndex) => {
-      if (extIndex >= extensions.length) {
-        selectVisualBg.classList.remove("has-image");
-        selectVisual.classList.remove("has-hover-bg");
-        selectVisualBg.style.backgroundImage = "";
+      if (!idolName) {
+        if (currentBg) {
+          currentBg.classList.remove("has-image");
+          selectVisual.classList.remove("has-hover-bg");
+          // Keep it in DOM but clear it after fade out to allow reuse
+          setTimeout(() => {
+            if (!currentBg.classList.contains("has-image") && currentBg.parentNode) {
+              currentBg.style.backgroundImage = "";
+            }
+          }, 400);
+        }
         return;
       }
 
-      const ext = extensions[extIndex];
-      const imgPath = `./assets/select-bg/${idolCode}${ext}`;
-      const img = new Image();
-      img.onload = () => {
-        const activeHoverIdol = document.querySelector(".idol-card:hover");
-        const hoveredName = activeHoverIdol ? activeHoverIdol.id.replace("idol-", "") : null;
-        const currentExpected = hoveredName || selectedIdol;
-        if (currentExpected === idolName) {
-          selectVisualBg.style.backgroundImage = `url("${imgPath}")`;
-          selectVisualBg.classList.add("has-image");
-          selectVisual.classList.add("has-hover-bg");
+      const idolCode = affinityIdolCodes[idolName]?.toLowerCase();
+      if (!idolCode) return;
+
+      const extensions = [".png", ".jpg", ".jpeg"];
+      const tryLoadImage = (extIndex) => {
+        if (extIndex >= extensions.length) {
+          const latestBg = document.getElementById("selectVisualBg");
+          if (latestBg) {
+            latestBg.classList.remove("has-image");
+            selectVisual.classList.remove("has-hover-bg");
+            setTimeout(() => {
+              if (!latestBg.classList.contains("has-image") && latestBg.parentNode) {
+                latestBg.style.backgroundImage = "";
+              }
+            }, 400);
+          }
+          return;
         }
+
+        const ext = extensions[extIndex];
+        const imgPath = `./assets/select-bg/${idolCode}${ext}`;
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const activeHoverIdol = document.querySelector(".idol-card:hover");
+            const hoveredName = activeHoverIdol ? activeHoverIdol.id.replace("idol-", "") : null;
+            const currentExpected = hoveredName || selectedIdol;
+            if (currentExpected === idolName) {
+              const newBgUrl = `url("${imgPath}")`;
+
+              // Query the LATEST active background node by ID right now
+              const latestBg = document.getElementById("selectVisualBg");
+
+              // Helper to normalize background URLs for comparison (ignoring relative/absolute differences)
+              const normalizeBgUrl = (urlStr) => {
+                if (!urlStr) return "";
+                const match = urlStr.match(/\/assets\/select-bg\/[^\/)]+/i);
+                return match ? match[0].toLowerCase() : urlStr;
+              };
+
+              const isSameImage = latestBg && normalizeBgUrl(latestBg.style.backgroundImage) === normalizeBgUrl(newBgUrl);
+
+              if (!latestBg) {
+                // If somehow no background element exists, create one
+                const newBgEl = document.createElement("div");
+                newBgEl.className = "select-visual-bg has-image";
+                newBgEl.id = "selectVisualBg";
+                newBgEl.style.backgroundImage = newBgUrl;
+                selectVisual.insertBefore(newBgEl, selectVisual.firstChild);
+                selectVisual.classList.add("has-hover-bg");
+              } else if (!isSameImage) {
+                // Create a new background element for cross-fade
+                const newBgEl = document.createElement("div");
+                newBgEl.className = "select-visual-bg";
+                newBgEl.style.backgroundImage = newBgUrl;
+                
+                // Insert it immediately after the latest active one so it overlays on top
+                selectVisual.insertBefore(newBgEl, latestBg.nextSibling);
+                
+                // Force reflow
+                newBgEl.offsetHeight;
+                
+                // Fade in new image
+                newBgEl.classList.add("has-image");
+                selectVisual.classList.add("has-hover-bg");
+                
+                // Fade out old image
+                latestBg.classList.remove("has-image");
+                latestBg.id = ""; // Remove ID from old active
+                newBgEl.id = "selectVisualBg"; // Set ID on new active
+                
+                // Remove old element after transition
+                setTimeout(() => {
+                  if (latestBg && latestBg.parentNode) {
+                    latestBg.remove();
+                  }
+                }, 400);
+              } else {
+                latestBg.classList.add("has-image");
+                selectVisual.classList.add("has-hover-bg");
+              }
+            }
+          } catch (err) {
+            console.error("Error in applySelectStageBackground onload:", err);
+            showToast("背景加载处理错误", err.message, "error");
+          }
+        };
+        img.onerror = () => {
+          tryLoadImage(extIndex + 1);
+        };
+        img.src = imgPath;
       };
-      img.onerror = () => {
-        tryLoadImage(extIndex + 1);
-      };
-      img.src = imgPath;
-    };
-    tryLoadImage(0);
+      tryLoadImage(0);
+    } catch (err) {
+      console.error("Error in applySelectStageBackground:", err);
+      showToast("背景切换逻辑错误", err.message, "error");
+    }
   }
 
   function updateSelectVisual(name) {
@@ -1679,6 +1815,11 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         confirmContainer.classList.remove("is-visible");
       }
       applySelectStageBackground(null);
+
+      const selectPanel = document.getElementById("selectPanel");
+      const producerPanel = document.getElementById("producerPanel");
+      if (selectPanel) selectPanel.classList.remove("is-hidden");
+      if (producerPanel) producerPanel.classList.add("is-hidden");
       return;
     }
 
@@ -1699,6 +1840,12 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     if (confirmBtn) {
       confirmBtn.style.backgroundColor = profile.theme;
       confirmBtn.style.boxShadow = `0 8px 24px ${profile.theme}66`;
+    }
+
+    const prodStartBtn = document.getElementById("producerStartBtn");
+    if (prodStartBtn) {
+      prodStartBtn.style.backgroundColor = profile.theme;
+      prodStartBtn.style.boxShadow = `0 8px 24px ${profile.theme}66`;
     }
 
     applySelectStageBackground(name);
@@ -1744,10 +1891,20 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       });
 
       button.addEventListener("mouseenter", () => {
-        applySelectStageBackground(name);
+        if (hoverTimeout) {
+          clearTimeout(hoverTimeout);
+          hoverTimeout = null;
+        }
+        updateSelectVisual(name);
       });
       button.addEventListener("mouseleave", () => {
-        applySelectStageBackground(selectedIdol);
+        if (hoverTimeout) {
+          clearTimeout(hoverTimeout);
+        }
+        hoverTimeout = setTimeout(() => {
+          updateSelectVisual(selectedIdol);
+          hoverTimeout = null;
+        }, 50);
       });
 
       list.appendChild(button);
@@ -1952,7 +2109,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     window.parent.postMessage({
       source: "hatsuboshi-produce",
       type: "getCharacter"
-    }, window.location.origin);
+    }, "*");
   }
 
   function requestHostStateSave() {
@@ -1962,7 +2119,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       type: "saveState",
       saveScope: activeHostSaveScope,
       state: clone(state)
-    }, window.location.origin);
+    }, "*");
     return true;
   }
 
@@ -1978,7 +2135,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       type: "sendPrompt",
       requestId,
       prompt
-    }, window.location.origin);
+    }, "*");
     showToast("已交给酒馆", "提示词已发送到 SillyTavern 当前对话。", "gold");
     return true;
   }
@@ -2524,7 +2681,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       accepted,
       retry,
       isFinal
-    }, window.location.origin);
+    }, "*");
   }
 
   function shouldAcceptAiReply(requestId, currentRequestId) {
@@ -2584,6 +2741,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
           ["普通行动", "上课、训练、休息。休息回复 30 体力。"],
           ["额外行动", "外出回复较多体力并增加信赖，交流增加更多信赖并回复少量体力。"]
         ],
+        "制作人设定": [],
         "音频设置": [],
         "开发测试": []
       }
@@ -2693,6 +2851,58 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     });
     const body = document.getElementById("modalBody");
     body.innerHTML = "";
+
+    if (activeModal === "system" && activeModalTab === "制作人设定") {
+      const prodPanel = document.createElement("div");
+      prodPanel.className = "dev-panel-content";
+      prodPanel.style.display = "flex";
+      prodPanel.style.flexDirection = "column";
+      prodPanel.style.gap = "14px";
+      prodPanel.style.padding = "10px";
+      prodPanel.style.width = "100%";
+      prodPanel.innerHTML = `
+        <style>
+          .prod-setting-row { display: grid; gap: 6px; margin-bottom: 8px; }
+          .prod-setting-row label { font-weight: bold; font-size: 14px; color: var(--ink); }
+          .prod-setting-row input, .prod-setting-row textarea {
+            width: 100%; border: 2px solid rgba(111, 102, 128, 0.14); border-radius: 10px;
+            padding: 8px 12px; color: var(--ink); background: rgba(255, 255, 255, 0.85); font: 700 13px var(--font-ui); outline: none; transition: all 0.2s ease;
+          }
+          .prod-setting-row input:focus, .prod-setting-row textarea:focus { border-color: var(--idol-theme); background: #fff; }
+          .prod-save-btn { margin-top: 8px; width: 100%; padding: 10px; font-weight: bold; border-radius: 10px; border: none; background: var(--idol-theme); color: #fff; cursor: pointer; }
+        </style>
+        <div class="prod-setting-row">
+          <label for="modalProdName">制作人称呼</label>
+          <input type="text" id="modalProdName" value="${state.producer?.name || '{{user}}'}">
+        </div>
+        <div class="prod-setting-row">
+          <label for="modalProdPersonality">性格特征</label>
+          <textarea id="modalProdPersonality" rows="2">${state.producer?.personality || ''}</textarea>
+        </div>
+        <div class="prod-setting-row">
+          <label for="modalProdStyle">说话风格</label>
+          <input type="text" id="modalProdStyle" value="${state.producer?.style || ''}">
+        </div>
+        <div class="prod-setting-row">
+          <label for="modalProdSettings">额外设定</label>
+          <textarea id="modalProdSettings" rows="2">${state.producer?.settings || ''}</textarea>
+        </div>
+        <button id="modalProdSaveBtn" class="prod-save-btn">保存修改</button>
+      `;
+      body.appendChild(prodPanel);
+
+      document.getElementById("modalProdSaveBtn").addEventListener("click", () => {
+        state.producer = {
+          name: document.getElementById("modalProdName").value.trim() || "{{user}}",
+          personality: document.getElementById("modalProdPersonality").value.trim(),
+          style: document.getElementById("modalProdStyle").value.trim(),
+          settings: document.getElementById("modalProdSettings").value.trim()
+        };
+        saveState();
+        showToast("设置已保存", "制作人信息修改成功，将在下一次行动起生效。", "info");
+      });
+      return;
+    }
 
     if (activeModal === "system" && activeModalTab === "音频设置") {
       const audioPanel = document.createElement("div");
@@ -2913,12 +3123,116 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     settleAction(button.dataset.action, button.dataset.attribute);
   });
 
+  // Handle click on "开始育成" (Confirm Idol Selection)
   document.getElementById("confirmIdolBtn").addEventListener("click", () => {
     if (!selectedIdol) return;
-    applyIdolPreset(selectedIdol, true);
-    startOpeningStory();
-    saveState();
-    showToast("担当已确认", `${selectedIdol}进入 First Live 育成路线。`, "gold");
+    
+    triggerWipeTransition(() => {
+      // UI Transitions: swap right panel to producer setup, update left description
+      const selectPanel = document.getElementById("selectPanel");
+      const producerPanel = document.getElementById("producerPanel");
+      if (selectPanel) selectPanel.classList.add("is-hidden");
+      if (producerPanel) producerPanel.classList.remove("is-hidden");
+
+      const kicker = document.getElementById("selectKicker");
+      const title = document.getElementById("selectTitle");
+      const desc = document.getElementById("selectDesc");
+      const confirmContainer = document.getElementById("selectConfirmContainer");
+
+      if (kicker) kicker.textContent = "Producer Setup";
+      if (title) title.textContent = `${selectedIdol} · 制作人合约`;
+      if (desc) desc.textContent = `签署与 ${selectedIdol} 的专属育成合约。请在右侧设定您在游戏中的性格、说话风格及额外人设。`;
+      if (confirmContainer) {
+        confirmContainer.style.display = "none";
+        confirmContainer.classList.remove("is-visible");
+      }
+
+      // Populate producer setup form with existing state if any
+      document.getElementById("prodNameInput").value = state.producer?.name || "{{user}}";
+      document.getElementById("prodPersonalityInput").value = state.producer?.personality || "";
+      document.getElementById("prodStyleInput").value = state.producer?.style || "";
+      document.getElementById("prodSettingsInput").value = state.producer?.settings || "";
+    });
+  });
+
+  // Handle click on "返回选择" inside producer form
+  document.getElementById("producerBackBtn").addEventListener("click", () => {
+    if (!selectedIdol) return;
+
+    triggerWipeTransition(() => {
+      // UI Transitions: swap right panel back to idol list, restore left description
+      const selectPanel = document.getElementById("selectPanel");
+      const producerPanel = document.getElementById("producerPanel");
+      if (selectPanel) selectPanel.classList.remove("is-hidden");
+      if (producerPanel) producerPanel.classList.add("is-hidden");
+
+      const kicker = document.getElementById("selectKicker");
+      const title = document.getElementById("selectTitle");
+      const desc = document.getElementById("selectDesc");
+      const confirmContainer = document.getElementById("selectConfirmContainer");
+      const profile = idols[selectedIdol];
+
+      if (profile) {
+        if (kicker) kicker.textContent = profile.tag || "Hatsuboshi Produce";
+        if (title) title.textContent = selectedIdol;
+        if (desc) desc.textContent = profile.bio || "";
+      }
+      if (confirmContainer) {
+        confirmContainer.style.display = "flex";
+        confirmContainer.classList.add("is-visible");
+      }
+    });
+  });
+
+  // Helper for quick tag clicks inside producer form
+  const registerQuickTagBehavior = (containerId, inputId) => {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.addEventListener("click", (e) => {
+      const btn = e.target.closest(".quick-tag-btn");
+      if (!btn) return;
+      const val = btn.dataset.val;
+      const input = document.getElementById(inputId);
+      if (input) {
+        const current = input.value.trim();
+        if (current) {
+          if (!current.includes(val)) {
+            input.value = `${current}、${val}`;
+          }
+        } else {
+          input.value = val;
+        }
+      }
+    });
+  };
+  registerQuickTagBehavior("prodPersonalityTags", "prodPersonalityInput");
+  registerQuickTagBehavior("prodStyleTags", "prodStyleInput");
+
+  // Handle click on "签署合约，开启星途"
+  document.getElementById("producerStartBtn").addEventListener("click", () => {
+    if (!selectedIdol) return;
+
+    // Save producer settings immediately
+    const name = document.getElementById("prodNameInput").value.trim() || "{{user}}";
+    const personality = document.getElementById("prodPersonalityInput").value.trim();
+    const style = document.getElementById("prodStyleInput").value.trim();
+    const settings = document.getElementById("prodSettingsInput").value.trim();
+    state.producer = { name, personality, style, settings };
+
+    triggerWipeTransition(() => {
+      // Start produce game
+      applyIdolPreset(selectedIdol, true);
+      startOpeningStory();
+      saveState();
+
+      // Toggle panels back to default selection layout
+      const selectPanel = document.getElementById("selectPanel");
+      const producerPanel = document.getElementById("producerPanel");
+      if (selectPanel) selectPanel.classList.remove("is-hidden");
+      if (producerPanel) producerPanel.classList.add("is-hidden");
+
+      showToast("合约签署完成", `制作人与 ${selectedIdol} 的专属育成正式开启！`, "gold");
+    });
   });
 
   document.querySelectorAll("[data-modal]").forEach((button) => {
@@ -2974,7 +3288,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     if (event.target.id === "outingOverlay") closeOutingOverlay();
   });
   window.addEventListener("message", (event) => {
-    if (event.origin !== window.location.origin) return;
+    if (event.origin !== window.location.origin && event.source !== window.parent) return;
     const data = event.data || {};
     if (data.source !== "hatsuboshi-produce-host") return;
     if (data.type === "character") applyHostCharacter(data.character, data.saveScope, data.savedState, data.hasSavedState);
@@ -2995,17 +3309,21 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   document.getElementById("dockResetRun").addEventListener("click", () => {
     if (!state.idol) return;
     const idolName = state.idol;
-    state = clone(baseState);
-    applyIdolPreset(idolName, true);
-    startOpeningStory();
-    showToast("育成已重置", "保留当前担当并重建第 1 天档案。", "warn");
+    triggerWipeTransition(() => {
+      state = clone(baseState);
+      applyIdolPreset(idolName, true);
+      startOpeningStory();
+      showToast("育成已重置", "保留当前担当并重建第 1 天档案。", "warn");
+    });
   });
 
   document.getElementById("dockChangeIdol").addEventListener("click", () => {
-    state = clone(baseState);
-    localStorage.removeItem(STORAGE_KEY);
-    render();
-    showToast("已返回担当选择", "请选择新的担当偶像。", "info");
+    triggerWipeTransition(() => {
+      state = clone(baseState);
+      localStorage.removeItem(STORAGE_KEY);
+      render();
+      showToast("已返回担当选择", "请选择新的担当偶像。", "info");
+    });
   });
 
   document.getElementById("dockCopyPrompt").addEventListener("click", copyPrompt);
@@ -3077,4 +3395,14 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       }
     });
   }
+
+  // Global error handler to catch and display unhandled runtime exceptions in toasts
+  window.addEventListener("error", (event) => {
+    try {
+      const errMsg = event.error ? event.error.stack || event.error.message : event.message;
+      showToast("系统脚本错误", errMsg, "error");
+    } catch (e) {
+      console.error("Error logging failed:", e);
+    }
+  });
 })();

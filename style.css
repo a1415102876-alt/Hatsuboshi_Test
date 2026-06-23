@@ -15,6 +15,7 @@
   --violet: #8c73ff;
   --radius: 8px;
   --font-sans: "Inter", "Noto Sans SC", "Source Han Sans SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+  --font-ui: var(--font-sans);
   --font-display: "DIN Alternate", "Bahnschrift", "Arial Rounded MT Bold", var(--font-sans);
   --font-mono: "Fira Code", "SFMono-Regular", Consolas, monospace;
 }
@@ -116,6 +117,7 @@ p {
 }
 
 .select-screen.is-hidden,
+.select-panel.is-hidden,
 .game-stage.is-hidden {
   display: none;
 }
@@ -316,6 +318,7 @@ p {
   padding: 15px 36px;
   font-size: 18px;
   font-weight: 700;
+  font-family: var(--font-ui);
   color: #fff;
   background-color: var(--accent, #ff4f9a);
   border: none;
@@ -2126,5 +2129,152 @@ p {
     animation-duration: 1ms !important;
     transition-duration: 1ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* Producer Setup Screen Styles */
+.producer-form {
+  display: grid;
+  gap: 16px;
+  margin-top: 16px;
+  width: 100%;
+}
+
+.form-group {
+  display: grid;
+  gap: 6px;
+}
+
+.form-group label {
+  color: var(--soft-ink);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.form-group .input-wrapper input {
+  width: 100%;
+  min-height: 44px;
+  border: 2px solid rgba(111, 102, 128, 0.14);
+  border-radius: 12px;
+  padding: 0 12px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.85);
+  font: 700 14px var(--font-ui);
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.form-group .input-wrapper input:focus,
+.form-group .textarea-wrapper textarea:focus {
+  border-color: var(--idol-theme, #ff8ab9);
+  background: #fff;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--idol-theme, #ff8ab9) 15%, transparent);
+}
+
+.form-group .textarea-wrapper textarea {
+  width: 100%;
+  min-height: 80px;
+  resize: vertical;
+  border: 2px solid rgba(111, 102, 128, 0.14);
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.85);
+  font: 700 14px/1.5 var(--font-ui);
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.quick-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.quick-tag-btn {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(111, 102, 128, 0.2);
+  border-radius: 8px;
+  padding: 6px 12px;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.quick-tag-btn:hover {
+  background: var(--idol-theme, #ff8ab9);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 4px 10px color-mix(in srgb, var(--idol-theme, #ff8ab9) 30%, transparent);
+}
+
+.producer-form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.producer-form-actions button {
+  flex: 1;
+}
+
+.producer-form-actions .secondary-action:hover {
+  background: rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Wipe Transition Styles */
+.wipe-transition {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.wipe-transition[hidden] {
+  display: none !important;
+}
+
+.wipe-stripe {
+  position: fixed;
+  left: 0;
+  width: 100vw;
+  height: calc(100vh / 5 + 2px);
+  top: calc(var(--i) * 20vh);
+  background-color: var(--wipe-color, #ff4f9a);
+  transform: scaleX(0);
+  transform-origin: left;
+  will-change: transform;
+}
+
+.wipe-transition.animating .wipe-stripe {
+  animation: stripeWipe 1.0s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+  animation-delay: calc(var(--i) * 0.06s);
+}
+
+@keyframes stripeWipe {
+  0% {
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  30% {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+  70% {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+  70.1% {
+    transform: scaleX(1);
+    transform-origin: right;
+  }
+  100% {
+    transform: scaleX(0);
+    transform-origin: right;
   }
 }

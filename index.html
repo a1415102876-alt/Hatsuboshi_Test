@@ -68,7 +68,7 @@
           </button>
         </div>
       </div>
-      <section class="select-panel" aria-label="担当偶像列表">
+      <section class="select-panel" id="selectPanel" aria-label="担当偶像列表">
         <div class="panel-head">
           <div>
             <p class="ui-kicker">Producer Setup</p>
@@ -77,6 +77,64 @@
           <svg><use href="#icon-star"></use></svg>
         </div>
         <div id="idolList" class="idol-list"></div>
+      </section>
+
+      <section class="select-panel is-hidden" id="producerPanel" aria-label="制作人信息设定">
+        <div class="panel-head">
+          <div>
+            <p class="ui-kicker">Producer Setup</p>
+            <h2 id="producerSetupTitle">制作人档案</h2>
+          </div>
+          <svg><use href="#icon-settings"></use></svg>
+        </div>
+        <div class="producer-form">
+          <div class="form-group">
+            <label for="prodNameInput">制作人称呼 (SillyTavern {{user}} 代称)</label>
+            <div class="input-wrapper">
+              <input type="text" id="prodNameInput" placeholder="请输入代称，默认为 {{user}}" value="{{user}}">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="prodPersonalityInput">性格特征 (Personality)</label>
+            <div class="textarea-wrapper">
+              <textarea id="prodPersonalityInput" placeholder="描述您的性格（例如：温柔耐心、总是为偶像着想，但有些不擅言辞...）"></textarea>
+            </div>
+            <div class="quick-tags" id="prodPersonalityTags">
+              <button type="button" class="quick-tag-btn" data-val="温柔耐心">温柔耐心</button>
+              <button type="button" class="quick-tag-btn" data-val="热血严厉">热血严厉</button>
+              <button type="button" class="quick-tag-btn" data-val="冷静睿智">冷静睿智</button>
+              <button type="button" class="quick-tag-btn" data-val="幽默风趣">幽默风趣</button>
+              <button type="button" class="quick-tag-btn" data-val="傲娇少言">傲娇少言</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="prodStyleInput">说话风格 (Speaking Style)</label>
+            <div class="input-wrapper">
+              <input type="text" id="prodStyleInput" placeholder="例如：使用温和的敬语、常用鼓励性语气、简短直接" value="">
+            </div>
+            <div class="quick-tags" id="prodStyleTags">
+              <button type="button" class="quick-tag-btn" data-val="多用敬语，称呼对方为小姐">用敬语</button>
+              <button type="button" class="quick-tag-btn" data-val="常用温和的鼓励口吻">鼓励语气</button>
+              <button type="button" class="quick-tag-btn" data-val="严厉且就事论事">严肃认真</button>
+              <button type="button" class="quick-tag-btn" data-val="说话直接，甚至有些带刺">直截了当</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="prodSettingsInput">额外设定与剧情背景</label>
+            <div class="textarea-wrapper">
+              <textarea id="prodSettingsInput" placeholder="描述其他细节（例如：与偶像曾是青梅竹马 / 是学园的老毕业生 / 对学园历史很熟悉...）"></textarea>
+            </div>
+          </div>
+          <div class="producer-form-actions">
+            <button id="producerBackBtn" class="confirm-idol-btn secondary-action" type="button" style="background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(111, 102, 128, 0.2); color: var(--ink); margin-top: 10px;">
+              <span>返回选择</span>
+            </button>
+            <button id="producerStartBtn" class="confirm-idol-btn" type="button" style="margin-top: 10px;">
+              <span>签署合约</span>
+              <svg class="btn-arrow" viewBox="0 0 24 24" width="18" height="18"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+        </div>
       </section>
     </section>
 
@@ -316,6 +374,14 @@
       <div id="modalTabs" class="modal-tabs" role="tablist"></div>
       <div id="modalBody" class="modal-body"></div>
     </section>
+  </div>
+
+  <div id="wipeTransition" class="wipe-transition" hidden>
+    <div class="wipe-stripe" style="--i:0"></div>
+    <div class="wipe-stripe" style="--i:1"></div>
+    <div class="wipe-stripe" style="--i:2"></div>
+    <div class="wipe-stripe" style="--i:3"></div>
+    <div class="wipe-stripe" style="--i:4"></div>
   </div>
 
   <script src="./app.js"></script>
