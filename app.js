@@ -2884,9 +2884,10 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       if (standeeEl) {
         let standeeSrc = "";
         if (isProducer) {
-          standeeSrc = "./assets/idols/producer.png";
-        } else if (idols[slide.speaker]) {
-          standeeSrc = idols[slide.speaker].background;
+          standeeSrc = "./assets/novel-standees/producer.png";
+        } else if (idols[slide.speaker] && idols[slide.speaker].background) {
+          const baseName = idols[slide.speaker].background.split("/").pop();
+          standeeSrc = `./assets/novel-standees/${baseName}`;
         }
         
         if (standeeSrc) {
