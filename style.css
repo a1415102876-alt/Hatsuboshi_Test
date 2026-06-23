@@ -2328,3 +2328,45 @@ p {
     transform-origin: right;
   }
 }
+
+/* ── Event Story Formatting ── */
+.story-action {
+  font-style: italic;
+  color: var(--soft-ink);
+  opacity: 0.85;
+}
+
+.story-dialogue {
+  color: var(--orange);
+  font-weight: 700;
+}
+
+.story-h2 {
+  display: block;
+  font-size: 1.35em;
+  font-weight: 800;
+  color: var(--violet);
+  font-family: var(--font-display);
+  border-bottom: 2px solid var(--line);
+  padding-bottom: 4px;
+  margin-top: 12px;
+  margin-bottom: 6px;
+}
+
+.story-h3 {
+  display: block;
+  font-size: 1.2em;
+  font-weight: 800;
+  color: var(--pink);
+  margin-top: 10px;
+  margin-bottom: 4px;
+}
+
+.story-h4 {
+  display: block;
+  font-size: 1.1em;
+  font-weight: 800;
+  margin-top: 8px;
+  margin-bottom: 3px;
+}
+

@@ -2601,7 +2601,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       if (state.choiceStep === 2) {
         const intro = state.lastStory || "";
         const chosenLine = `▶ 制作人的选择：${state.selectedChoiceText || ""} (${state.selectedChoiceRating || ""})`;
-        storyEl.innerHTML = `${intro.replace(/\n/g, "<br>")}<br><br><strong style="color:var(--violet)">${chosenLine}</strong><br><br><span id="eventReactionLoading" style="opacity:0.6;">(正在重新生成偶像的反应...)</span>`;
+        storyEl.innerHTML = `${formatStoryText(intro + "\n\n" + chosenLine)}<br><br><span id="eventReactionLoading" style="opacity:0.6;">(正在重新生成偶像的反应...)</span>`;
       } else {
         storyEl.textContent = "正在重新生成剧情...";
       }
@@ -2629,7 +2629,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     document.getElementById("eventTitle").textContent = title || "行动事件";
     document.getElementById("eventPhaseBadge").textContent = getPhase();
     document.getElementById("eventResult").textContent = result || "本次行动已经完成结算。";
-    document.getElementById("eventStory").textContent = story || state.lastStory || "本次行动已经完成。";
+    document.getElementById("eventStory").innerHTML = formatStoryText(story || state.lastStory || "本次行动已经完成。");
     const confirm = document.getElementById("eventConfirmBtn");
     
     if (pendingAiRequestId) {
@@ -2818,6 +2818,35 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       .trim();
   }
 
+  function formatStoryText(text) {
+    if (!text) return "";
+    
+    // Escape HTML first to prevent XSS
+    let html = text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+      
+    // 1. Headers: ###, ##, #
+    html = html.replace(/^###\s+(.*)$/gm, '<span class="story-h4">$1</span>');
+    html = html.replace(/^##\s+(.*)$/gm, '<span class="story-h3">$1</span>');
+    html = html.replace(/^#\s+(.*)$/gm, '<span class="story-h2">$1</span>');
+
+    // 2. Bold: **text**
+    html = html.replace(/\*\*([\s\S]*?)\*\*/g, '<strong>$1</strong>');
+
+    // 3. Italics (Action/Monologue): *text*
+    html = html.replace(/\*([^\*]+)\*/g, '<span class="story-action">$1</span>');
+
+    // 4. Quotes (Dialogue): Wrap "..." or “...” or 「...」
+    html = html.replace(/(“[^”]*”|「[^」]*」|"[^"]*")/g, '<span class="story-dialogue">$1</span>');
+
+    // 5. Choice highlight: ▶ 制作人的选择：...
+    html = html.replace(/(▶\s*制作人的选择：.*)/g, '<strong style="color:var(--violet)">$1</strong>');
+    
+    return html;
+  }
+
   function isJunkReply(value) {
     const compact = String(value || "").replace(/\s+/g, "");
     return !compact || compact.length < 2 || /^[.…。·\-—_]+$/.test(compact) || /^正文$/.test(compact) || /^…正文…$/.test(compact);
@@ -2959,7 +2988,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     const storyEl = document.getElementById("eventStory");
     if (storyEl) {
       const intro = state.lastStory || "";
-      storyEl.innerHTML = `${intro.replace(/\n/g, "<br>")}<br><br><strong style="color:var(--violet)">▶ 制作人的选择：${chosenOptionText} (${ratingName})</strong><br><br><span id="eventReactionLoading" style="opacity:0.6;">(正在等待偶像的反应...)</span>`;
+      storyEl.innerHTML = `${formatStoryText(intro + "\n\n▶ 制作人的选择：" + chosenOptionText + " (" + ratingName + ")")}<br><br><span id="eventReactionLoading" style="opacity:0.6;">(正在等待偶像的反应...)</span>`;
     }
     
     if (!requestHostPromptSend(prompt, requestId)) {
@@ -3068,7 +3097,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         if (!isFinal) {
           const storyEl = document.getElementById("eventStory");
           if (storyEl) {
-            storyEl.textContent = story;
+            storyEl.innerHTML = formatStoryText(story);
           }
           setEventActionsEnabled(false, true);
           sendAiReplyAck(requestId, true, false, false);
@@ -3119,7 +3148,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         // 如果是流式传输，在标签完备前先显示部分纯文本
         const storyEl = document.getElementById("eventStory");
         if (storyEl) {
-          storyEl.textContent = cleanReplyText(content);
+          storyEl.innerHTML = formatStoryText(cleanReplyText(content));
         }
         setEventActionsEnabled(false, true);
         sendAiReplyAck(requestId, true, false, false);
@@ -3144,7 +3173,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       if (storyEl && reply) {
         const intro = state.lastStory || "";
         const chosenLine = `▶ 制作人的选择：${state.selectedChoiceText || ""} (${state.selectedChoiceRating || ""})`;
-        storyEl.innerHTML = `${intro.replace(/\n/g, "<br>")}<br><br><strong style="color:var(--violet)">${chosenLine}</strong><br><br>${reply.replace(/\n/g, "<br>")}`;
+        storyEl.innerHTML = formatStoryText(intro + "\n\n" + chosenLine + "\n\n" + reply);
       }
 
       if (!isFinal) {
@@ -3179,7 +3208,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       const storyEl = document.getElementById("eventStory");
       if (storyEl) {
         const isAtBottom = storyEl.scrollHeight - storyEl.clientHeight - storyEl.scrollTop < 40;
-        storyEl.textContent = reply;
+        storyEl.innerHTML = formatStoryText(reply);
         if (isAtBottom) {
           storyEl.scrollTop = storyEl.scrollHeight;
         }
