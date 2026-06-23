@@ -158,6 +158,14 @@
         min-height: calc(100vh - 44px) !important;
         margin: 0 auto !important;
       }
+
+      /* 隐式生成：当全屏终端处于打开状态时，隐藏除第一楼（开场白）外的所有聊天气泡和输入状态 */
+      body:has(#hatsu-fullscreen-overlay) .mes[mesid]:not([mesid="0"]) {
+        display: none !important;
+      }
+      body:has(#hatsu-fullscreen-overlay) .writing_indicator {
+        display: none !important;
+      }
     `;
     document.head.appendChild(fullStyle);
 
