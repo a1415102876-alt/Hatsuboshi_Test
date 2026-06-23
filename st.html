@@ -5,6 +5,13 @@
 
 <script>
 (async function () {
+  window.addEventListener('error', (event) => {
+    alert('[st.html Error] ' + (event.error ? event.error.stack || event.error.message : event.message));
+  });
+  window.addEventListener('unhandledrejection', (event) => {
+    alert('[st.html Rejection] ' + String(event.reason?.stack || event.reason?.message || event.reason));
+  });
+
   window.isHatsuLoaderST = true;
   const BASE = 'https://hatsuboshi.vercel.app/';
 
