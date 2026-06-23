@@ -260,25 +260,33 @@
 
     async function initInPageBridge() {
       try {
-        const [scriptModule, extensionsModule] = await Promise.all([
-          import('/script.js'),
-          import('/scripts/extensions.js'),
-        ]);
-        sillyTavernModules = { scriptModule, extensionsModule };
+        let attempts = 0;
+        while (attempts < 50 && (!window.SillyTavern || typeof window.SillyTavern.getContext !== 'function')) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          attempts++;
+        }
+        if (!window.SillyTavern || typeof window.SillyTavern.getContext !== 'function') {
+          throw new Error('SillyTavern global API (window.SillyTavern.getContext) not found.');
+        }
+
+        const context = window.SillyTavern.getContext();
 
         // 绑定回复桥接
-        await bindSillyTavernReplyBridge();
+        bindSillyTavernReplyBridge();
 
         // 立即发送一次角色数据（以防 app.js 已经在那等着了）
         postCharacterToFrame();
 
         // 监听聊天切换事件来同步数据与设置 body class
-        const { eventSource, event_types } = await import('/scripts/events.js');
-        eventSource.on(event_types.CHAT_CHANGED, () => {
-          clearPendingReplyRequest();
-          postCharacterToFrame();
-          updateInPageHatsuClass();
-        });
+        const eventSource = context.eventSource;
+        const eventTypes = context.eventTypes;
+        if (eventSource && eventTypes) {
+          eventSource.on(eventTypes.CHAT_CHANGED, () => {
+            clearPendingReplyRequest();
+            postCharacterToFrame();
+            updateInPageHatsuClass();
+          });
+        }
 
         updateInPageHatsuClass();
         console.log('[Hatsu ST Loader] 零安装直接桥接（In-page Bridge）启动成功。');
@@ -295,7 +303,7 @@
     let pendingCandidateInFlight = false;
     let pendingCandidateMessageId = -1;
     let pendingReplyRetryTimer = 0;
-    let sillyTavernModules = null;
+    // sillyTavernModules has been removed
 
     function getCurrentContextInfo() {
       const context = window.SillyTavern?.getContext?.();
@@ -335,20 +343,22 @@
     }
 
     function getSavedChatState() {
-      const envelope = sillyTavernModules?.scriptModule?.chat_metadata?.[CHAT_STATE_METADATA_KEY];
+      const context = window.SillyTavern?.getContext?.();
+      const envelope = context?.chatMetadata?.[CHAT_STATE_METADATA_KEY];
       if (!envelope || typeof envelope !== 'object' || Array.isArray(envelope)) return null;
       return envelope.state;
     }
 
     function saveChatState(state) {
-      const metadata = sillyTavernModules?.scriptModule?.chat_metadata;
+      const context = window.SillyTavern?.getContext?.();
+      const metadata = context?.chatMetadata;
       if (!metadata) return;
       metadata[CHAT_STATE_METADATA_KEY] = {
         version: 1,
         updatedAt: Date.now(),
         state: JSON.parse(JSON.stringify(state)),
       };
-      sillyTavernModules.extensionsModule.saveMetadataDebounced();
+      context.saveMetadataDebounced?.();
     }
 
     function postCharacterToFrame() {
@@ -379,41 +389,43 @@
       }
     }
 
-    async function bindSillyTavernReplyBridge() {
+    function bindSillyTavernReplyBridge() {
       try {
-        const { eventSource, event_types } = await import('/scripts/events.js');
+        const context = window.SillyTavern?.getContext?.();
+        if (!context) return;
+        const eventSource = context.eventSource;
+        const eventTypes = context.eventTypes;
+        if (!eventSource || !eventTypes) return;
         
-        eventSource.on(event_types.CHARACTER_MESSAGE_RENDERED, (messageId) => {
+        eventSource.on(eventTypes.CHARACTER_MESSAGE_RENDERED, (messageId) => {
           sendLatestAiReplyToFrame(messageId, false);
         });
 
         const handleGenerationEnd = () => {
-          const context = window.SillyTavern?.getContext?.();
-          const latestMessageId = context?.chat?.length - 1;
+          const latestMessageId = window.SillyTavern?.getContext?.()?.chat?.length - 1;
           if (latestMessageId >= 0) {
             sendLatestAiReplyToFrame(latestMessageId, true);
           }
         };
 
-        if (event_types.GENERATION_STARTED) {
-          eventSource.on(event_types.GENERATION_STARTED, () => {
+        if (eventTypes.GENERATION_STARTED) {
+          eventSource.on(eventTypes.GENERATION_STARTED, () => {
             clearReplyCandidateState();
           });
         }
-        if (event_types.STREAM_TOKEN_RECEIVED) {
-          eventSource.on(event_types.STREAM_TOKEN_RECEIVED, () => {
-            const context = window.SillyTavern?.getContext?.();
-            const latestMessageId = context?.chat?.length - 1;
+        if (eventTypes.STREAM_TOKEN_RECEIVED) {
+          eventSource.on(eventTypes.STREAM_TOKEN_RECEIVED, () => {
+            const latestMessageId = window.SillyTavern?.getContext?.()?.chat?.length - 1;
             if (latestMessageId >= 0) {
               sendLatestAiReplyToFrame(latestMessageId, false);
             }
           });
         }
-        if (event_types.GENERATION_STOPPED) {
-          eventSource.on(event_types.GENERATION_STOPPED, handleGenerationEnd);
+        if (eventTypes.GENERATION_STOPPED) {
+          eventSource.on(eventTypes.GENERATION_STOPPED, handleGenerationEnd);
         }
-        if (event_types.MESSAGE_RECEIVED) {
-          eventSource.on(event_types.MESSAGE_RECEIVED, (messageId) => {
+        if (eventTypes.MESSAGE_RECEIVED) {
+          eventSource.on(eventTypes.MESSAGE_RECEIVED, (messageId) => {
             sendLatestAiReplyToFrame(messageId, true);
           });
         }
