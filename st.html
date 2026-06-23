@@ -270,6 +270,7 @@
         console.log('[Hatsu ST Loader] 零安装直接桥接（In-page Bridge）启动成功。');
       } catch (err) {
         console.error('[Hatsu ST Loader] 启动直接桥接失败：', err);
+        alert('[st.html Bridge Import Error] ' + String(err.stack || err.message || err));
       }
     }
 
