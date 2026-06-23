@@ -2608,6 +2608,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     }
     
     if (isSillyTavernHost()) {
+      console.log('[Hatsu Produce] 正在发送 regenerate 消息到宿主端...', requestId);
       window.parent.postMessage({
         source: "hatsuboshi-produce",
         type: "regenerate",
@@ -2615,6 +2616,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       }, "*");
       showToast("正在重新生成", "已向 SillyTavern 发送重新生成请求。", "info");
     } else {
+      console.warn('[Hatsu Produce] 检测到未连接宿主，无法重新生成。');
       showToast("未连接酒馆", "当前页面未连接 SillyTavern，无法触发重新生成。", "warn");
     }
   }
