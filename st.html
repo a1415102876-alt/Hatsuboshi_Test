@@ -281,6 +281,20 @@
           pendingRequestId = String(data.requestId || '');
           sendPromptToSillyTavern(data.prompt);
         }
+        if (data.type === 'regenerate') {
+          clearReplyCandidateState();
+          pendingRequestId = String(data.requestId || '');
+          const mainDoc = window.parent?.document || document;
+          const regenBtn = mainDoc.getElementById('option_regenerate');
+          if (regenBtn) {
+            const jQuery = window.parent?.jQuery || window.jQuery;
+            if (jQuery) {
+              jQuery(regenBtn).trigger('click');
+            } else {
+              regenBtn.click();
+            }
+          }
+        }
         if (data.type === 'saveState') {
           saveChatState(data.state);
         }
