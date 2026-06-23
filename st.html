@@ -159,11 +159,11 @@
         margin: 0 auto !important;
       }
 
-      /* 隐式生成：当全屏终端处于打开状态时，隐藏除第一楼（开场白）外的所有聊天气泡和输入状态 */
-      body:has(#hatsu-fullscreen-overlay) .mes[mesid]:not([mesid="0"]) {
+      /* 隐式生成：处于初星学园聊天时，隐藏除第一楼（开场白）外的所有聊天气泡和输入状态 */
+      body.hatsuboshi-active .mes[mesid]:not([mesid="0"]) {
         display: none !important;
       }
-      body:has(#hatsu-fullscreen-overlay) .writing_indicator {
+      body.hatsuboshi-active .writing_indicator {
         display: none !important;
       }
     `;
@@ -208,6 +208,260 @@
     const loader = document.getElementById('hatsu-loader');
     if (loader) loader.remove();
 
+    // ── 初始化内嵌直接桥接服务（如果用户禁用了本地酒馆扩展） ──
+    if (!window.__hatsuboshiProduceLoaded) {
+      window.__hatsuboshiProduceLoaded = true;
+      initInPageBridge();
+    }
+
+    async function initInPageBridge() {
+      try {
+        const [scriptModule, extensionsModule] = await Promise.all([
+          import('/script.js'),
+          import('/scripts/extensions.js'),
+        ]);
+        sillyTavernModules = { scriptModule, extensionsModule };
+
+        // 绑定回复桥接
+        await bindSillyTavernReplyBridge();
+
+        // 监听前端发来的请求
+        window.addEventListener('message', (event) => {
+          if (event.origin !== window.location.origin) return;
+          const data = event.data || {};
+          if (data.source !== 'hatsuboshi-produce') return;
+
+          if (data.type === 'getCharacter') {
+            postCharacterToFrame();
+          }
+          if (data.type === 'sendPrompt') {
+            clearReplyCandidateState();
+            pendingRequestId = String(data.requestId || '');
+            sendPromptToSillyTavern(data.prompt);
+          }
+          if (data.type === 'saveState') {
+            saveChatState(data.state);
+          }
+        });
+
+        // 立即发送一次角色数据
+        postCharacterToFrame();
+
+        // 监听聊天切换事件来同步数据与设置 body class
+        const { eventSource, event_types } = await import('/scripts/events.js');
+        eventSource.on(event_types.CHAT_CHANGED, () => {
+          clearPendingReplyRequest();
+          postCharacterToFrame();
+          updateInPageHatsuClass();
+        });
+
+        updateInPageHatsuClass();
+        console.log('[Hatsu ST Loader] 零安装直接桥接（In-page Bridge）启动成功。');
+      } catch (err) {
+        console.error('[Hatsu ST Loader] 启动直接桥接失败：', err);
+      }
+    }
+
+    // ── 桥接辅助函数 ──
+    const CHAT_STATE_METADATA_KEY = 'hatsuboshi_produce_state_v1';
+    let pendingRequestId = '';
+    let pendingPromptSentAt = 0;
+    let pendingCandidateInFlight = false;
+    let pendingCandidateMessageId = -1;
+    let pendingReplyRetryTimer = 0;
+    let sillyTavernModules = null;
+
+    function getCurrentContextInfo() {
+      const context = window.SillyTavern?.getContext?.();
+      const characterId = context?.characterId;
+      const character = Array.isArray(context?.characters) && Number.isInteger(Number(characterId))
+        ? context.characters[Number(characterId)]
+        : null;
+      const groupId = context?.groupId || context?.groups?.selected || '';
+      const chatId = context?.chatId
+        || context?.chatMetadata?.chat_id
+        || context?.chatMetadata?.file_name
+        || context?.chatMetadata?.fileName
+        || context?.chatFile
+        || 'default-chat';
+      const characterName = character?.name || context?.name2 || document.querySelector('#avatar_div .ch_name')?.textContent?.trim() || '';
+      const actorScope = groupId
+        ? `group-${groupId}`
+        : `char-${Number.isInteger(Number(characterId)) ? characterId : characterName.replace(/[\\/:*?"<>|\\s]+/g, '_')}`;
+      return {
+        character: {
+          name: characterName,
+          avatar: character?.avatar || character?.avatarFileName || ''
+        },
+        saveScope: `${actorScope}-chat-${chatId.replace(/[\\/:*?"<>|\\s]+/g, '_')}`
+      };
+    }
+
+    function updateInPageHatsuClass() {
+      const contextInfo = getCurrentContextInfo();
+      const characterName = contextInfo.character?.name || '';
+      const isHatsu = characterName.includes('初星学园') || characterName.includes('初星') || characterName.includes('Hatsuboshi');
+      if (isHatsu) {
+        document.body.classList.add('hatsuboshi-active');
+      } else {
+        document.body.classList.remove('hatsuboshi-active');
+      }
+    }
+
+    function getSavedChatState() {
+      const envelope = sillyTavernModules?.scriptModule?.chat_metadata?.[CHAT_STATE_METADATA_KEY];
+      if (!envelope || typeof envelope !== 'object' || Array.isArray(envelope)) return null;
+      return envelope.state;
+    }
+
+    function saveChatState(state) {
+      const metadata = sillyTavernModules?.scriptModule?.chat_metadata;
+      if (!metadata) return;
+      metadata[CHAT_STATE_METADATA_KEY] = {
+        version: 1,
+        updatedAt: Date.now(),
+        state: JSON.parse(JSON.stringify(state)),
+      };
+      sillyTavernModules.extensionsModule.saveMetadataDebounced();
+    }
+
+    function postCharacterToFrame() {
+      const contextInfo = getCurrentContextInfo();
+      const savedState = getSavedChatState();
+      const payload = {
+        source: 'hatsuboshi-produce-host',
+        type: 'character',
+        character: contextInfo.character,
+        saveScope: contextInfo.saveScope,
+        hasSavedState: Boolean(savedState),
+        savedState,
+      };
+      window.postMessage(payload, '*');
+    }
+
+    function sendPromptToSillyTavern(prompt) {
+      const text = String(prompt || '').trim();
+      if (!text) return;
+      const textarea = document.querySelector('#send_textarea');
+      const sendButton = document.querySelector('#send_but');
+      if (textarea && sendButton) {
+        textarea.value = text;
+        textarea.dispatchEvent(new Event('input', { bubbles: true }));
+        textarea.dispatchEvent(new Event('change', { bubbles: true }));
+        pendingPromptSentAt = Date.now();
+        sendButton.click();
+      }
+    }
+
+    async function bindSillyTavernReplyBridge() {
+      try {
+        const { eventSource, event_types } = await import('/scripts/events.js');
+        
+        eventSource.on(event_types.CHARACTER_MESSAGE_RENDERED, (messageId) => {
+          sendLatestAiReplyToFrame(messageId, false);
+        });
+
+        const handleGenerationEnd = () => {
+          const context = window.SillyTavern?.getContext?.();
+          const latestMessageId = context?.chat?.length - 1;
+          if (latestMessageId >= 0) {
+            sendLatestAiReplyToFrame(latestMessageId, true);
+          }
+        };
+
+        if (event_types.GENERATION_STARTED) {
+          eventSource.on(event_types.GENERATION_STARTED, () => {
+            clearReplyCandidateState();
+          });
+        }
+        if (event_types.STREAM_TOKEN_RECEIVED) {
+          eventSource.on(event_types.STREAM_TOKEN_RECEIVED, () => {
+            const context = window.SillyTavern?.getContext?.();
+            const latestMessageId = context?.chat?.length - 1;
+            if (latestMessageId >= 0) {
+              sendLatestAiReplyToFrame(latestMessageId, false);
+            }
+          });
+        }
+        if (event_types.GENERATION_STOPPED) {
+          eventSource.on(event_types.GENERATION_STOPPED, handleGenerationEnd);
+        }
+        if (event_types.MESSAGE_RECEIVED) {
+          eventSource.on(event_types.MESSAGE_RECEIVED, (messageId) => {
+            sendLatestAiReplyToFrame(messageId, true);
+          });
+        }
+      } catch (error) {
+        console.warn('[初星直接桥接] 无法绑定角色回复监听。', error);
+      }
+    }
+
+    function sendLatestAiReplyToFrame(messageId, isFinal = true) {
+      if (!pendingRequestId) return;
+      collectAndSendAiReply(messageId, isFinal);
+    }
+
+    function collectAndSendAiReply(messageId, isFinal = true) {
+      if (Number(messageId) === 0) return;
+      if (isFinal && pendingCandidateInFlight) return;
+      
+      const context = window.SillyTavern?.getContext?.();
+      const message = context?.chat?.[messageId];
+      if (!message || message.is_user) return;
+
+      const swipeIndex = Number.isInteger(message.swipe_id) ? message.swipe_id : 0;
+      let rawText = '';
+      if (Array.isArray(message.swipes) && message.swipes.length > 0) {
+        rawText = String(message.swipes[swipeIndex] || message.swipes[0] || '');
+      }
+      if (!rawText) {
+        rawText = typeof message.mes === 'string' ? message.mes : '';
+      }
+
+      const renderedText = document.querySelector(`.mes[mesid="${messageId}"] .mes_text`)?.innerText || '';
+      const text = rawText.length > renderedText.length ? rawText : renderedText;
+
+      if (text.trim().length > 0 || isFinal) {
+        window.postMessage({
+          source: 'hatsuboshi-produce-host',
+          type: 'aiReply',
+          requestId: pendingRequestId,
+          text,
+          rawText,
+          renderedText,
+          isFinal
+        }, '*');
+        
+        if (isFinal) {
+          pendingCandidateInFlight = true;
+          pendingCandidateMessageId = Number(messageId);
+          scheduleReplyRetry(messageId, 2500);
+        }
+      }
+    }
+
+    function scheduleReplyRetry(messageId, delay = 600) {
+      if (!pendingRequestId) return;
+      if (pendingReplyRetryTimer) window.clearTimeout(pendingReplyRetryTimer);
+      pendingReplyRetryTimer = window.setTimeout(() => {
+        pendingReplyRetryTimer = 0;
+        pendingCandidateInFlight = false;
+        collectAndSendAiReply(Number(messageId), true);
+      }, delay);
+    }
+
+    function clearReplyCandidateState() {
+      if (pendingReplyRetryTimer) window.clearTimeout(pendingReplyRetryTimer);
+      pendingReplyRetryTimer = 0;
+      pendingCandidateInFlight = false;
+      pendingCandidateMessageId = -1;
+    }
+
+    function clearPendingReplyRequest() {
+      clearReplyCandidateState();
+      pendingPromptSentAt = 0;
+      pendingRequestId = '';
+    }
   } catch (err) {
     showError(err);
   }
