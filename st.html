@@ -216,9 +216,32 @@
     if (loader) loader.remove();
 
     // ── 初始化内嵌直接桥接服务（如果用户禁用了本地酒馆扩展） ──
+    let bridgeReadyPromise = null;
     if (!window.__hatsuboshiProduceLoaded) {
       window.__hatsuboshiProduceLoaded = true;
-      initInPageBridge();
+      bridgeReadyPromise = initInPageBridge();
+
+      // 1. 同步注册消息监听，避免异步 import 加载导致错过 app.js 启动时发送的 getCharacter 消息
+      window.addEventListener('message', async (event) => {
+        if (event.origin !== window.location.origin) return;
+        const data = event.data || {};
+        if (data.source !== 'hatsuboshi-produce') return;
+
+        // 等待桥接模块（SillyTavern APIs）异步加载完毕后再处理消息
+        await bridgeReadyPromise;
+
+        if (data.type === 'getCharacter') {
+          postCharacterToFrame();
+        }
+        if (data.type === 'sendPrompt') {
+          clearReplyCandidateState();
+          pendingRequestId = String(data.requestId || '');
+          sendPromptToSillyTavern(data.prompt);
+        }
+        if (data.type === 'saveState') {
+          saveChatState(data.state);
+        }
+      });
     }
 
     async function initInPageBridge() {
@@ -232,26 +255,7 @@
         // 绑定回复桥接
         await bindSillyTavernReplyBridge();
 
-        // 监听前端发来的请求
-        window.addEventListener('message', (event) => {
-          if (event.origin !== window.location.origin) return;
-          const data = event.data || {};
-          if (data.source !== 'hatsuboshi-produce') return;
-
-          if (data.type === 'getCharacter') {
-            postCharacterToFrame();
-          }
-          if (data.type === 'sendPrompt') {
-            clearReplyCandidateState();
-            pendingRequestId = String(data.requestId || '');
-            sendPromptToSillyTavern(data.prompt);
-          }
-          if (data.type === 'saveState') {
-            saveChatState(data.state);
-          }
-        });
-
-        // 立即发送一次角色数据
+        // 立即发送一次角色数据（以防 app.js 已经在那等着了）
         postCharacterToFrame();
 
         // 监听聊天切换事件来同步数据与设置 body class
