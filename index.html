@@ -147,17 +147,17 @@
       <header class="top-hud" aria-label="育成状态">
         <article class="hud-card day-card">
           <button id="openScheduleBtn" class="info-dot" type="button" data-modal="schedule" aria-label="查看日程详情"><svg><use href="#icon-info"></use></svg></button>
-          <span>距 H.I.F 本战</span>
+          <span>距 First Live</span>
           <strong><b id="daysLeftValue">18</b>日</strong>
         </article>
 
-        <section class="center-hud" aria-label="体力与点数">
+        <section class="center-hud" aria-label="体力与信赖度">
           <div class="stamina-pill">
             <div class="stamina-fill" id="staminaFill"></div>
             <span><svg><use href="#icon-heart"></use></svg><b id="staminaValue">35</b>/100</span>
           </div>
           <div class="point-pill">
-            <svg><use href="#icon-point"></use></svg>
+            <svg><use href="#icon-heart"></use></svg>
             <strong id="trustValue">0</strong>
           </div>
         </section>
@@ -165,8 +165,11 @@
         <article class="hud-card exam-card">
           <button id="openWorldBtn" class="info-dot" type="button" data-modal="world" aria-label="查看世界书"><svg><use href="#icon-info"></use></svg></button>
           <span>审查基准</span>
-          <strong>+<b id="targetValue">950</b></strong>
-          <div class="exam-bars"><i></i><i></i><i></i></div>
+          <div class="exam-thresholds">
+            <div class="threshold-item vo"><span class="label">Vo</span><span class="val" id="targetVo">1030</span></div>
+            <div class="threshold-item da"><span class="label">Da</span><span class="val" id="targetDa">1510</span></div>
+            <div class="threshold-item vi"><span class="label">Vi</span><span class="val" id="targetVi">1580</span></div>
+          </div>
         </article>
       </header>
 

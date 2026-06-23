@@ -611,33 +611,50 @@ p {
 }
 
 .point-pill svg {
-  color: #ffe100;
+  color: #ff5f9e;
   fill: currentColor;
-  stroke: #665600;
+  stroke: rgba(255, 255, 255, 0.86);
 }
 
 .exam-card {
   text-align: right;
 }
 
-.exam-bars {
+.exam-thresholds {
   display: flex;
-  justify-content: flex-end;
-  align-items: end;
-  gap: 6px;
-  height: 34px;
-  margin-top: 2px;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 5px;
+  font-family: var(--font-display);
 }
 
-.exam-bars i {
-  display: block;
-  width: 14px;
-  border-radius: 4px 4px 2px 2px;
+.threshold-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.15;
 }
 
-.exam-bars i:nth-child(1) { height: 45%; background: var(--pink); }
-.exam-bars i:nth-child(2) { height: 70%; background: var(--blue); }
-.exam-bars i:nth-child(3) { height: 95%; background: var(--yellow); }
+.threshold-item .label {
+  font-size: 10px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  color: white;
+  font-weight: 900;
+  min-width: 25px;
+  text-align: center;
+}
+
+.threshold-item.vo .label { background: var(--pink); }
+.threshold-item.da .label { background: var(--blue); }
+.threshold-item.vi .label { background: #cf9c08; }
+
+.threshold-item .val {
+  font-size: 14px;
+  color: var(--ink);
+}
 
 .side-items {
   position: absolute;

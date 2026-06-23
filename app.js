@@ -2132,7 +2132,12 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     document.getElementById("staminaFill").style.width = `${clamp(state.stamina, 0, 100)}%`;
     document.getElementById("trustValue").textContent = state.trust;
     document.getElementById("stressValue").textContent = state.stress;
-    document.getElementById("targetValue").textContent = Math.round((state.threshold.Vo + state.threshold.Da + state.threshold.Vi) / 4.2);
+    const targetVo = document.getElementById("targetVo");
+    const targetDa = document.getElementById("targetDa");
+    const targetVi = document.getElementById("targetVi");
+    if (targetVo) targetVo.textContent = state.threshold.Vo;
+    if (targetDa) targetDa.textContent = state.threshold.Da;
+    if (targetVi) targetVi.textContent = state.threshold.Vi;
     document.getElementById("currentIdolLabel").textContent = "当前担当";
     document.getElementById("idolName").textContent = state.idol;
     document.getElementById("phaseBadge").textContent = getPhase();
