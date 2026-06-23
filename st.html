@@ -287,13 +287,13 @@
       const characterName = character?.name || context?.name2 || document.querySelector('#avatar_div .ch_name')?.textContent?.trim() || '';
       const actorScope = groupId
         ? `group-${groupId}`
-        : `char-${Number.isInteger(Number(characterId)) ? characterId : characterName.replace(/[\\/:*?"<>|\\s]+/g, '_')}`;
+        : `char-${Number.isInteger(Number(characterId)) ? characterId : characterName.replace(/[\\/:*?"<>|\s]+/g, '_')}`;
       return {
         character: {
           name: characterName,
           avatar: character?.avatar || character?.avatarFileName || ''
         },
-        saveScope: `${actorScope}-chat-${chatId.replace(/[\\/:*?"<>|\\s]+/g, '_')}`
+        saveScope: `${actorScope}-chat-${chatId.replace(/[\\/:*?"<>|\s]+/g, '_')}`
       };
     }
 
