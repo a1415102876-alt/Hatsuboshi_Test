@@ -2606,8 +2606,12 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     if (reply) {
       const storyEl = document.getElementById("eventStory");
       if (storyEl) {
+        // Only auto-scroll to bottom if the user was already scrolled near the bottom (within 40px)
+        const isAtBottom = storyEl.scrollHeight - storyEl.clientHeight - storyEl.scrollTop < 40;
         storyEl.textContent = reply;
-        storyEl.scrollTop = storyEl.scrollHeight;
+        if (isAtBottom) {
+          storyEl.scrollTop = storyEl.scrollHeight;
+        }
       }
     }
 
