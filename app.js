@@ -3295,10 +3295,21 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     if (event.target.id === "outingOverlay") closeOutingOverlay();
   });
   window.addEventListener("message", (event) => {
-    if (event.origin !== window.location.origin && event.source !== window.parent) return;
     const data = event.data || {};
+    if (data.source === "hatsuboshi-produce-host") {
+      console.log("[app.js] Received message from host:", data.type, "origin:", event.origin, "sourceMatchesParent:", event.source === window.parent);
+    }
+    if (event.origin !== window.location.origin && event.source !== window.parent) {
+      if (data.source === "hatsuboshi-produce-host") {
+        console.warn("[app.js] Origin/source validation failed.");
+      }
+      return;
+    }
     if (data.source !== "hatsuboshi-produce-host") return;
-    if (data.type === "character") applyHostCharacter(data.character, data.saveScope, data.savedState, data.hasSavedState);
+    if (data.type === "character") {
+      console.log("[app.js] Applying character payload. Name:", data.character?.name, "SaveScope:", data.saveScope);
+      applyHostCharacter(data.character, data.saveScope, data.savedState, data.hasSavedState);
+    }
     if (data.type === "aiReply") applyAiReply(data.text, data.requestId, data.rawText, data.renderedText, data.isFinal);
   });
   document.addEventListener("keydown", (event) => {

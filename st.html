@@ -277,6 +277,8 @@
         const data = event.data || {};
         if (data.source !== 'hatsuboshi-produce') return;
 
+        console.log('[st.html] received message from app.js:', data.type);
+
         // 等待桥接模块（SillyTavern APIs）异步加载完毕后再处理消息
         await bridgeReadyPromise;
 
@@ -358,6 +360,9 @@
       const actorScope = groupId
         ? `group-${groupId}`
         : `char-${Number.isInteger(Number(characterId)) ? characterId : characterName.replace(new RegExp("[\\\\/:*?\\\"<>|\\s]+", "g"), '_')}`;
+      
+      console.log('[st.html] getCurrentContextInfo contextName2:', context?.name2, 'charName:', character?.name, 'resolvedName:', characterName);
+
       return {
         character: {
           name: characterName,
@@ -400,6 +405,7 @@
     function postCharacterToFrame() {
       const contextInfo = getCurrentContextInfo();
       const savedState = getSavedChatState();
+      console.log('[st.html] postCharacterToFrame sending payload:', contextInfo.character, 'hasSavedState:', Boolean(savedState));
       const payload = {
         source: 'hatsuboshi-produce-host',
         type: 'character',
