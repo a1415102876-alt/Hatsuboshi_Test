@@ -1,0 +1,96 @@
+<div id="hatsu-loader" style="padding:20px;color:white;background:#111;border-radius:12px;">
+  <h2>Hatsu 前端加载中……</h2>
+  <p>如果一直停在这里，请打开控制台查看报错。</p>
+</div>
+
+<script>
+(async function () {
+  const BASE = 'https://hatsuboshi.vercel.app/';
+
+  function abs(path) {
+    return new URL(path, BASE).href;
+  }
+
+  function shouldRewriteUrl(url) {
+    return url &&
+      !url.startsWith('#') &&
+      !url.startsWith('data:') &&
+      !url.startsWith('blob:') &&
+      !/^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(url);
+  }
+
+  function showError(err) {
+    console.error('[Hatsu ST Loader] 加载失败：', err);
+    document.body.innerHTML =
+      '<div style="padding:20px;color:#ff6666;background:#111;border-radius:12px;">' +
+      '<h2>Hatsu 前端加载失败</h2>' +
+      '<p>请打开 F12 控制台查看具体报错。</p>' +
+      '<pre style="white-space:pre-wrap;">' + String(err && err.message ? err.message : err) + '</pre>' +
+      '</div>';
+  }
+
+  try {
+    // 1. 读取远程 index.html
+    const htmlRes = await fetch(abs('index.html'), { cache: 'no-store' });
+    if (!htmlRes.ok) {
+      throw new Error('index.html 加载失败：HTTP ' + htmlRes.status);
+    }
+
+    const htmlText = await htmlRes.text();
+    const doc = new DOMParser().parseFromString(htmlText, 'text/html');
+
+    // 2. 清掉旧的 Hatsu 样式，避免重复加载
+    document.querySelectorAll('[data-hatsu-remote-style]').forEach(el => el.remove());
+
+    // 3. 加载远程 style.css
+    const styleLink = document.createElement('link');
+    styleLink.rel = 'stylesheet';
+    styleLink.href = abs('style.css');
+    styleLink.setAttribute('data-hatsu-remote-style', 'true');
+    document.head.appendChild(styleLink);
+
+    // 4. 删除 index.html 里原本的 script，避免按错误的 ./app.js 路径加载
+    doc.body.querySelectorAll('script').forEach(s => s.remove());
+
+    // 5. 把 index.html 的 body 内容塞进当前 body
+    document.body.innerHTML = doc.body.innerHTML;
+
+    // 6. 修正 HTML 里已有的 src，比如 logo 图片
+    document.querySelectorAll('[src]').forEach(el => {
+      const src = el.getAttribute('src');
+      if (shouldRewriteUrl(src)) {
+        el.setAttribute('src', abs(src));
+      }
+    });
+
+    // 7. 修正 href，但不要动 svg 的 #icon-star 这种内部引用
+    document.querySelectorAll('[href]').forEach(el => {
+      const href = el.getAttribute('href');
+      if (shouldRewriteUrl(href)) {
+        el.setAttribute('href', abs(href));
+      }
+    });
+
+    // 8. 读取 app.js，并把里面的 ./assets/ 改成 Vercel 绝对路径
+    const jsRes = await fetch(abs('app.js'), { cache: 'no-store' });
+    if (!jsRes.ok) {
+      throw new Error('app.js 加载失败：HTTP ' + jsRes.status);
+    }
+
+    let jsText = await jsRes.text();
+
+    jsText = jsText
+      .replaceAll('"./assets/', '"' + abs('assets/'))
+      .replaceAll("'./assets/", "'" + abs('assets/'))
+      .replaceAll('`./assets/', '`' + abs('assets/'));
+
+    // 9. 执行修正后的 app.js
+    const script = document.createElement('script');
+    script.textContent = jsText + '\n//# sourceURL=' + abs('app.js');
+    document.body.appendChild(script);
+
+  } catch (err) {
+    showError(err);
+  }
+})();
+</script>
