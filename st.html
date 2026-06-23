@@ -5,12 +5,48 @@
 
 <script>
 (async function () {
+  // ── 错误监控与可视化调试控制台 ──
+  const debugConsole = document.createElement('div');
+  debugConsole.id = 'hatsu-debug-console';
+  debugConsole.style.cssText = 'position:fixed;bottom:10px;right:10px;width:380px;height:180px;overflow-y:auto;background:rgba(0,0,0,0.85);color:#00ff00;font-family:monospace;font-size:10px;z-index:99999999;padding:8px;border-radius:6px;border:1px solid #333;pointer-events:auto;line-height:1.4;box-shadow:0 4px 12px rgba(0,0,0,0.5);';
+  debugConsole.innerHTML = '<div><strong>[Hatsu ST Debug Console]</strong></div>';
+  document.body.appendChild(debugConsole);
+
+  function logToDebug(msg, color = '#00ff00') {
+    const div = document.createElement('div');
+    div.style.color = color;
+    div.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+    div.style.padding = '2px 0';
+    div.textContent = msg;
+    debugConsole.appendChild(div);
+    debugConsole.scrollTop = debugConsole.scrollHeight;
+  }
+
   window.addEventListener('error', (event) => {
-    alert('[st.html Error] ' + (event.error ? event.error.stack || event.error.message : event.message));
+    logToDebug('Error: ' + (event.error ? event.error.stack || event.error.message : event.message), '#ff3333');
   });
+
   window.addEventListener('unhandledrejection', (event) => {
-    alert('[st.html Rejection] ' + String(event.reason?.stack || event.reason?.message || event.reason));
+    logToDebug('Rejection: ' + String(event.reason?.stack || event.reason?.message || event.reason), '#ff3333');
   });
+
+  const originalConsoleError = console.error;
+  console.error = function (...args) {
+    originalConsoleError.apply(console, args);
+    logToDebug('[ERROR] ' + args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '), '#ff6666');
+  };
+
+  const originalConsoleLog = console.log;
+  console.log = function (...args) {
+    originalConsoleLog.apply(console, args);
+    logToDebug('[LOG] ' + args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '), '#00ff00');
+  };
+
+  const originalConsoleWarn = console.warn;
+  console.warn = function (...args) {
+    originalConsoleWarn.apply(console, args);
+    logToDebug('[WARN] ' + args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '), '#ffcc00');
+  };
 
   window.isHatsuLoaderST = true;
   const BASE = 'https://hatsuboshi.vercel.app/';
