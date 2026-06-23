@@ -2909,7 +2909,9 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       sendAiReplyAck(requestId, false, false);
       return;
     }
-    const rawSource = chooseLongestReply(rawText, renderedText, text);
+    const rawSource = (state.choiceStep === 1 || state.choiceStep === 2)
+      ? (rawText || text || renderedText)
+      : chooseLongestReply(rawText, renderedText, text);
     const source = rawSource
       .replace(/&lt;/g, "<")
       .replace(/&gt;/g, ">")
