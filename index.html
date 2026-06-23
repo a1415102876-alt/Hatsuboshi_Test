@@ -231,7 +231,13 @@
       </header>
       <div class="event-result" id="eventResult">等待结算</div>
       <div class="event-story" id="eventStory"></div>
-      <footer class="event-actions">
+      <div id="eventChoices" class="event-choices" hidden>
+        <button class="choice-button" data-index="0"></button>
+        <button class="choice-button" data-index="1"></button>
+        <button class="choice-button" data-index="2"></button>
+        <button class="choice-button" data-index="3"></button>
+      </div>
+      <footer class="event-actions" id="eventActions">
         <button id="eventConfirmBtn" class="event-button secondary" type="button">确定</button>
         <button id="eventAiBtn" class="event-button primary" type="button">编辑提示词重发</button>
       </footer>

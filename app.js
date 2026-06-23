@@ -422,7 +422,13 @@
     lastPrompt: "",
     lastDebug: "尚未结算行动。",
     pendingAiRequestId: "",
-    lastRequestId: ""
+    lastRequestId: "",
+    choiceStep: 0,
+    pendingChoiceRewards: [],
+    pendingActionContext: null,
+    pendingOptionTexts: [],
+    selectedChoiceText: "",
+    selectedChoiceRating: ""
   };
 
   const statLabels = { Vo: "Vocal", Da: "Dance", Vi: "Visual", stamina: "体力", stress: "压力", trust: "信赖" };
@@ -784,6 +790,12 @@
       settings: "",
       ...(state.producer || {})
     };
+    state.choiceStep = Number.isInteger(state.choiceStep) ? state.choiceStep : 0;
+    state.pendingChoiceRewards = Array.isArray(state.pendingChoiceRewards) ? state.pendingChoiceRewards : [];
+    state.pendingActionContext = state.pendingActionContext || null;
+    state.pendingOptionTexts = Array.isArray(state.pendingOptionTexts) ? state.pendingOptionTexts : [];
+    state.selectedChoiceText = state.selectedChoiceText || "";
+    state.selectedChoiceRating = state.selectedChoiceRating || "";
   }
 
   function clamp(value, min, max) {
@@ -1005,6 +1017,54 @@
       return;
     }
 
+    if (action === "outing" || action === "companion") {
+      state.choiceStep = 1;
+      state.pendingActionContext = { action, attribute, actionContext };
+      
+      // 外出是最高10，交流是最高20
+      const baseRewards = action === "outing" ? [10, 8, 6, 4] : [20, 15, 10, 5];
+      // 随机分配
+      const shuffled = [...baseRewards].sort(() => Math.random() - 0.5);
+      state.pendingChoiceRewards = shuffled;
+      state.pendingOptionTexts = [];
+      state.selectedChoiceText = "";
+      state.selectedChoiceRating = "";
+      
+      const actionName = actionLabel(action, attribute);
+      const requestId = createRequestId();
+      pendingAiRequestId = requestId;
+      
+      const prompt = buildChoicePhase1Prompt(action, attribute, shuffled, actionContext);
+      
+      const resultSummary = action === "outing" 
+        ? `准备前往：${actionContext.destination || "散步"}` 
+        : `发起与${state.idol}的交流`;
+      
+      const story = action === "outing"
+        ? `正在前往 ${actionContext.destination || "散步"}...`
+        : `正在准备与${state.idol}的对话主题...`;
+        
+      state.lastStory = story;
+      state.lastPrompt = prompt;
+      state.lastDebug = `第一阶段剧情生成：等待 AI 设计 4 个选项。加成映射：\n` + 
+        shuffled.map((r, i) => `选项 ${i + 1} 对应加成 +${r}`).join("\n");
+      
+      saveState();
+      render();
+      
+      setElementHidden("eventChoices", true);
+      const actionsEl = document.getElementById("eventActions");
+      if (actionsEl) actionsEl.style.display = "none";
+      
+      openEventOverlay(actionName, buildAiWaitingResult(resultSummary), buildAiWaitingStory(story));
+      
+      if (!requestHostPromptSend(prompt, requestId)) {
+        openAiPromptOverlay("当前页面未连接 SillyTavern。请编辑或复制提示词后手动发送。");
+      }
+      showToast("开始发起活动", `正在等待 AI 生成${actionName}剧情与互动选项...`, "info");
+      return;
+    }
+
     const delta = {};
     let randomEvent = null;
     const tuning = getActionTuning(state.idol, action);
@@ -1186,6 +1246,113 @@ ${outputContract(narrativeLength)}
 不要重新计算数值。
 不要改变系统结果。
 不要让角色偏离上述主线矛盾。`;
+  }
+
+  function buildChoicePhase1Prompt(action, attribute, shuffledRewards, actionContext = {}) {
+    const profile = idols[state.idol];
+    const actionName = actionLabel(action, attribute);
+    const actionStyle = profile.styles[action] || profile.styles.rest;
+    
+    const destinationPrompt = action === "outing" && actionContext.destination ? `
+本次外出地点：${actionContext.destination}
+
+外出场景要求：
+- 制作人与担当偶像确实来到该地点活动。
+- 利用该地点可见的设施、商品、声音、气味或人群推动互动。
+- 剧情前半部分在抵达并展开活动、进入需要制作人表态或做选择的时刻停下。
+` : "";
+
+    const tierDescriptions = {
+      20: "【完美回复/完美互动】：最契合你的隐藏心思或真实性格，展现出极强的默契，能让你感到非常受触动或心跳加速。",
+      15: "【极佳回复/极佳互动】：优秀的互动回复，你感到非常开心，反应积极热切。",
+      10: action === "outing" 
+        ? "【完美回复/完美互动】：最契合你的隐藏心思或真实性格，展现出极强的默契，能让你感到非常受触动或心跳加速。" 
+        : "【普通回复】：中规中矩的互动，没有说错话但有些普通或老套。",
+      8: "【极佳回复/极佳互动】：优秀的互动回复，你感到非常开心，反应积极热切。",
+      6: "【普通回复】：中规中矩的互动，没有说错话但有些普通或老套。",
+      5: "【笨拙回复】：有点不解风情、笨拙、让人感到无奈或者微微叹气娇嗔的选项。",
+      4: "【笨拙回复】：有点不解风情、笨拙、让人感到无奈或者微微叹气娇嗔的选项。"
+    };
+
+    const optionsPrompt = shuffledRewards.map((reward, index) => {
+      return `- 选项 ${index + 1}（加成权重：+${reward} 信赖值）：${tierDescriptions[reward]}`;
+    }).join("\n");
+
+    return `[初星育成系统：互动分支设计]
+
+担当偶像：${state.idol}
+${getAffinityStageLine(state.idol, state.trust)}
+绑定角色卡：${state.boundCharacter?.name || "未绑定，按担当偶像写"}
+当前阶段：${getPhase()}
+当前日程：第 ${state.day} 天，${roundLabel()}
+行动：${actionName}
+
+当前担当偶像的性格基调（${actionName}行为指南）：
+${actionStyle}
+
+${buildProducerPromptSection()}
+
+${destinationPrompt}
+
+请为本次${actionName}生成【前半段剧情】并设计【4个互动分支选项】供制作人选择。
+
+选项文本生成要求：
+- 你的回复必须设计 4 个选项，它们以制作人的口吻（或行动）书写。
+- 这 4 个选项分别要对应以下这 4 个特定档次的加成效果：
+${optionsPrompt}
+- 选项文本本身绝对不要写出“+20信赖值”、“完美回复”等任何数值/标签！把它们写成自然的剧情回复/行动内容。
+- 选项内容应该非常契合它们对应的等级，让玩家能通过阅读文本去猜测哪个选项最好。
+
+输出格式要求：
+- 请务必严格使用 XML 标签来分隔你的输出，结构如下：
+【初星正文开始】
+<story>在这里写你的${actionName}前半段剧情故事，停留在你需要制作人做选择的那个对话或事件节点上...</story>
+<option1>选项 1 的文本内容（第一人称 Producer 的话或行动）</option1>
+<option2>选项 2 的文本内容</option2>
+<option3>选项 3 的文本内容</option3>
+<option4>选项 4 的文本内容</option4>
+【初星正文结束】
+
+- 【初星正文开始】与【初星正文结束】之间除了上面 5 个 XML 标签及其包裹的内容外，绝对不要写任何多余文本。
+- 前端只解析标签内的内容，不要在标签外写思考、总结或计划。`;
+  }
+
+  function buildChoicePhase2Prompt(action, attribute, chosenOptionText, trustGain, actionContext = {}) {
+    const actionName = actionLabel(action, attribute);
+    const outcomeName = (action === "outing" && trustGain === 10) || (action === "companion" && trustGain === 20)
+      ? "【完美互动】"
+      : (action === "outing" && trustGain === 8) || (action === "companion" && trustGain === 15)
+        ? "【极佳互动】"
+        : (action === "outing" && trustGain === 6) || (action === "companion" && trustGain === 10)
+          ? "【普通互动】"
+          : "【笨拙互动】";
+
+    return `[初星育成系统：互动分支结算与收尾]
+
+担当偶像：${state.idol}
+绑定角色卡：${state.boundCharacter?.name || "未绑定，按担当偶像写"}
+当前日程：第 ${state.day} 天，${roundLabel()}
+行动：${actionName}
+
+剧情进展：
+制作人刚才做出了以下选择（或行动）：
+“${chosenOptionText}”
+
+本次选择的判定结果为：${outcomeName}（给玩家增加了 +${trustGain} 信赖值）
+
+请承接前半段剧情，写出你（${state.idol}）在面对制作人这个选择时的【反应剧情】以及本次【外出的收尾/当天的总结】。
+
+叙事要求：
+- 请以符合偶像性格的语调展开，根据选择的优劣档次表现出对应的反应。
+- 在本段剧情中完成事件的收束，结束当天的活动。
+- 限制在 600 字以内。
+
+输出格式要求：
+【初星正文开始】
+这里写你的反应与事件收尾剧情正文
+【初星正文结束】
+
+- 不要写思考、规则复述、标题或数值复盘。`;
   }
 
   function buildOpeningPrompt() {
@@ -2595,18 +2762,296 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       .sort((a, b) => b.replace(/\s+/g, "").length - a.replace(/\s+/g, "").length)[0] || "";
   }
 
+  function fallbackChoiceSettlement(reply) {
+    if (!state.pendingActionContext) return;
+    const { action, attribute, actionContext } = state.pendingActionContext;
+    
+    const delta = {};
+    if (action === "outing") {
+      delta.stamina = 38;
+      delta.stress = -5;
+      delta.trust = 5; // 降级时的默认外出信赖值
+    } else if (action === "companion") {
+      delta.stamina = 18;
+      delta.stress = -2;
+      delta.trust = 15; // 降级时的默认交流信赖值
+    }
+    
+    Object.entries(delta).forEach(([key, value]) => {
+      const max = ["Vo", "Da", "Vi"].includes(key) ? Number(state.cap?.[key] || 999) : 100;
+      state[key] = clamp((state[key] || 0) + value, 0, max);
+    });
+    
+    advanceRound();
+    refreshAffinityUnlocks();
+    rollSpCandidates();
+    
+    const actionName = actionLabel(action, attribute);
+    const resultText = formatDelta(delta);
+    const locationText = action === "outing" && actionContext.destination ? `外出地点：${actionContext.destination}` : "";
+    const resultSummary = [locationText, resultText].filter(Boolean).join("，");
+    
+    state.log.unshift({ day: state.day, round: state.round, phase: getPhase(), action: actionName, result: resultSummary });
+    state.log = state.log.slice(0, 24);
+    
+    state.lastStory = reply;
+    if (state.log[0]) {
+      state.log[0].aiReply = reply;
+    }
+    state.choiceStep = 0;
+    saveState();
+    render();
+    
+    setElementHidden("eventChoices", true);
+    const actionsEl = document.getElementById("eventActions");
+    if (actionsEl) actionsEl.style.display = "grid";
+    
+    const confirm = document.getElementById("eventConfirmBtn");
+    if (confirm) {
+      confirm.disabled = false;
+      confirm.textContent = "确定";
+    }
+    
+    openEventOverlay(actionName, "已收到 SillyTavern 角色回复（已自动结算）", reply);
+  }
+
+  function handleChoiceSelection(index) {
+    if (!state.pendingActionContext) return;
+    
+    const buttons = document.querySelectorAll("#eventChoices .choice-button");
+    buttons.forEach(btn => btn.disabled = true);
+    
+    const { action, attribute, actionContext } = state.pendingActionContext;
+    const trustGain = state.pendingChoiceRewards[index] || 5;
+    const chosenOptionText = state.pendingOptionTexts[index] || "选择该选项";
+    const ratingName = (action === "outing" && trustGain === 10) || (action === "companion" && trustGain === 20)
+      ? "【完美】"
+      : (action === "outing" && trustGain === 8) || (action === "companion" && trustGain === 15)
+        ? "【极佳】"
+        : (action === "outing" && trustGain === 6) || (action === "companion" && trustGain === 10)
+          ? "【普通】"
+          : "【笨拙】";
+    
+    // 1. 正常结算属性增益
+    const delta = {};
+    if (action === "outing") {
+      delta.stamina = 38;
+      delta.stress = -5;
+      delta.trust = trustGain;
+    } else if (action === "companion") {
+      delta.stamina = 18;
+      delta.stress = -2;
+      delta.trust = trustGain;
+    }
+    
+    Object.entries(delta).forEach(([key, value]) => {
+      const max = ["Vo", "Da", "Vi"].includes(key) ? Number(state.cap?.[key] || 999) : 100;
+      state[key] = clamp((state[key] || 0) + value, 0, max);
+    });
+    
+    // 2. 推进回合与日常刷新
+    advanceRound();
+    refreshAffinityUnlocks();
+    rollSpCandidates();
+    
+    // 3. 记录日志
+    const actionName = actionLabel(action, attribute);
+    const resultText = formatDelta(delta);
+    const locationText = action === "outing" && actionContext.destination ? `外出地点：${actionContext.destination}` : "";
+    const resultSummary = [locationText, resultText, ratingName].filter(Boolean).join("，");
+    state.log.unshift({ day: state.day, round: state.round, phase: getPhase(), action: actionName, result: resultSummary });
+    state.log = state.log.slice(0, 24);
+    
+    // 4. 更新选择记录状态并发起第二阶段反应生成
+    state.selectedChoiceText = chosenOptionText;
+    state.selectedChoiceRating = ratingName;
+    state.choiceStep = 2;
+    const requestId = createRequestId();
+    pendingAiRequestId = requestId;
+    
+    const prompt = buildChoicePhase2Prompt(action, attribute, chosenOptionText, trustGain, actionContext);
+    state.lastPrompt = prompt;
+    state.lastDebug = `第二阶段剧情生成：已选择“${chosenOptionText}”，获得信赖度 +${trustGain}（${ratingName}）。等待 AI 生成偶像反应。`;
+    
+    saveState();
+    render();
+    
+    // 5. 更新 UI 状态
+    setElementHidden("eventChoices", true);
+    
+    const actionsEl = document.getElementById("eventActions");
+    if (actionsEl) actionsEl.style.display = "grid";
+    
+    const confirm = document.getElementById("eventConfirmBtn");
+    if (confirm) {
+      confirm.disabled = true;
+      confirm.textContent = "正在生成中...";
+    }
+    
+    const storyEl = document.getElementById("eventStory");
+    if (storyEl) {
+      const intro = state.lastStory || "";
+      storyEl.innerHTML = `${intro.replace(/\n/g, "<br>")}<br><br><strong style="color:var(--violet)">▶ 制作人的选择：${chosenOptionText} (${ratingName})</strong><br><br><span id="eventReactionLoading" style="opacity:0.6;">(正在等待偶像的反应...)</span>`;
+    }
+    
+    if (!requestHostPromptSend(prompt, requestId)) {
+      openAiPromptOverlay("当前页面未连接 SillyTavern。请复制提示词发送获取后续。");
+    }
+  }
+
   function applyAiReply(text, requestId = "", rawText = "", renderedText = "", isFinal = true) {
     if (!shouldAcceptAiReply(requestId, pendingAiRequestId)) {
       sendAiReplyAck(requestId, false, false);
       return;
     }
     const source = chooseLongestReply(rawText, renderedText, text);
+
+    // ==========================================
+    // 交互式选项第一阶段：提取剧情和选项标签
+    // ==========================================
+    if (state.choiceStep === 1) {
+      let content = "";
+      const startMatches = [...source.matchAll(/[【\[]\s*初星正文开始\s*[】\]]/g)];
+      if (startMatches.length > 0) {
+        const lastStartMatch = startMatches[startMatches.length - 1];
+        const startIndex = lastStartMatch.index + lastStartMatch[0].length;
+        content = source.slice(startIndex);
+        content = content.replace(/[【\[]\s*初星正文结束\s*[】\]][\s\S]*$/u, "");
+      } else {
+        const mainMatches = [...source.matchAll(/<maintext\b[^>]*>([\s\S]*)/gi)];
+        if (mainMatches.length > 0) {
+          const lastMainMatch = mainMatches[mainMatches.length - 1];
+          content = lastMainMatch[1].replace(/<\/maintext>[\s\S]*$/gi, "");
+        } else {
+          content = source;
+        }
+      }
+
+      const story = content.match(/<story>([\s\S]*?)<\/story>/i)?.[1]?.trim();
+      const opt1 = content.match(/<option1>([\s\S]*?)<\/option1>/i)?.[1]?.trim();
+      const opt2 = content.match(/<option2>([\s\S]*?)<\/option2>/i)?.[1]?.trim();
+      const opt3 = content.match(/<option3>([\s\S]*?)<\/option3>/i)?.[1]?.trim();
+      const opt4 = content.match(/<option4>([\s\S]*?)<\/option4>/i)?.[1]?.trim();
+
+      if (story && opt1 && opt2 && opt3 && opt4) {
+        state.pendingOptionTexts = [opt1, opt2, opt3, opt4];
+        
+        if (!isFinal) {
+          const storyEl = document.getElementById("eventStory");
+          if (storyEl) {
+            storyEl.textContent = story;
+          }
+          const confirm = document.getElementById("eventConfirmBtn");
+          if (confirm) {
+            confirm.disabled = true;
+            confirm.textContent = "正在生成中...";
+          }
+          sendAiReplyAck(requestId, true, false, false);
+          return;
+        }
+
+        pendingAiRequestId = "";
+        state.lastStory = story;
+        saveState();
+
+        const actionName = state.pendingActionContext 
+          ? actionLabel(state.pendingActionContext.action, state.pendingActionContext.attribute)
+          : "外出/交流";
+        openEventOverlay(actionName, "请做出你的选择", story);
+
+        // 渲染 4 个选项按钮
+        const choicesEl = document.getElementById("eventChoices");
+        if (choicesEl) {
+          choicesEl.innerHTML = "";
+          [opt1, opt2, opt3, opt4].forEach((optText, index) => {
+            const btn = document.createElement("button");
+            btn.className = "choice-button";
+            btn.textContent = optText;
+            btn.onclick = () => handleChoiceSelection(index);
+            choicesEl.appendChild(btn);
+          });
+          setElementHidden("eventChoices", false);
+        }
+
+        // 隐藏默认的 footer 按钮区
+        const actionsEl = document.getElementById("eventActions");
+        if (actionsEl) actionsEl.style.display = "none";
+        
+        sendAiReplyAck(requestId, true, false);
+        return;
+      }
+
+      if (!isFinal) {
+        // 如果是流式传输，在标签完备前先显示部分纯文本
+        const storyEl = document.getElementById("eventStory");
+        if (storyEl) {
+          storyEl.textContent = cleanReplyText(content);
+        }
+        const confirm = document.getElementById("eventConfirmBtn");
+        if (confirm) {
+          confirm.disabled = true;
+          confirm.textContent = "正在生成中...";
+        }
+        sendAiReplyAck(requestId, true, false, false);
+        return;
+      }
+
+      // 完结了但 XML 格式缺失，降级至普通单阶段结算
+      console.warn("[Hatsu Choices] XML parsing failed. Falling back to default settlement.");
+      const reply = cleanReplyText(content);
+      fallbackChoiceSettlement(reply);
+      sendAiReplyAck(requestId, true, false);
+      return;
+    }
+
+    // ==========================================
+    // 交互式选项第二阶段：AI 反应与收尾剧情
+    // ==========================================
+    if (state.choiceStep === 2) {
+      const reply = extractReplyText([source]);
+      
+      const storyEl = document.getElementById("eventStory");
+      if (storyEl && reply) {
+        const intro = state.lastStory || "";
+        const chosenLine = `▶ 制作人的选择：${state.selectedChoiceText || ""} (${state.selectedChoiceRating || ""})`;
+        storyEl.innerHTML = `${intro.replace(/\n/g, "<br>")}<br><br><strong style="color:var(--violet)">${chosenLine}</strong><br><br>${reply.replace(/\n/g, "<br>")}`;
+      }
+
+      if (!isFinal) {
+        const confirm = document.getElementById("eventConfirmBtn");
+        if (confirm) {
+          confirm.disabled = true;
+          confirm.textContent = "正在生成中...";
+        }
+        sendAiReplyAck(requestId, true, false, false);
+        return;
+      }
+
+      pendingAiRequestId = "";
+      state.lastStory = `${state.lastStory}\n\n▶ 制作人的选择：${state.selectedChoiceText} (${state.selectedChoiceRating})\n\n${reply}`;
+      if (state.log[0]) {
+        state.log[0].aiReply = reply;
+      }
+      state.choiceStep = 0;
+      saveState();
+      render();
+
+      const actionName = state.pendingActionContext 
+        ? actionLabel(state.pendingActionContext.action, state.pendingActionContext.attribute)
+        : "外出/交流";
+      openEventOverlay(actionName, "已收到 SillyTavern 角色回复", state.lastStory);
+      sendAiReplyAck(requestId, true, false);
+      return;
+    }
+
+    // ==========================================
+    // 普通非选项行动（上课、训练、休息、羁绊剧情）
+    // ==========================================
     const reply = extractReplyText([source]);
 
     if (reply) {
       const storyEl = document.getElementById("eventStory");
       if (storyEl) {
-        // Only auto-scroll to bottom if the user was already scrolled near the bottom (within 40px)
         const isAtBottom = storyEl.scrollHeight - storyEl.clientHeight - storyEl.scrollTop < 40;
         storyEl.textContent = reply;
         if (isAtBottom) {
