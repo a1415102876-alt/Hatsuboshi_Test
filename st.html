@@ -176,9 +176,37 @@
     `;
     document.head.appendChild(fullStyle);
 
+    // 注入隐藏规则到父窗口的 head
+    try {
+      if (window.parent && window.parent.document && window.parent.document.head) {
+        const parentDoc = window.parent.document;
+        if (!parentDoc.getElementById('hatsuboshi-parent-styles')) {
+          const parentStyle = parentDoc.createElement('style');
+          parentStyle.id = 'hatsuboshi-parent-styles';
+          parentStyle.textContent = `
+            body.hatsuboshi-active .mes[mesid]:not([mesid="0"]) {
+              display: none !important;
+            }
+            body.hatsuboshi-active .writing_indicator {
+              display: none !important;
+            }
+          `;
+          parentDoc.head.appendChild(parentStyle);
+        }
+      }
+    } catch (e) {
+      console.warn('[st.html] Failed to inject styles into parent document:', e);
+    }
+
     // 关闭按钮
     document.getElementById('hatsu-close-fullscreen-btn')?.addEventListener('click', () => {
       overlay.remove();
+      try {
+        if (window.parent?.document?.body) {
+          window.parent.document.body.classList.remove('hatsuboshi-active');
+        }
+        document.body.classList.remove('hatsuboshi-active');
+      } catch (e) {}
     });
 
     // 浏览器真正全屏：必须点击按钮才能触发
