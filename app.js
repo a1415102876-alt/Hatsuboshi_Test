@@ -639,6 +639,10 @@
         bgmManager.play("talk");
         return;
       }
+      if (title.includes("登台前准备") || title.includes("First Live 登台前准备") || (state.activeStoryNode && state.activeStoryNode.type === "firstLivePre")) {
+        bgmManager.play("live_prep");
+        return;
+      }
       bgmManager.play("lobby");
       return;
     }
@@ -1800,7 +1804,9 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
 
     const videoUrl = idolLiveVideos[state.idol];
     if (videoUrl) {
-      playLiveVideo(videoUrl, showPostLiveOverlay);
+      triggerWipeTransition(() => {
+        playLiveVideo(videoUrl, showPostLiveOverlay);
+      });
     } else {
       showPostLiveOverlay();
     }
