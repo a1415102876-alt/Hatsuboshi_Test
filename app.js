@@ -2485,7 +2485,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
               ? "担当闲聊"
               : node?.type === "interaction"
                 ? "偶像互动"
-                : "AI 后续剧情";
+                : (state.log[0]?.action || "AI 后续剧情");
       openEventOverlay(title, "生成失败，未收到有效回复", errorText);
       sendAiReplyAck(requestId, false, false);
       return;
@@ -2510,7 +2510,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
             ? "担当闲聊"
             : node?.type === "interaction"
               ? "偶像互动"
-              : "AI 后续剧情";
+              : (state.log[0]?.action || "AI 后续剧情");
     openEventOverlay(title, "已收到 SillyTavern 角色回复", reply);
     sendAiReplyAck(requestId, true, false);
   }
