@@ -235,9 +235,8 @@
         window.addEventListener('load', startBridge);
       }
 
-      // 1. 同步注册消息监听，避免异步 import 加载导致错过 app.js 启动时发送的 getCharacter 消息
-      window.addEventListener('message', async (event) => {
-        if (event.origin !== window.location.origin) return;
+      // 1. 同步注册消息监听，监测 iframe 窗口与外层大窗口的消息
+      const messageHandler = async (event) => {
         const data = event.data || {};
         if (data.source !== 'hatsuboshi-produce') return;
 
@@ -257,21 +256,37 @@
         if (data.type === 'saveState') {
           saveChatState(data.state);
         }
-      });
+      };
+
+      window.addEventListener('message', messageHandler);
+      try {
+        if (window.parent && window.parent !== window) {
+          window.parent.addEventListener('message', messageHandler);
+        }
+      } catch (e) {
+        console.warn('[st.html] Cannot register message listener on parent window:', e);
+      }
     }
 
     async function initInPageBridge() {
       try {
         let attempts = 0;
-        while (attempts < 50 && (!window.SillyTavern || typeof window.SillyTavern.getContext !== 'function')) {
+        let globalST = null;
+        while (attempts < 50) {
+          try {
+            globalST = window.parent?.SillyTavern || window.SillyTavern;
+          } catch (e) {}
+          if (globalST && typeof globalST.getContext === 'function') {
+            break;
+          }
           await new Promise(resolve => setTimeout(resolve, 100));
           attempts++;
         }
-        if (!window.SillyTavern || typeof window.SillyTavern.getContext !== 'function') {
+        if (!globalST || typeof globalST.getContext !== 'function') {
           throw new Error('SillyTavern global API (window.SillyTavern.getContext) not found.');
         }
 
-        const context = window.SillyTavern.getContext();
+        const context = globalST.getContext();
 
         // 绑定回复桥接
         bindSillyTavernReplyBridge();
@@ -305,10 +320,18 @@
     let pendingCandidateInFlight = false;
     let pendingCandidateMessageId = -1;
     let pendingReplyRetryTimer = 0;
-    // sillyTavernModules has been removed
+
+    function getContext() {
+      try {
+        const globalST = window.parent?.SillyTavern || window.SillyTavern;
+        return globalST?.getContext?.();
+      } catch (e) {
+        return window.SillyTavern?.getContext?.();
+      }
+    }
 
     function getCurrentContextInfo() {
-      const context = window.SillyTavern?.getContext?.();
+      const context = getContext();
       const characterId = context?.characterId;
       const character = Array.isArray(context?.characters) && Number.isInteger(Number(characterId))
         ? context.characters[Number(characterId)]
@@ -320,7 +343,9 @@
         || context?.chatMetadata?.fileName
         || context?.chatFile
         || 'default-chat';
-      const characterName = character?.name || context?.name2 || document.querySelector('#avatar_div .ch_name')?.textContent?.trim() || '';
+      
+      const mainDoc = window.parent?.document || document;
+      const characterName = character?.name || context?.name2 || mainDoc.querySelector('#avatar_div .ch_name')?.textContent?.trim() || '';
       const actorScope = groupId
         ? `group-${groupId}`
         : `char-${Number.isInteger(Number(characterId)) ? characterId : characterName.replace(new RegExp("[\\\\/:*?\\\"<>|\\s]+", "g"), '_')}`;
@@ -340,22 +365,32 @@
       const contextInfo = getCurrentContextInfo();
       const characterName = contextInfo.character?.name || '';
       const isHatsu = characterName.includes('初星学园') || characterName.includes('初星') || characterName.includes('Hatsuboshi');
-      if (isHatsu) {
-        document.body.classList.add('hatsuboshi-active');
-      } else {
-        document.body.classList.remove('hatsuboshi-active');
-      }
+      
+      const targets = [document.body];
+      try {
+        if (window.parent?.document?.body) {
+          targets.push(window.parent.document.body);
+        }
+      } catch (e) {}
+
+      targets.forEach(body => {
+        if (isHatsu) {
+          body.classList.add('hatsuboshi-active');
+        } else {
+          body.classList.remove('hatsuboshi-active');
+        }
+      });
     }
 
     function getSavedChatState() {
-      const context = window.SillyTavern?.getContext?.();
+      const context = getContext();
       const envelope = context?.chatMetadata?.[CHAT_STATE_METADATA_KEY];
       if (!envelope || typeof envelope !== 'object' || Array.isArray(envelope)) return null;
       return envelope.state;
     }
 
     function saveChatState(state) {
-      const context = window.SillyTavern?.getContext?.();
+      const context = getContext();
       const metadata = context?.chatMetadata;
       if (!metadata) return;
       metadata[CHAT_STATE_METADATA_KEY] = {
@@ -384,8 +419,10 @@
     function sendPromptToSillyTavern(prompt) {
       const text = String(prompt || '').trim();
       if (!text) return;
-      const textarea = document.querySelector('#send_textarea');
-      const sendButton = document.querySelector('#send_but');
+      
+      const mainDoc = window.parent?.document || document;
+      const textarea = mainDoc.querySelector('#send_textarea');
+      const sendButton = mainDoc.querySelector('#send_but');
       if (textarea && sendButton) {
         textarea.value = text;
         textarea.dispatchEvent(new Event('input', { bubbles: true }));
@@ -397,7 +434,7 @@
 
     function bindSillyTavernReplyBridge() {
       try {
-        const context = window.SillyTavern?.getContext?.();
+        const context = getContext();
         if (!context) return;
         const eventSource = context.eventSource;
         const eventTypes = context.eventTypes;
@@ -408,7 +445,7 @@
         });
 
         const handleGenerationEnd = () => {
-          const latestMessageId = window.SillyTavern?.getContext?.()?.chat?.length - 1;
+          const latestMessageId = getContext()?.chat?.length - 1;
           if (latestMessageId >= 0) {
             sendLatestAiReplyToFrame(latestMessageId, true);
           }
@@ -421,7 +458,7 @@
         }
         if (eventTypes.STREAM_TOKEN_RECEIVED) {
           eventSource.on(eventTypes.STREAM_TOKEN_RECEIVED, () => {
-            const latestMessageId = window.SillyTavern?.getContext?.()?.chat?.length - 1;
+            const latestMessageId = getContext()?.chat?.length - 1;
             if (latestMessageId >= 0) {
               sendLatestAiReplyToFrame(latestMessageId, false);
             }
@@ -449,7 +486,7 @@
       if (Number(messageId) === 0) return;
       if (isFinal && pendingCandidateInFlight) return;
       
-      const context = window.SillyTavern?.getContext?.();
+      const context = getContext();
       const message = context?.chat?.[messageId];
       if (!message || message.is_user) return;
 
@@ -462,7 +499,8 @@
         rawText = typeof message.mes === 'string' ? message.mes : '';
       }
 
-      const renderedText = document.querySelector(`.mes[mesid="${messageId}"] .mes_text`)?.innerText || '';
+      const mainDoc = window.parent?.document || document;
+      const renderedText = mainDoc.querySelector(`.mes[mesid="${messageId}"] .mes_text`)?.innerText || '';
       const text = rawText.length > renderedText.length ? rawText : renderedText;
 
       if (text.trim().length > 0 || isFinal) {
