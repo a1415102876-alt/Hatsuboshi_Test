@@ -1177,6 +1177,7 @@ p {
   padding: 16px;
   background: rgba(17, 15, 22, 0.42);
   backdrop-filter: blur(14px);
+  animation: fadeIn 220ms ease-out both;
 }
 
 .notebook-drawer[hidden],
@@ -1768,6 +1769,11 @@ p {
 @keyframes toastIn {
   from { opacity: 0; transform: translateY(-8px) scale(0.98); }
   to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes drawerIn {
