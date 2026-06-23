@@ -13,7 +13,7 @@
   });
 
   window.isHatsuLoaderST = true;
-  const BASE = 'https://hatsuboshi.vercel.app/';
+  const BASE = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
 
   function abs(path) {
     return new URL(path, BASE).href;
