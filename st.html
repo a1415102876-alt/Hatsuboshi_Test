@@ -30,7 +30,6 @@
   }
 
   try {
-    // 1. 读取远程 index.html
     const htmlRes = await fetch(abs('index.html'), { cache: 'no-store' });
     if (!htmlRes.ok) {
       throw new Error('index.html 加载失败：HTTP ' + htmlRes.status);
@@ -39,39 +38,147 @@
     const htmlText = await htmlRes.text();
     const doc = new DOMParser().parseFromString(htmlText, 'text/html');
 
-    // 2. 清掉旧的 Hatsu 样式，避免重复加载
+    // 加载远程 CSS
     document.querySelectorAll('[data-hatsu-remote-style]').forEach(el => el.remove());
 
-    // 3. 加载远程 style.css
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
     styleLink.href = abs('style.css');
     styleLink.setAttribute('data-hatsu-remote-style', 'true');
     document.head.appendChild(styleLink);
 
-    // 4. 删除 index.html 里原本的 script，避免按错误的 ./app.js 路径加载
+    // 删除 index.html 里原来的 script，避免相对路径错误
     doc.body.querySelectorAll('script').forEach(s => s.remove());
 
-    // 5. 把 index.html 的 body 内容塞进当前 body
-    document.body.innerHTML = doc.body.innerHTML;
+    // 创建全屏覆盖层
+    const overlay = document.createElement('div');
+    overlay.id = 'hatsu-fullscreen-overlay';
 
-    // 6. 修正 HTML 里已有的 src，比如 logo 图片
-    document.querySelectorAll('[src]').forEach(el => {
+    overlay.innerHTML = `
+      <div id="hatsu-fullscreen-toolbar">
+        <div id="hatsu-fullscreen-title">Hatsuboshi Produce</div>
+        <div id="hatsu-fullscreen-actions">
+          <button id="hatsu-real-fullscreen-btn" type="button">浏览器全屏</button>
+          <button id="hatsu-close-fullscreen-btn" type="button">关闭</button>
+        </div>
+      </div>
+
+      <div id="hatsu-fullscreen-content">
+        <div id="hatsu-st-page"></div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const page = overlay.querySelector('#hatsu-st-page');
+    page.innerHTML = doc.body.innerHTML;
+
+    // 修正 HTML 里的 src
+    page.querySelectorAll('[src]').forEach(el => {
       const src = el.getAttribute('src');
       if (shouldRewriteUrl(src)) {
         el.setAttribute('src', abs(src));
       }
     });
 
-    // 7. 修正 href，但不要动 svg 的 #icon-star 这种内部引用
-    document.querySelectorAll('[href]').forEach(el => {
+    // 修正 href，但不动 #icon-star 这种 SVG 内部引用
+    page.querySelectorAll('[href]').forEach(el => {
       const href = el.getAttribute('href');
       if (shouldRewriteUrl(href)) {
         el.setAttribute('href', abs(href));
       }
     });
 
-    // 8. 读取 app.js，并把里面的 ./assets/ 改成 Vercel 绝对路径
+    // 全屏外壳样式：不改你的内部 UI，只让外层覆盖整个酒馆
+    const fullStyle = document.createElement('style');
+    fullStyle.setAttribute('data-hatsu-fullscreen-style', 'true');
+    fullStyle.textContent = `
+      #hatsu-fullscreen-overlay {
+        position: fixed !important;
+        inset: 0 !important;
+        z-index: 999999 !important;
+        background: #101016 !important;
+        color: #242126 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100vw !important;
+        height: 100vh !important;
+      }
+
+      #hatsu-fullscreen-toolbar {
+        height: 44px !important;
+        flex: 0 0 44px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 0 14px !important;
+        background: rgba(20, 20, 26, 0.96) !important;
+        color: white !important;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+      }
+
+      #hatsu-fullscreen-title {
+        font-weight: 700 !important;
+        font-size: 14px !important;
+        letter-spacing: 0.02em !important;
+      }
+
+      #hatsu-fullscreen-actions {
+        display: flex !important;
+        gap: 8px !important;
+      }
+
+      #hatsu-fullscreen-actions button {
+        border: 0 !important;
+        border-radius: 8px !important;
+        padding: 6px 10px !important;
+        color: white !important;
+        background: rgba(255, 255, 255, 0.16) !important;
+        cursor: pointer !important;
+        font-size: 13px !important;
+      }
+
+      #hatsu-fullscreen-actions button:hover {
+        background: rgba(255, 255, 255, 0.26) !important;
+      }
+
+      #hatsu-fullscreen-content {
+        flex: 1 1 auto !important;
+        overflow: auto !important;
+        background:
+          radial-gradient(circle at 18% 10%, rgba(255, 79, 154, 0.18), transparent 28%),
+          radial-gradient(circle at 84% 6%, rgba(38, 169, 244, 0.2), transparent 30%),
+          linear-gradient(135deg, #fff7f0 0%, #f2f7ff 48%, #fff6dd 100%) !important;
+      }
+
+      #hatsu-st-page {
+        width: 1180px !important;
+        min-height: calc(100vh - 44px) !important;
+        margin: 0 auto !important;
+      }
+    `;
+    document.head.appendChild(fullStyle);
+
+    // 关闭按钮
+    document.getElementById('hatsu-close-fullscreen-btn')?.addEventListener('click', () => {
+      overlay.remove();
+    });
+
+    // 浏览器真正全屏：必须点击按钮才能触发
+    document.getElementById('hatsu-real-fullscreen-btn')?.addEventListener('click', async () => {
+      try {
+        if (!document.fullscreenElement) {
+          await overlay.requestFullscreen();
+        } else {
+          await document.exitFullscreen();
+        }
+      } catch (err) {
+        console.error('[Hatsu] 浏览器全屏失败：', err);
+      }
+    });
+
+    // 读取 app.js，并修正里面的 ./assets/
     const jsRes = await fetch(abs('app.js'), { cache: 'no-store' });
     if (!jsRes.ok) {
       throw new Error('app.js 加载失败：HTTP ' + jsRes.status);
@@ -84,10 +191,13 @@
       .replaceAll("'./assets/", "'" + abs('assets/'))
       .replaceAll('`./assets/', '`' + abs('assets/'));
 
-    // 9. 执行修正后的 app.js
     const script = document.createElement('script');
     script.textContent = jsText + '\n//# sourceURL=' + abs('app.js');
-    document.body.appendChild(script);
+    page.appendChild(script);
+
+    // 清掉原来的加载提示
+    const loader = document.getElementById('hatsu-loader');
+    if (loader) loader.remove();
 
   } catch (err) {
     showError(err);
