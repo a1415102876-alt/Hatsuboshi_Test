@@ -13,7 +13,29 @@
   });
 
   window.isHatsuLoaderST = true;
-  const BASE = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+  
+  let BASE = 'https://hatsuboshi.vercel.app/';
+  try {
+    let loc = window.location;
+    try {
+      if (window.parent && window.parent.location && window.parent.location.href) {
+        loc = window.parent.location;
+      }
+    } catch (parentErr) {}
+
+    if (loc && loc.origin && loc.origin !== 'null' && loc.origin.startsWith('http')) {
+      const host = loc.hostname;
+      if (host === 'localhost' || 
+          host === '127.0.0.1' || 
+          host.startsWith('192.168.') || 
+          host.startsWith('10.') || 
+          host.startsWith('172.')) {
+        BASE = loc.origin + '/hatsu-produce-local/';
+      }
+    }
+  } catch (err) {
+    console.warn('[Hatsu ST Loader] 动态解析 BASE 失败，使用 Vercel 默认路径：', err);
+  }
 
   function abs(path) {
     return new URL(path, BASE).href;
