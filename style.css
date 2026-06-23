@@ -2423,29 +2423,29 @@ p {
   justify-content: center;
   align-items: flex-end;
   pointer-events: none;
-  padding-bottom: 180px;
+  padding-bottom: 0;
 }
 
 .vn-standee {
-  height: 80%;
-  max-height: 720px;
+  height: 145%;
+  max-height: none;
   width: auto;
   object-fit: contain;
   transition: opacity 0.35s cubic-bezier(0.25, 1, 0.5, 1), transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
   transform-origin: bottom center;
   will-change: transform, opacity;
   opacity: 0;
-  transform: translateY(20px) scale(0.95);
+  transform: translateY(42%) scale(0.95);
 }
 
 .vn-standee.active {
   opacity: 1;
-  transform: translateY(0) scale(1);
+  transform: translateY(38%) scale(1);
 }
 
 .vn-standee.fade-out {
   opacity: 0;
-  transform: translateY(10px) scale(0.98);
+  transform: translateY(42%) scale(0.98);
 }
 
 .vn-dialogue-box {
