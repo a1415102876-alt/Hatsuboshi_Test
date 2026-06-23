@@ -3245,7 +3245,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       .replace(/<!--[\s\S]*?-->/g, "")
       .replace(closedRegex, "")
       .replace(unclosedRegex, "")
-      .replace(/<\/?[a-zA-Z_][\w:-]*\b[^>]*>/g, "")
+      .replace(/<(?!dialogue|narration|\/dialogue|\/narration)\/?[a-zA-Z_][\w:-]*\b[^>]*>/gi, "")
       .replace(/\[\s*\{[\s\S]*?\}\s*\]\s*$/g, "")
       .replace(/^\s*\*{1,2}\s*/gm, "")
       .replace(/\s*\*{1,2}\s*$/gm, "")
