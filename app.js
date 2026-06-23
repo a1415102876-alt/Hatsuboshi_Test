@@ -2555,6 +2555,65 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     showToast("提示词已准备", "当前不在 SillyTavern iframe 中，请从 P 手账复制。", "warn");
   }
 
+  function setEventActionsEnabled(enabled, isGenerating = false) {
+    const confirm = document.getElementById("eventConfirmBtn");
+    if (confirm) {
+      confirm.disabled = !enabled;
+      if (isGenerating) {
+        confirm.textContent = "正在生成中...";
+      } else {
+        const node = state.activeStoryNode;
+        confirm.textContent = 
+          node?.type === "affinity" && node.threshold === 0 
+            ? "确认开始育成" 
+            : node?.type === "firstLivePre" 
+              ? "Live 开始" 
+              : "确定";
+      }
+    }
+    const regenBtn = document.getElementById("eventRegenBtn");
+    if (regenBtn) regenBtn.disabled = !enabled;
+    const aiBtn = document.getElementById("eventAiBtn");
+    if (aiBtn) aiBtn.disabled = !enabled;
+  }
+
+  function triggerRegeneration() {
+    const requestId = state.lastRequestId || createRequestId();
+    pendingAiRequestId = requestId;
+    state.lastRequestId = requestId;
+    saveState();
+    
+    setEventActionsEnabled(false, true);
+    
+    const choicesEl = document.getElementById("eventChoices");
+    if (choicesEl) {
+      choicesEl.innerHTML = "";
+      setElementHidden("eventChoices", true);
+    }
+    
+    const storyEl = document.getElementById("eventStory");
+    if (storyEl) {
+      if (state.choiceStep === 2) {
+        const intro = state.lastStory || "";
+        const chosenLine = `▶ 制作人的选择：${state.selectedChoiceText || ""} (${state.selectedChoiceRating || ""})`;
+        storyEl.innerHTML = `${intro.replace(/\n/g, "<br>")}<br><br><strong style="color:var(--violet)">${chosenLine}</strong><br><br><span id="eventReactionLoading" style="opacity:0.6;">(正在重新生成偶像的反应...)</span>`;
+      } else {
+        storyEl.textContent = "正在重新生成剧情...";
+      }
+    }
+    
+    if (isSillyTavernHost()) {
+      window.parent.postMessage({
+        source: "hatsuboshi-produce",
+        type: "regenerate",
+        requestId
+      }, "*");
+      showToast("正在重新生成", "已向 SillyTavern 发送重新生成请求。", "info");
+    } else {
+      showToast("未连接酒馆", "当前页面未连接 SillyTavern，无法触发重新生成。", "warn");
+    }
+  }
+
   function openEventOverlay(title, result, story) {
     state.lastEventTitle = title || "行动事件";
     state.lastEventResult = result || "本次行动已经完成结算。";
@@ -2565,20 +2624,11 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     document.getElementById("eventResult").textContent = result || "本次行动已经完成结算。";
     document.getElementById("eventStory").textContent = story || state.lastStory || "本次行动已经完成。";
     const confirm = document.getElementById("eventConfirmBtn");
-    const node = state.activeStoryNode;
     
-    confirm.textContent = 
-      node?.type === "affinity" && node.threshold === 0 
-        ? "确认开始育成" 
-        : node?.type === "firstLivePre" 
-          ? "Live 开始" 
-          : "确定";
-
     if (pendingAiRequestId) {
-      confirm.disabled = true;
-      confirm.textContent = "正在生成中...";
+      setEventActionsEnabled(false, true);
     } else {
-      confirm.disabled = false;
+      setEventActionsEnabled(true, false);
     }
 
     setElementHidden("eventOverlay", false);
@@ -2915,9 +2965,9 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       sendAiReplyAck(requestId, false, false);
       return;
     }
-    const rawSource = (state.choiceStep === 1 || state.choiceStep === 2)
-      ? (rawText || text || renderedText)
-      : chooseLongestReply(rawText, renderedText, text);
+    // For all event story texts, we prioritize the raw markdown text (rawText or text) over the browser's renderedText (innerText)
+    // to prevent DOM-injected CSS styling blocks or translation plugins from corrupting the display.
+    const rawSource = rawText || text || renderedText;
     const source = rawSource
       .replace(/&lt;/g, "<")
       .replace(/&gt;/g, ">")
@@ -3013,11 +3063,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
           if (storyEl) {
             storyEl.textContent = story;
           }
-          const confirm = document.getElementById("eventConfirmBtn");
-          if (confirm) {
-            confirm.disabled = true;
-            confirm.textContent = "正在生成中...";
-          }
+          setEventActionsEnabled(false, true);
           sendAiReplyAck(requestId, true, false, false);
           return;
         }
@@ -3045,9 +3091,18 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
           setElementHidden("eventChoices", false);
         }
 
-        // 隐藏默认的 footer 按钮区
+        // 禁用确定按钮，但保持 footer 按钮区可见，以便可以重新生成或编辑重发
+        const confirmBtn = document.getElementById("eventConfirmBtn");
+        if (confirmBtn) {
+          confirmBtn.disabled = true;
+          confirmBtn.textContent = "请选择选项";
+        }
+        const regenBtn = document.getElementById("eventRegenBtn");
+        if (regenBtn) regenBtn.disabled = false;
+        const aiBtn = document.getElementById("eventAiBtn");
+        if (aiBtn) aiBtn.disabled = false;
         const actionsEl = document.getElementById("eventActions");
-        if (actionsEl) actionsEl.style.display = "none";
+        if (actionsEl) actionsEl.style.display = "grid";
         
         sendAiReplyAck(requestId, true, false);
         return;
@@ -3059,11 +3114,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         if (storyEl) {
           storyEl.textContent = cleanReplyText(content);
         }
-        const confirm = document.getElementById("eventConfirmBtn");
-        if (confirm) {
-          confirm.disabled = true;
-          confirm.textContent = "正在生成中...";
-        }
+        setEventActionsEnabled(false, true);
         sendAiReplyAck(requestId, true, false, false);
         return;
       }
@@ -3090,11 +3141,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       }
 
       if (!isFinal) {
-        const confirm = document.getElementById("eventConfirmBtn");
-        if (confirm) {
-          confirm.disabled = true;
-          confirm.textContent = "正在生成中...";
-        }
+        setEventActionsEnabled(false, true);
         sendAiReplyAck(requestId, true, false, false);
         return;
       }
@@ -3133,11 +3180,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     }
 
     if (!isFinal) {
-      const confirm = document.getElementById("eventConfirmBtn");
-      if (confirm) {
-        confirm.disabled = true;
-        confirm.textContent = "正在生成中...";
-      }
+      setEventActionsEnabled(false, true);
       sendAiReplyAck(requestId, true, false, false);
       return;
     }
@@ -3780,6 +3823,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     if (event.target.id === "notebookDrawer") closeNotebook();
   });
   document.getElementById("eventConfirmBtn").addEventListener("click", closeEventOverlay);
+  document.getElementById("eventRegenBtn").addEventListener("click", triggerRegeneration);
   document.getElementById("eventAiBtn").addEventListener("click", () => {
     setElementHidden("eventOverlay", true);
     openAiPromptOverlay();
