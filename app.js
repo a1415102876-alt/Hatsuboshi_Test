@@ -2932,11 +2932,65 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         }
       }
 
-      const story = content.match(/<story>([\s\S]*?)<\/story>/i)?.[1]?.trim();
-      const opt1 = content.match(/<option1>([\s\S]*?)<\/option1>/i)?.[1]?.trim();
-      const opt2 = content.match(/<option2>([\s\S]*?)<\/option2>/i)?.[1]?.trim();
-      const opt3 = content.match(/<option3>([\s\S]*?)<\/option3>/i)?.[1]?.trim();
-      const opt4 = content.match(/<option4>([\s\S]*?)<\/option4>/i)?.[1]?.trim();
+      // 容错辅助：提取各形式选项标签
+      const extractOption = (num) => {
+        const regexes = [
+          new RegExp(`<option_?${num}>([\\s\\S]*?)<\\/option_?${num}>`, 'i'),
+          new RegExp(`<option\\s+${num}>([\\s\\S]*?)<\\/option\\s+${num}>`, 'i')
+        ];
+        for (const regex of regexes) {
+          const match = content.match(regex);
+          if (match?.[1]?.trim()) return match[1].trim();
+        }
+        return null;
+      };
+
+      let opt1 = extractOption(1);
+      let opt2 = extractOption(2);
+      let opt3 = extractOption(3);
+      let opt4 = extractOption(4);
+      let story = content.match(/<story>([\s\S]*?)<\/story>/i)?.[1]?.trim();
+
+      // 如果选项存在但故事标签缺失，以第一个选项前的所有内容作为故事
+      if (opt1 && opt2 && opt3 && opt4 && !story) {
+        const firstOptIndex = content.search(/<option/i);
+        if (firstOptIndex !== -1) {
+          story = cleanReplyText(content.slice(0, firstOptIndex));
+        }
+      }
+
+      // 进一步降级：如果仍然无法解析，尝试智能按行提取段尾双引号选项/编号选项
+      if (!story || !opt1 || !opt2 || !opt3 || !opt4) {
+        const lines = content.split('\n').map(l => l.trim()).filter(Boolean);
+        if (lines.length >= 5) {
+          const last4 = lines.slice(-4);
+          const isQuotedOrNumbered = last4.every(line => {
+            const hasQuotes = (line.startsWith("“") && line.endsWith("”")) ||
+                              (line.startsWith('"') && line.endsWith('"')) ||
+                              (line.startsWith("「") && line.endsWith("」")) ||
+                              (line.startsWith("'") && line.endsWith("'"));
+            const hasNumberPrefix = /^[1-4\u2460-\u2463\uff11-\uff14\u4e00-\u56dbA-Da-d][\.\u3002\u3001、\-\s:]/.test(line) ||
+                                    /^(选项|Option|分支)[\s1-4\u4e00-\u56dbA-Da-d]/.test(line);
+            return hasQuotes || hasNumberPrefix;
+          });
+
+          if (isQuotedOrNumbered) {
+            const cleanOption = (text) => {
+              let cleaned = text.trim();
+              cleaned = cleaned.replace(/^(选项|Option|分支|)[1-4\u4e00-\u56dbA-Da-d][\.\u3002\u3001、\-\s：:]*/i, '');
+              cleaned = cleaned.replace(/^[1-4\u2460-\u2463\uff11-\uff14][\.\u3002\u3001、\-\s：:]*/i, '');
+              cleaned = cleaned.replace(/^[\s“"「\(\[（【'‘]+/g, '').replace(/[\s”"」\)\]）】'’]+$/g, '').trim();
+              return cleaned;
+            };
+
+            opt1 = cleanOption(last4[0]);
+            opt2 = cleanOption(last4[1]);
+            opt3 = cleanOption(last4[2]);
+            opt4 = cleanOption(last4[3]);
+            story = lines.slice(0, -4).join("\n");
+          }
+        }
+      }
 
       if (story && opt1 && opt2 && opt3 && opt4) {
         state.pendingOptionTexts = [opt1, opt2, opt3, opt4];
