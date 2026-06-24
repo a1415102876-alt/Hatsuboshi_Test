@@ -13,6 +13,7 @@
   });
 
   window.isHatsuLoaderST = true;
+  window.hatsuFloorsHidden = true;
   
   const BASE = 'https://hatsuboshi.vercel.app/';
 
@@ -64,12 +65,9 @@
     overlay.id = 'hatsu-fullscreen-overlay';
 
     overlay.innerHTML = `
-      <div id="hatsu-fullscreen-toolbar">
-        <div id="hatsu-fullscreen-title">Hatsuboshi Produce</div>
-        <div id="hatsu-fullscreen-actions">
-          <button id="hatsu-real-fullscreen-btn" type="button">浏览器全屏</button>
-          <button id="hatsu-close-fullscreen-btn" type="button">关闭</button>
-        </div>
+      <div id="hatsu-floating-controls">
+        <button id="hatsu-real-fullscreen-btn" type="button">浏览器全屏</button>
+        <button id="hatsu-toggle-floors-btn" type="button" style="display: none;">取消隐藏下方楼层</button>
       </div>
 
       <div id="hatsu-fullscreen-content">
@@ -114,42 +112,43 @@
         height: 100vh !important;
       }
 
-      #hatsu-fullscreen-toolbar {
-        height: 44px !important;
-        flex: 0 0 44px !important;
+      #hatsu-floating-controls {
+        position: fixed !important;
+        top: 16px !important;
+        right: 16px !important;
+        z-index: 2147483647 !important;
         display: flex !important;
+        gap: 10px !important;
         align-items: center !important;
-        justify-content: space-between !important;
-        padding: 0 14px !important;
-        background: rgba(20, 20, 26, 0.96) !important;
+      }
+
+      #hatsu-floating-controls button {
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        border-radius: 20px !important;
+        padding: 8px 16px !important;
         color: white !important;
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
-      }
-
-      #hatsu-fullscreen-title {
-        font-weight: 700 !important;
-        font-size: 14px !important;
-        letter-spacing: 0.02em !important;
-      }
-
-      #hatsu-fullscreen-actions {
-        display: flex !important;
-        gap: 8px !important;
-      }
-
-      #hatsu-fullscreen-actions button {
-        border: 0 !important;
-        border-radius: 8px !important;
-        padding: 6px 10px !important;
-        color: white !important;
-        background: rgba(255, 255, 255, 0.16) !important;
+        background: rgba(20, 20, 26, 0.6) !important;
+        backdrop-filter: blur(10px) !important;
+        -webkit-backdrop-filter: blur(10px) !important;
         cursor: pointer !important;
         font-size: 13px !important;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+        font-weight: 500 !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+        transition: all 0.2s ease !important;
+        outline: none !important;
       }
 
-      #hatsu-fullscreen-actions button:hover {
-        background: rgba(255, 255, 255, 0.26) !important;
+      #hatsu-floating-controls button:hover {
+        background: rgba(255, 255, 255, 0.2) !important;
+        border-color: rgba(255, 255, 255, 0.3) !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35) !important;
+      }
+
+      #hatsu-floating-controls button:active {
+        transform: translateY(0) !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
       }
 
       #hatsu-fullscreen-content {
@@ -163,7 +162,7 @@
 
       #hatsu-st-page {
         width: 1180px !important;
-        min-height: calc(100vh - 44px) !important;
+        min-height: 100vh !important;
         margin: 0 auto !important;
       }
 
@@ -199,17 +198,6 @@
       console.warn('[st.html] Failed to inject styles into parent document:', e);
     }
 
-    // 关闭按钮
-    document.getElementById('hatsu-close-fullscreen-btn')?.addEventListener('click', () => {
-      overlay.remove();
-      try {
-        if (window.parent?.document?.body) {
-          window.parent.document.body.classList.remove('hatsuboshi-active');
-        }
-        document.body.classList.remove('hatsuboshi-active');
-      } catch (e) {}
-    });
-
     // 浏览器真正全屏：必须点击按钮才能触发
     document.getElementById('hatsu-real-fullscreen-btn')?.addEventListener('click', async () => {
       try {
@@ -221,6 +209,12 @@
       } catch (err) {
         console.error('[Hatsu] 浏览器全屏失败：', err);
       }
+    });
+
+    // 绑定隐藏/恢复楼层按钮点击事件
+    document.getElementById('hatsu-toggle-floors-btn')?.addEventListener('click', () => {
+      window.hatsuFloorsHidden = !window.hatsuFloorsHidden;
+      updateInPageHatsuClass();
     });
 
     // 读取 app.js，并修正里面的 ./assets/
@@ -416,13 +410,25 @@
         }
       } catch (e) {}
 
+      const shouldHide = isHatsu && window.hatsuFloorsHidden !== false;
+
       targets.forEach(body => {
-        if (isHatsu) {
+        if (shouldHide) {
           body.classList.add('hatsuboshi-active');
         } else {
           body.classList.remove('hatsuboshi-active');
         }
       });
+
+      const btn = document.getElementById('hatsu-toggle-floors-btn');
+      if (btn) {
+        if (isHatsu) {
+          btn.style.display = 'block';
+          btn.textContent = shouldHide ? '取消隐藏下方楼层' : '继续隐藏下方楼层';
+        } else {
+          btn.style.display = 'none';
+        }
+      }
     }
 
     function getSavedChatState() {
