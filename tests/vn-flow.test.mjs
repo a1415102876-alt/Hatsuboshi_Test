@@ -100,6 +100,61 @@ test("ended VN dialogue clicks ignore control buttons", () => {
   assert.match(body, /target\.closest\("\.vn-btn"\)/);
 });
 
+test("opening a non-choice event clears stale choice UI", () => {
+  const elements = new Map();
+  const makeElement = (id) => {
+    const element = {
+      id,
+      hidden: false,
+      innerHTML: "stale option",
+      textContent: "",
+      style: { display: "flex" },
+      classList: { add() {}, remove() {} }
+    };
+    elements.set(id, element);
+    return element;
+  };
+  [
+    "eventOverlay",
+    "eventTitle",
+    "eventPhaseBadge",
+    "eventResult",
+    "eventStory",
+    "eventChoices",
+    "vnChoicesOverlay",
+    "vnChoicesContainer"
+  ].forEach(makeElement);
+
+  const context = {
+    state: { choiceStep: 0, selectedChoiceText: "", lastStory: "", pendingOptionTexts: ["A", "B", "C", "D"] },
+    pendingAiRequestId: "",
+    document: { getElementById: (id) => elements.get(id) || null },
+    saveState() {},
+    getPhase: () => "First Live",
+    formatStoryText: (value) => String(value || ""),
+    setEventActionsEnabled() {},
+    setVnControlsEnabled() {},
+    setElementHidden(id, hidden) {
+      const element = elements.get(id);
+      if (element) element.hidden = hidden;
+    },
+    triggerWipeTransition(callback) { callback(); },
+    parseNovelSlides: () => [],
+    initVisualNovelPlayer() {}
+  };
+  vm.runInNewContext(
+    `${readFunction("openEventOverlay")}\nthis.openEventOverlay = openEventOverlay;`,
+    context
+  );
+
+  context.openEventOverlay("Final", "done", "final story without choices");
+
+  assert.equal(elements.get("eventChoices").innerHTML, "");
+  assert.equal(elements.get("eventChoices").hidden, true);
+  assert.equal(elements.get("vnChoicesOverlay").style.display, "none");
+  assert.equal(elements.get("vnChoicesContainer").innerHTML, "");
+});
+
 test("malformed choice fallback clears pending generation state", () => {
   const body = readFunction("fallbackChoiceSettlement");
   assert.match(body, /pendingAiRequestId\s*=\s*""/);

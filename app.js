@@ -2982,6 +2982,16 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     if (resultEl) resultEl.textContent = result || "本次行动已经完成结算。";
     const storyEl = document.getElementById("eventStory");
     if (storyEl) storyEl.innerHTML = formatStoryText(story || state.lastStory || "本次行动已经完成。");
+
+    const choicesEl = document.getElementById("eventChoices");
+    if (choicesEl) {
+      choicesEl.innerHTML = "";
+      setElementHidden("eventChoices", true);
+    }
+    const vnChoicesOverlay = document.getElementById("vnChoicesOverlay");
+    if (vnChoicesOverlay) vnChoicesOverlay.style.display = "none";
+    const vnChoicesContainer = document.getElementById("vnChoicesContainer");
+    if (vnChoicesContainer) vnChoicesContainer.innerHTML = "";
     
     if (pendingAiRequestId) {
       setEventActionsEnabled(false, true);
