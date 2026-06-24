@@ -2633,6 +2633,13 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     return [chosenLine, reply].filter(Boolean).join("\n\n");
   }
 
+  function buildChoicePendingDisplayStory(intro, chosenLine) {
+    return [
+      chosenLine,
+      "<narration>正在等待 SillyTavern 生成偶像的回应，请稍候...</narration>"
+    ].filter(Boolean).join("\n\n");
+  }
+
   function triggerRegeneration() {
     const requestId = state.lastRequestId || createRequestId();
     pendingAiRequestId = requestId;
@@ -2711,7 +2718,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       setElementHidden("eventOverlay", false);
       
       // 2. 判断当前是否为加载状态
-      const isLoading = pendingAiRequestId || story.includes("等待角色卡") || story.includes("等待 AI") || story.includes("正在重新生成");
+      const isLoading = pendingAiRequestId || story.includes("等待角色卡") || story.includes("等待 AI") || story.includes("等待 SillyTavern") || story.includes("正在重新生成");
       
       if (isLoading) {
         // 如果正在加载，直接显示一行静态文本，并禁用 VN 对话框点击动作
@@ -3394,7 +3401,13 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   }
 
   function fallbackChoiceSettlement(reply) {
-    if (!state.pendingActionContext) return;
+    pendingAiRequestId = "";
+    state.choiceStep = 0;
+    if (!state.pendingActionContext) {
+      saveState();
+      setEventActionsEnabled(true, false);
+      return;
+    }
     const { action, attribute, actionContext } = state.pendingActionContext;
     
     const delta = {};
@@ -3429,7 +3442,6 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     if (state.log[0]) {
       state.log[0].aiReply = reply;
     }
-    state.choiceStep = 0;
     saveState();
     render();
     
@@ -3519,11 +3531,13 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       confirm.textContent = "正在生成中...";
     }
     
+    const chosenLine = `<narration>▶ 制作人的选择：${chosenOptionText} (${ratingName})</narration>`;
+    const pendingStory = buildChoicePendingDisplayStory(state.lastStory, chosenLine);
     const storyEl = document.getElementById("eventStory");
     if (storyEl) {
-      const intro = state.lastStory || "";
-      storyEl.innerHTML = `${formatStoryText(intro + "\n\n▶ 制作人的选择：" + chosenOptionText + " (" + ratingName + ")")}<br><br><span id="eventReactionLoading" style="opacity:0.6;">(正在等待偶像的反应...)</span>`;
+      storyEl.innerHTML = formatStoryText(pendingStory);
     }
+    openEventOverlay(actionName, "正在等待 SillyTavern 角色回复", pendingStory);
     
     if (!requestHostPromptSend(prompt, requestId)) {
       openAiPromptOverlay("当前页面未连接 SillyTavern。请复制提示词发送获取后续。");

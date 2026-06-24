@@ -45,6 +45,18 @@ test("choice continuation display starts from the selected option and not the pr
   assert.doesNotMatch(display, /前半段第一句/);
 });
 
+test("choice pending display replaces the previous story while waiting for AI", () => {
+  const buildChoicePendingDisplayStory = vm.runInNewContext(`(${readFunction("buildChoicePendingDisplayStory")})`);
+  const intro = "前半段第一句。\n前半段第二句。";
+  const chosenLine = "<narration>▶ 制作人的选择：先喝水（【极佳】）</narration>";
+
+  const display = buildChoicePendingDisplayStory(intro, chosenLine);
+
+  assert.match(display, /制作人的选择：先喝水/);
+  assert.match(display, /等待 SillyTavern/);
+  assert.doesNotMatch(display, /前半段第一句/);
+});
+
 test("event action enabled state is shared by classic and VN controls", () => {
   const elements = new Map();
   const makeElement = (id) => {
@@ -86,4 +98,10 @@ test("ended VN dialogue clicks ignore control buttons", () => {
   const body = readFunction("handleVnSlidesEnd");
   assert.match(body, /target\.closest\("\.vn-controls"\)/);
   assert.match(body, /target\.closest\("\.vn-btn"\)/);
+});
+
+test("malformed choice fallback clears pending generation state", () => {
+  const body = readFunction("fallbackChoiceSettlement");
+  assert.match(body, /pendingAiRequestId\s*=\s*""/);
+  assert.match(body, /state\.choiceStep\s*=\s*0/);
 });
