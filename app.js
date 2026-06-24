@@ -692,36 +692,7 @@
       color = idols[idolName].theme || color;
     }
 
-    // Helper for Hex to RGB conversion
-    const hexToRgb = (hexStr) => {
-      const cleaned = hexStr.replace("#", "");
-      const r = parseInt(cleaned.substring(0, 2), 16);
-      const g = parseInt(cleaned.substring(2, 4), 16);
-      const b = parseInt(cleaned.substring(4, 6), 16);
-      return { r, g, b };
-    };
-
-    try {
-      const rgb = hexToRgb(color);
-      const stripes = container.querySelectorAll(".wipe-stripe");
-      if (stripes && stripes.length >= 5) {
-        // Stripe 1: Light pastel variation
-        stripes[0].style.backgroundColor = `rgb(${Math.min(255, rgb.r + 55)}, ${Math.min(255, rgb.g + 55)}, ${Math.min(255, rgb.b + 55)})`;
-        // Stripe 2: Bright version
-        stripes[1].style.backgroundColor = `rgb(${Math.min(255, rgb.r + 20)}, ${Math.min(255, rgb.g + 20)}, ${Math.min(255, rgb.b + 20)})`;
-        // Stripe 3: Pure white accent (classic in Gakuen Idolmaster)
-        stripes[2].style.backgroundColor = "#ffffff";
-        // Stripe 4: Main theme color
-        stripes[3].style.backgroundColor = color;
-        // Stripe 5: Slightly darker version
-        stripes[4].style.backgroundColor = `rgb(${Math.max(0, rgb.r - 35)}, ${Math.max(0, rgb.g - 35)}, ${Math.max(0, rgb.b - 35)})`;
-      } else {
-        container.style.setProperty("--wipe-color", color);
-      }
-    } catch (e) {
-      container.style.setProperty("--wipe-color", color);
-    }
-
+    container.style.setProperty("--wipe-color", color);
     container.removeAttribute("hidden");
     container.classList.add("animating");
 
