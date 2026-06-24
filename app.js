@@ -219,7 +219,41 @@
   };
 
   const exactPresetIdols = new Set(["藤田琴音", "月村手毬", "花海咲季", "秦谷美铃"]);
-  const idolAliases = { "花海佑芽": "花海祐芽" };
+  const idolAliases = {
+    "花海佑芽": "花海祐芽",
+    "佑芽": "花海祐芽",
+    "祐芽": "花海祐芽",
+    "藤田 琴音": "藤田琴音",
+    "琴音": "藤田琴音",
+    "月村 手毬": "月村手毬",
+    "手毬": "月村手毬",
+    "花海 咲季": "花海咲季",
+    "咲季": "花海咲季",
+    "篠泽 广": "篠泽广",
+    "篠泽广": "篠泽广",
+    "篠澤廣": "篠泽广",
+    "广": "篠泽广",
+    "篠澤 廣": "篠泽广",
+    "十王 星南": "十王星南",
+    "星南": "十王星南",
+    "秦谷 美铃": "秦谷美铃",
+    "秦谷美铃": "秦谷美铃",
+    "秦谷美鈴": "秦谷美铃",
+    "美铃": "秦谷美铃",
+    "美鈴": "秦谷美铃",
+    "仓本 千奈": "仓本千奈",
+    "千奈": "仓本千奈",
+    "葛城 莉莉娅": "葛城莉莉娅",
+    "葛城莉莉雅": "葛城莉莉娅",
+    "莉莉娅": "葛城莉莉娅",
+    "莉莉雅": "葛城莉莉娅",
+    "紫云 清夏": "紫云清夏",
+    "清夏": "紫云清夏",
+    "有村 麻央": "有村麻央",
+    "麻央": "有村麻央",
+    "姬崎 莉波": "姬崎莉波",
+    "莉波": "姬崎莉波"
+  };
   const affinityIdolCodes = {
     "藤田琴音": "KOTONE",
     "月村手毬": "TEMARI",
@@ -2887,11 +2921,12 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       // 决定主题色
       let themeColor = "#7e57c2";
       const isProducer = slide.speaker === "制作人" || slide.speaker === "P" || (state.producer && slide.speaker === state.producer.name);
+      const speakerCanonical = canonicalIdolName(slide.speaker);
       
       if (isProducer) {
         themeColor = "#5c6bc0"; // 制作人专属蓝色
-      } else if (idols[slide.speaker]) {
-        themeColor = idols[slide.speaker].theme;
+      } else if (idols[speakerCanonical]) {
+        themeColor = idols[speakerCanonical].theme;
       }
       nameplateEl.style.setProperty("--speaker-theme-color", themeColor);
       
@@ -2900,8 +2935,8 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         let standeeSrc = "";
         if (isProducer) {
           standeeSrc = "./assets/novel-standees/producer.png";
-        } else if (idols[slide.speaker] && idols[slide.speaker].background) {
-          const baseName = idols[slide.speaker].background.split("/").pop();
+        } else if (idols[speakerCanonical] && idols[speakerCanonical].background) {
+          const baseName = idols[speakerCanonical].background.split("/").pop();
           standeeSrc = `./assets/novel-standees/${baseName}`;
         }
         
