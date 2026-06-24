@@ -1021,9 +1021,10 @@
       return;
     }
 
+    state.pendingActionContext = { action, attribute, actionContext };
+
     if (action === "outing" || action === "companion") {
       state.choiceStep = 1;
-      state.pendingActionContext = { action, attribute, actionContext };
       
       // 外出是最高10，交流是最高20
       const baseRewards = action === "outing" ? [10, 8, 6, 4] : [20, 15, 10, 5];
@@ -1125,7 +1126,7 @@
     state.lastStory = story;
     state.lastPrompt = prompt;
     state.lastDebug = buildDebugText(actionName, delta, randomEvent, actionContext);
-    state.log.unshift({ day: state.day, round: state.round, phase: getPhase(), action: actionName, result: resultSummary });
+    state.log.unshift({ day: state.day, round: state.round, phase: getPhase(), action: actionName, result: resultSummary, rawAction: action, rawAttribute: attribute });
     state.log = state.log.slice(0, 24);
 
     advanceRound();
@@ -2781,8 +2782,8 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
 
     const context = state.pendingActionContext || (state.log && state.log[0]);
     if (context) {
-      const action = context.action;
-      const attr = context.attribute;
+      const action = context.rawAction || context.action;
+      const attr = context.rawAttribute || context.attribute;
       
       if (action === "lesson") {
         return "./assets/scenes/Class.png";
