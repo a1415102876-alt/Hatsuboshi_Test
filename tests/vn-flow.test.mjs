@@ -105,3 +105,40 @@ test("malformed choice fallback clears pending generation state", () => {
   assert.match(body, /pendingAiRequestId\s*=\s*""/);
   assert.match(body, /state\.choiceStep\s*=\s*0/);
 });
+
+test("choice parser accepts story and option tags without an end marker", () => {
+  const extractChoicePayload = vm.runInNewContext(`(${readFunction("extractChoicePayload")})`, {
+    cleanReplyText: (value) => String(value || "").replace(/<[^>]+>/g, "").trim()
+  });
+  const source = `【初星正文开始】
+<story>
+<narration>星南问制作人。</narration>
+<dialogue char="十王星南">“我缺少了什么？”</dialogue>
+</story>
+<option1>“先休息一下吧。”</option1>
+<option2>“您已经足够完美了。”</option2>
+<option3>“您缺的是允许自己不完美。”</option3>
+<option4>“您缺少的是让自己笨拙的勇气。”</option4>`;
+
+  const payload = extractChoicePayload(source);
+
+  assert.equal(payload.options.length, 4);
+  assert.equal(payload.options[2], "“您缺的是允许自己不完美。”");
+  assert.match(payload.story, /星南问制作人/);
+});
+
+test("choice parser recovers options when custom tags are stripped into plain text", () => {
+  const extractChoicePayload = vm.runInNewContext(`(${readFunction("extractChoicePayload")})`, {
+    cleanReplyText: (value) => String(value || "").replace(/<[^>]+>/g, "").trim()
+  });
+  const source = `【初星正文开始】
+星南问制作人：“我缺少了什么？”
+“先休息一下吧。”“您已经足够完美了。”“您缺的是允许自己不完美。”“您缺少的是让自己笨拙的勇气。”`;
+
+  const payload = extractChoicePayload(source);
+
+  assert.equal(payload.options.length, 4);
+  assert.equal(payload.options[0], "“先休息一下吧。”");
+  assert.equal(payload.options[3], "“您缺少的是让自己笨拙的勇气。”");
+  assert.match(payload.story, /我缺少了什么/);
+});

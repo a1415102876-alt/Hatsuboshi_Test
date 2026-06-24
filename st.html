@@ -14,6 +14,12 @@
 
   window.isHatsuLoaderST = true;
   window.hatsuFloorsHidden = true;
+  document.documentElement.style.setProperty('--hatsu-viewport-height', `${window.visualViewport?.height || window.innerHeight}px`);
+  function updateHatsuViewportHeight() {
+    document.documentElement.style.setProperty('--hatsu-viewport-height', `${window.visualViewport?.height || window.innerHeight}px`);
+  }
+  window.visualViewport?.addEventListener('resize', updateHatsuViewportHeight);
+  window.addEventListener('resize', updateHatsuViewportHeight);
   
   const BASE = 'https://hatsuboshi.vercel.app/';
 
@@ -109,7 +115,9 @@
         display: flex !important;
         flex-direction: column !important;
         width: 100vw !important;
-        height: 100vh !important;
+        height: var(--hatsu-viewport-height, 100dvh) !important;
+        max-height: var(--hatsu-viewport-height, 100dvh) !important;
+        overflow: hidden !important;
       }
 
       #hatsu-floating-controls {
@@ -153,7 +161,10 @@
 
       #hatsu-fullscreen-content {
         flex: 1 1 auto !important;
+        min-height: 0 !important;
         overflow: auto !important;
+        overscroll-behavior: contain !important;
+        -webkit-overflow-scrolling: touch !important;
         background:
           radial-gradient(circle at 18% 10%, rgba(255, 79, 154, 0.18), transparent 28%),
           radial-gradient(circle at 84% 6%, rgba(38, 169, 244, 0.2), transparent 30%),
@@ -161,9 +172,32 @@
       }
 
       #hatsu-st-page {
-        width: 1180px !important;
-        min-height: 100vh !important;
+        width: min(100%, 1180px) !important;
+        min-height: var(--hatsu-viewport-height, 100dvh) !important;
         margin: 0 auto !important;
+      }
+
+      @media (max-width: 560px) {
+        #hatsu-floating-controls {
+          top: max(8px, env(safe-area-inset-top)) !important;
+          right: 8px !important;
+          gap: 6px !important;
+          transform: scale(0.88) !important;
+          transform-origin: top right !important;
+        }
+
+        #hatsu-floating-controls button {
+          min-height: 34px !important;
+          padding: 7px 10px !important;
+          font-size: 12px !important;
+          border-radius: 999px !important;
+        }
+
+        #hatsu-st-page {
+          width: 100% !important;
+          max-width: 100vw !important;
+          margin: 0 !important;
+        }
       }
 
       /* 隐式生成：处于初星学园聊天时，隐藏除第一楼（开场白）外的所有聊天气泡和输入状态 */

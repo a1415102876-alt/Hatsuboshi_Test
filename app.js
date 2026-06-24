@@ -209,7 +209,7 @@
     "花海咲季": [100, 100, 105, 16.5, 16.5, 20.5, 1280, 1280, 1360, 1930, 1930, 2030],
     "秦谷美铃": [95, 125, 140, 27, 13, 20, 1480, 1080, 1390, 2180, 1680, 2050],
     "篠泽广": [70, 55, 120, 22, 8, 26, 1180, 820, 1450, 1880, 1420, 2150],
-    "十王星南": [160, 160, 160, 12, 12, 12, 1600, 1600, 1600, 2300, 2300, 2300],
+    "十王星南": [175, 125, 140, 15, 8, 20.5, 1280, 1050, 1500, 1930, 1650, 2200],
     "花海祐芽": [120, 115, 110, 24, 24, 20, 1500, 1480, 1380, 2200, 2180, 2080],
     "仓本千奈": [75, 115, 125, 10, 24, 20.5, 1050, 1520, 1450, 1650, 2220, 2150],
     "葛城莉莉娅": [80, 100, 115, 18, 20, 18, 1300, 1380, 1450, 2000, 2080, 2150],
@@ -3346,6 +3346,64 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       .trim();
   }
 
+  function extractChoicePayload(value) {
+    let content = String(value || "")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&amp;/g, "&")
+      .replace(/\u200b/g, "");
+
+    const startMatches = [...content.matchAll(/[【\[]\s*初星正文开始\s*[】\]]/g)];
+    if (startMatches.length > 0) {
+      const lastStartMatch = startMatches[startMatches.length - 1];
+      content = content.slice(lastStartMatch.index + lastStartMatch[0].length);
+      content = content.replace(/[【\[]\s*初星正文结束\s*[】\]][\s\S]*$/u, "");
+    } else {
+      const mainMatches = [...content.matchAll(/<maintext\b[^>]*>([\s\S]*)/gi)];
+      if (mainMatches.length > 0) {
+        content = mainMatches[mainMatches.length - 1][1].replace(/<\/maintext>[\s\S]*$/gi, "");
+      }
+    }
+
+    const extractTaggedOption = (num) => {
+      const regexes = [
+        new RegExp(`<option_?${num}>([\\s\\S]*?)<\\/option_?${num}>`, "i"),
+        new RegExp(`<option\\s+${num}>([\\s\\S]*?)<\\/option\\s+${num}>`, "i")
+      ];
+      for (const regex of regexes) {
+        const match = content.match(regex);
+        if (match?.[1]?.trim()) return match[1].trim();
+      }
+      return "";
+    };
+
+    let options = [1, 2, 3, 4].map(extractTaggedOption);
+    let story = content.match(/<story>([\s\S]*?)<\/story>/i)?.[1]?.trim() || "";
+
+    if (options.every(Boolean) && !story) {
+      const firstOptIndex = content.search(/<option/i);
+      if (firstOptIndex !== -1) story = cleanReplyText(content.slice(0, firstOptIndex));
+    }
+
+    if (!options.every(Boolean)) {
+      const quoteRegex = new RegExp("“[^”]{2,160}”|「[^」]{2,160}」|\"[^\"]{2,160}\"", "g");
+      const quoteMatches = [...content.matchAll(quoteRegex)];
+      if (quoteMatches.length >= 4) {
+        const last4 = quoteMatches.slice(-4);
+        options = last4.map((match) => match[0].trim());
+        const firstChoiceIndex = last4[0].index ?? -1;
+        if (!story && firstChoiceIndex >= 0) {
+          story = cleanReplyText(content.slice(0, firstChoiceIndex));
+        }
+      }
+    }
+
+    return {
+      story: cleanReplyText(story),
+      options: options.map((option) => cleanReplyText(option)).filter(Boolean)
+    };
+  }
+
   function formatStoryText(text) {
     if (!text) return "";
     
@@ -3562,53 +3620,20 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     // 交互式选项第一阶段：提取剧情和选项标签
     // ==========================================
     if (state.choiceStep === 1) {
-      let content = "";
-      const startMatches = [...source.matchAll(/[【\[]\s*初星正文开始\s*[】\]]/g)];
-      if (startMatches.length > 0) {
-        const lastStartMatch = startMatches[startMatches.length - 1];
-        const startIndex = lastStartMatch.index + lastStartMatch[0].length;
-        content = source.slice(startIndex);
-        content = content.replace(/[【\[]\s*初星正文结束\s*[】\]][\s\S]*$/u, "");
-      } else {
-        const mainMatches = [...source.matchAll(/<maintext\b[^>]*>([\s\S]*)/gi)];
-        if (mainMatches.length > 0) {
-          const lastMainMatch = mainMatches[mainMatches.length - 1];
-          content = lastMainMatch[1].replace(/<\/maintext>[\s\S]*$/gi, "");
-        } else {
-          content = source;
-        }
-      }
-
-      // 容错辅助：提取各形式选项标签
-      const extractOption = (num) => {
-        const regexes = [
-          new RegExp(`<option_?${num}>([\\s\\S]*?)<\\/option_?${num}>`, 'i'),
-          new RegExp(`<option\\s+${num}>([\\s\\S]*?)<\\/option\\s+${num}>`, 'i')
-        ];
-        for (const regex of regexes) {
-          const match = content.match(regex);
-          if (match?.[1]?.trim()) return match[1].trim();
-        }
-        return null;
-      };
-
-      let opt1 = extractOption(1);
-      let opt2 = extractOption(2);
-      let opt3 = extractOption(3);
-      let opt4 = extractOption(4);
-      let story = content.match(/<story>([\s\S]*?)<\/story>/i)?.[1]?.trim();
-
-      // 如果选项存在但故事标签缺失，以第一个选项前的所有内容作为故事
-      if (opt1 && opt2 && opt3 && opt4 && !story) {
-        const firstOptIndex = content.search(/<option/i);
-        if (firstOptIndex !== -1) {
-          story = cleanReplyText(content.slice(0, firstOptIndex));
-        }
-      }
+      let choiceContent = source;
+      let choicePayload = extractChoicePayload(source);
+      let [opt1, opt2, opt3, opt4] = choicePayload.options;
+      let story = choicePayload.story;
 
       // 进一步降级：如果仍然无法解析，尝试智能按行提取段尾双引号选项/编号选项
       if (!story || !opt1 || !opt2 || !opt3 || !opt4) {
-        const lines = content.split('\n').map(l => l.trim()).filter(Boolean);
+        const startMatches = [...choiceContent.matchAll(/[【\[]\s*初星正文开始\s*[】\]]/g)];
+        if (startMatches.length > 0) {
+          const lastStartMatch = startMatches[startMatches.length - 1];
+          choiceContent = choiceContent.slice(lastStartMatch.index + lastStartMatch[0].length);
+          choiceContent = choiceContent.replace(/[【\[]\s*初星正文结束\s*[】\]][\s\S]*$/u, "");
+        }
+        const lines = choiceContent.split('\n').map(l => l.trim()).filter(Boolean);
         if (lines.length >= 5) {
           const last4 = lines.slice(-4);
           const isQuotedOrNumbered = last4.every(line => {
@@ -3696,7 +3721,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         // 如果是流式传输，在标签完备前先显示部分纯文本
         const storyEl = document.getElementById("eventStory");
         if (storyEl) {
-          storyEl.innerHTML = formatStoryText(cleanReplyText(content));
+          storyEl.innerHTML = formatStoryText(cleanReplyText(choiceContent));
         }
         setEventActionsEnabled(false, true);
         sendAiReplyAck(requestId, true, false, false);
@@ -3705,7 +3730,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
 
       // 完结了但 XML 格式缺失，降级至普通单阶段结算
       console.warn("[Hatsu Choices] XML parsing failed. Falling back to default settlement.");
-      const reply = cleanReplyText(content);
+      const reply = cleanReplyText(choiceContent);
       fallbackChoiceSettlement(reply);
       sendAiReplyAck(requestId, true, false);
       return;

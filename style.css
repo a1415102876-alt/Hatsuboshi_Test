@@ -1822,6 +1822,62 @@ p {
 }
 
 @media (max-width: 460px) {
+  html,
+  body {
+    width: 100%;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  .produce-app {
+    width: 100%;
+    min-height: 100dvh;
+  }
+
+  .select-screen {
+    display: block;
+    min-height: 100dvh;
+    padding: 10px;
+    overflow-y: auto;
+  }
+
+  .select-visual {
+    min-height: auto;
+    margin-bottom: 10px;
+    padding: 18px;
+    border-radius: 14px;
+  }
+
+  .select-visual::before,
+  .select-visual::after,
+  .select-rules,
+  #selectDesc {
+    display: none;
+  }
+
+  .select-visual h1 {
+    margin: 0;
+    font-size: 28px;
+    line-height: 1.1;
+  }
+
+  .select-panel {
+    max-height: none;
+    border-radius: 14px;
+    padding: 10px;
+  }
+
+  .game-stage {
+    width: 100%;
+    min-height: 100dvh;
+    min-height: var(--hatsu-viewport-height, 100dvh);
+    max-width: none;
+    margin: 0;
+    border-radius: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
   .top-hud {
     gap: 8px;
     padding-inline: 10px;
@@ -1844,6 +1900,8 @@ p {
     left: 18px;
     right: 54px;
     font-size: 13px;
+    max-height: 96px;
+    overflow: hidden;
   }
 
   .idol-card-name {
@@ -1854,6 +1912,7 @@ p {
   .score-band {
     grid-template-columns: 58px 1fr 64px;
     padding-inline: 8px;
+    margin-top: -22px;
   }
 
   .meter-arc::after {
@@ -1863,10 +1922,29 @@ p {
 
   .action-zone {
     padding-inline: 10px;
+    padding-bottom: max(86px, calc(env(safe-area-inset-bottom) + 76px));
+  }
+
+  .action-buttons {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
   }
 
   .action-button {
-    min-height: 112px;
+    min-height: 92px;
+    border-width: 3px;
+    border-radius: 12px;
+    padding: 8px 6px;
+  }
+
+  .action-button svg {
+    width: 34px;
+    height: 34px;
+    margin: 8px auto 12px;
+  }
+
+  .action-button span {
+    font-size: 15px;
   }
 
   .bottom-dock {
@@ -1882,6 +1960,37 @@ p {
   .drawer-tabs,
   .modal-tabs {
     grid-template-columns: 1fr;
+  }
+
+  .event-overlay,
+  .modal-backdrop,
+  .drawer-backdrop {
+    padding: 8px;
+    align-items: stretch;
+  }
+
+  .event-panel,
+  .drawer-panel,
+  .modal-panel,
+  .interaction-panel,
+  .outing-panel,
+  .ai-prompt-panel {
+    width: 100%;
+    max-height: calc(var(--hatsu-viewport-height, 100dvh) - 16px);
+    border-radius: 16px;
+    padding: 14px;
+  }
+
+  .event-head h2 {
+    font-size: 20px;
+  }
+
+  .event-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .event-button {
+    min-height: 44px;
   }
 }
 
@@ -2582,6 +2691,84 @@ p {
   background: #fff;
   border-color: var(--pink);
   box-shadow: 0 6px 20px rgba(255, 79, 154, 0.3);
+}
+
+@media (max-width: 460px) {
+  .vn-container {
+    min-height: var(--hatsu-viewport-height, 100dvh);
+  }
+
+  .vn-standee {
+    height: 118%;
+    transform: translateY(34%) scale(0.92);
+  }
+
+  .vn-standee.active {
+    transform: translateY(31%) scale(0.95);
+  }
+
+  .vn-dialogue-box {
+    width: calc(100% - 18px);
+    min-height: 132px;
+    max-height: min(44svh, 280px);
+    margin-bottom: max(10px, env(safe-area-inset-bottom));
+    padding: 18px 16px 12px;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .vn-nameplate {
+    top: -13px;
+    left: 16px;
+    padding: 4px 14px;
+    font-size: 13px;
+  }
+
+  .vn-text {
+    max-height: 184px;
+    overflow-y: auto;
+    font-size: 15px;
+    line-height: 1.55;
+    letter-spacing: 0;
+    margin-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .vn-controls {
+    gap: 4px;
+    justify-content: space-between;
+    overflow-x: auto;
+    padding-top: 6px;
+  }
+
+  .vn-btn {
+    flex: 0 0 auto;
+    padding: 5px 7px;
+    font-size: 10px;
+  }
+
+  .vn-choices-overlay {
+    justify-content: flex-end;
+    padding: 12px 10px max(12px, env(safe-area-inset-bottom));
+  }
+
+  .vn-choices-title {
+    margin-bottom: 10px;
+    font-size: 16px;
+  }
+
+  .vn-choices-container {
+    width: 100%;
+    gap: 8px;
+  }
+
+  .vn-choice-btn {
+    min-height: 46px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.45;
+  }
 }
 
 /* Dark mode dialogue box fallback for high-contrast */

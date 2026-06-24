@@ -16,3 +16,10 @@ test("st.html in-page bridge listens to regenerated or swiped final messages", (
   assert.match(stSource, /eventTypes\.MESSAGE_SWIPED/);
   assert.match(stSource, /sendLatestAiReplyToFrame\(messageId, true\)/);
 });
+
+test("st.html loader uses a responsive mobile viewport instead of a fixed desktop canvas", () => {
+  assert.doesNotMatch(stSource, /#hatsu-st-page\s*\{[\s\S]*?width:\s*1180px\s*!important/);
+  assert.match(stSource, /--hatsu-viewport-height/);
+  assert.match(stSource, /visualViewport/);
+  assert.match(stSource, /@media\s*\(max-width:\s*560px\)/);
+});

@@ -50,6 +50,11 @@ const expected = {
   "仓本千奈": [75, 115, 125, 10, 24, 20.5]
 };
 
+test("十王星南 uses her in-game stat profile and matching final live limits", () => {
+  assert.deepEqual(Array.from(idolPresets["十王星南"].slice(0, 6)), [175, 125, 140, 15, 8, 20.5]);
+  assert.deepEqual(Array.from(idolPresets["十王星南"].slice(6, 12)), [1280, 1050, 1500, 1930, 1650, 2200]);
+});
+
 for (const [name, suppliedStats] of Object.entries(expected)) {
   test(`${name} has a complete playable configuration`, () => {
     assert.equal(typeof idols[name]?.core, "string");
