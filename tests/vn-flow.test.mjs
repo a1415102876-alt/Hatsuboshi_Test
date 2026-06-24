@@ -100,6 +100,65 @@ test("ended VN dialogue clicks ignore control buttons", () => {
   assert.match(body, /target\.closest\("\.vn-btn"\)/);
 });
 
+test("choice UI is gated by explicit event mode and action whitelist", () => {
+  const context = {
+    state: {
+      eventMode: "none",
+      choiceStep: 1,
+      pendingActionContext: { action: "lesson" }
+    }
+  };
+  vm.runInNewContext(
+    `${readFunction("isChoicePromptAction")}\n${readFunction("isChoicePromptMode")}\nthis.isChoicePromptMode = isChoicePromptMode;`,
+    context
+  );
+
+  assert.equal(context.isChoicePromptMode(), false);
+
+  context.state.eventMode = "choice_prompt";
+  assert.equal(context.isChoicePromptMode(), false);
+
+  context.state.pendingActionContext = { action: "outing" };
+  assert.equal(context.isChoicePromptMode(), true);
+
+  context.state.pendingActionContext = { action: "companion" };
+  assert.equal(context.isChoicePromptMode(), true);
+
+  context.state.pendingActionContext = { action: "bond" };
+  assert.equal(context.isChoicePromptMode(), true);
+});
+
+test("choice resolution mode is separate from choice prompt parsing", () => {
+  const context = {
+    state: {
+      eventMode: "choice_resolution",
+      choiceStep: 1,
+      pendingActionContext: { action: "outing" }
+    }
+  };
+  vm.runInNewContext(
+    `${readFunction("isChoicePromptAction")}\n${readFunction("isChoicePromptMode")}\n${readFunction("isChoiceResolutionMode")}\nthis.isChoicePromptMode = isChoicePromptMode;\nthis.isChoiceResolutionMode = isChoiceResolutionMode;`,
+    context
+  );
+
+  assert.equal(context.isChoicePromptMode(), false);
+  assert.equal(context.isChoiceResolutionMode(), true);
+});
+
+test("AI reply routing uses explicit event modes instead of raw choiceStep gates", () => {
+  const start = source.indexOf("function applyAiReply(");
+  const end = source.indexOf("function sendAiReplyAck", start);
+  assert.notEqual(start, -1, "applyAiReply must exist");
+  assert.notEqual(end, -1, "sendAiReplyAck must follow applyAiReply");
+  const body = source.slice(start, end);
+
+  assert.match(body, /isChoicePromptMode\(\)/);
+  assert.match(body, /isChoiceResolutionMode\(\)/);
+  assert.match(body, /state\.eventMode\s*!==\s*"choice_prompt"/);
+  assert.doesNotMatch(body, /if\s*\(\s*state\.choiceStep\s*===\s*1\s*\|\|/);
+  assert.doesNotMatch(body, /if\s*\(\s*state\.choiceStep\s*===\s*2\s*\)/);
+});
+
 test("opening a non-choice event clears stale choice UI", () => {
   const elements = new Map();
   const makeElement = (id) => {
@@ -143,7 +202,7 @@ test("opening a non-choice event clears stale choice UI", () => {
     initVisualNovelPlayer() {}
   };
   vm.runInNewContext(
-    `${readFunction("openEventOverlay")}\nthis.openEventOverlay = openEventOverlay;`,
+    `${readFunction("isChoiceResolutionMode")}\n${readFunction("openEventOverlay")}\nthis.openEventOverlay = openEventOverlay;`,
     context
   );
 
@@ -189,7 +248,7 @@ test("ended non-choice VN dialogue hides stale choice overlay", () => {
     closeEventOverlay() {}
   };
   vm.runInNewContext(
-    `${readFunction("handleVnSlidesEnd")}\nthis.handleVnSlidesEnd = handleVnSlidesEnd;`,
+    `${readFunction("isChoicePromptAction")}\n${readFunction("isChoicePromptMode")}\n${readFunction("handleVnSlidesEnd")}\nthis.handleVnSlidesEnd = handleVnSlidesEnd;`,
     context
   );
 

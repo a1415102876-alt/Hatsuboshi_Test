@@ -549,6 +549,7 @@
     lastDebug: "尚未结算行动。",
     pendingAiRequestId: "",
     lastRequestId: "",
+    eventMode: "none",
     choiceStep: 0,
     pendingChoiceRewards: [],
     pendingActionContext: null,
@@ -923,6 +924,7 @@
       settings: "",
       ...(state.producer || {})
     };
+    state.eventMode = state.eventMode || "none";
     state.choiceStep = Number.isInteger(state.choiceStep) ? state.choiceStep : 0;
     state.pendingChoiceRewards = Array.isArray(state.pendingChoiceRewards) ? state.pendingChoiceRewards : [];
     state.pendingActionContext = state.pendingActionContext || null;
@@ -1132,6 +1134,18 @@
     return attribute ? `${attribute}${sp}${names[action]}` : names[action];
   }
 
+  function isChoicePromptAction(action) {
+    return action === "outing" || action === "companion" || action === "bond";
+  }
+
+  function isChoicePromptMode() {
+    return state.eventMode === "choice_prompt" && isChoicePromptAction(state.pendingActionContext?.action);
+  }
+
+  function isChoiceResolutionMode() {
+    return state.eventMode === "choice_resolution";
+  }
+
   function currentChoiceActionTitle() {
     if (state.pendingActionContext?.action === "bond") {
       const threshold = state.pendingActionContext.threshold;
@@ -1201,6 +1215,7 @@
     state.pendingActionContext = { action, attribute, actionContext };
 
     if (action === "outing" || action === "companion") {
+      state.eventMode = "choice_prompt";
       state.choiceStep = 1;
       
       // 外出是最高10，交流是最高20
@@ -1246,6 +1261,13 @@
       showToast("开始发起活动", `正在等待 AI 生成${actionName}剧情与互动选项...`, "info");
       return;
     }
+
+    state.eventMode = "none";
+    state.choiceStep = 0;
+    state.pendingChoiceRewards = [];
+    state.pendingOptionTexts = [];
+    state.selectedChoiceText = "";
+    state.selectedChoiceRating = "";
 
     const delta = {};
     let randomEvent = null;
@@ -1915,6 +1937,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     const requestId = createRequestId();
     state.activeStoryNode = { type: "affinity", threshold, ready: false };
     if (state.idol === "月村手毬" && temariBondRoutes[threshold]) {
+      state.eventMode = "choice_prompt";
       state.choiceStep = 1;
       state.bondChoiceRound = 1;
       state.bondFirstChoiceText = "";
@@ -1924,9 +1947,13 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       state.selectedChoiceText = "";
       state.selectedChoiceRating = "";
     } else {
+      state.eventMode = "none";
       state.choiceStep = 0;
       state.bondChoiceRound = 0;
       state.bondFirstChoiceText = "";
+      state.pendingOptionTexts = [];
+      state.selectedChoiceText = "";
+      state.selectedChoiceRating = "";
     }
     state.lastPrompt = prompt;
     state.lastStory = `好感度 ${threshold}：${node.title} 正在生成。`;
@@ -2935,13 +2962,13 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       setElementHidden("eventChoices", true);
     }
     
-    const loadText = state.choiceStep === 2
+    const loadText = isChoiceResolutionMode()
       ? "正在重新生成偶像的反应..."
       : "正在重新生成剧情...";
 
     const storyEl = document.getElementById("eventStory");
     if (storyEl) {
-      if (state.choiceStep === 2) {
+      if (isChoiceResolutionMode()) {
         const intro = state.lastStory || "";
         const chosenLine = `▶ 制作人的选择：${state.selectedChoiceText || ""} (${state.selectedChoiceRating || ""})`;
         storyEl.innerHTML = `${formatStoryText(intro + "\n\n" + chosenLine)}<br><br><span id="eventReactionLoading" style="opacity:0.6;">(正在重新生成偶像的反应...)</span>`;
@@ -3021,7 +3048,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       } else {
         // 解析流式生成/已完成的剧本并启动 VN 对话播放
         const slides = parseNovelSlides(story);
-        const isResume = (state.choiceStep === 2 || !!state.selectedChoiceText);
+        const isResume = (isChoiceResolutionMode() || !!state.selectedChoiceText);
         initVisualNovelPlayer(slides, isResume);
       }
     };
@@ -3349,7 +3376,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   function handleVnSlidesEnd() {
     stopVnAuto();
     
-    const hasChoices = state.choiceStep === 1 && state.pendingOptionTexts && state.pendingOptionTexts.length === 4;
+    const hasChoices = isChoicePromptMode() && state.pendingOptionTexts && state.pendingOptionTexts.length === 4;
     
     if (hasChoices) {
       showVnChoicesOverlay();
@@ -3761,6 +3788,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
 
   function fallbackChoiceSettlement(reply) {
     pendingAiRequestId = "";
+    state.eventMode = "none";
     state.choiceStep = 0;
     if (!state.pendingActionContext) {
       saveState();
@@ -3798,6 +3826,9 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     state.log = state.log.slice(0, 24);
     
     state.lastStory = reply;
+    state.pendingOptionTexts = [];
+    state.selectedChoiceText = "";
+    state.selectedChoiceRating = "";
     if (state.log[0]) {
       state.log[0].aiReply = reply;
     }
@@ -3836,12 +3867,14 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       if (state.bondChoiceRound === 1) {
         state.bondFirstChoiceText = chosenOptionText;
         state.bondChoiceRound = 2;
+        state.eventMode = "choice_prompt";
         state.choiceStep = 1;
         state.pendingOptionTexts = [];
         state.lastPrompt = buildTemariBondPhase2Prompt(threshold, chosenOptionText);
         state.lastStory = `${state.lastStory}\n\n${chosenLine}`;
         state.lastDebug = `手毬羁绊事件：第一轮已选择“${chosenOptionText}”，等待第二轮选项。`;
       } else {
+        state.eventMode = "choice_resolution";
         state.choiceStep = 2;
         state.lastPrompt = buildTemariBondFinalPrompt(threshold, state.bondFirstChoiceText, chosenOptionText);
         state.lastDebug = `手毬羁绊事件：第二轮已选择“${chosenOptionText}”，等待最终收束。`;
@@ -3900,6 +3933,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     // 4. 更新选择记录状态并发起第二阶段反应生成
     state.selectedChoiceText = chosenOptionText;
     state.selectedChoiceRating = ratingName;
+    state.eventMode = "choice_resolution";
     state.choiceStep = 2;
     const requestId = createRequestId();
     pendingAiRequestId = requestId;
@@ -3951,7 +3985,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       .replace(/\u200b/g, "");
 
     const choiceFallbackPayload = (() => {
-      if (state.choiceStep === 1) return null;
+      if (state.eventMode !== "choice_prompt" || isChoicePromptMode()) return null;
       const pendingAction = state.pendingActionContext?.action;
       if (!["outing", "companion", "bond"].includes(pendingAction)) return null;
       const payload = extractChoicePayload(source);
@@ -3961,7 +3995,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     // ==========================================
     // 交互式选项第一阶段：提取剧情和选项标签
     // ==========================================
-    if (state.choiceStep === 1 || choiceFallbackPayload) {
+    if (isChoicePromptMode() || choiceFallbackPayload) {
       let choiceContent = source;
       let choicePayload = choiceFallbackPayload || extractChoicePayload(source);
       let [opt1, opt2, opt3, opt4] = choicePayload.options;
@@ -4020,6 +4054,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         }
 
         pendingAiRequestId = "";
+        state.eventMode = "choice_prompt";
         state.choiceStep = 1;
         if (state.pendingActionContext?.action === "bond" && state.bondChoiceRound === 2) {
           state.lastStory = `${state.lastStory}\n\n${story}`;
@@ -4084,7 +4119,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     // ==========================================
     // 交互式选项第二阶段：AI 反应与收尾剧情
     // ==========================================
-    if (state.choiceStep === 2) {
+    if (isChoiceResolutionMode()) {
       const reply = extractReplyText([source]);
       
       const storyEl = document.getElementById("eventStory");
@@ -4110,7 +4145,11 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       if (state.log[0]) {
         state.log[0].aiReply = reply;
       }
+      state.eventMode = "none";
       state.choiceStep = 0;
+      state.pendingOptionTexts = [];
+      state.selectedChoiceText = "";
+      state.selectedChoiceRating = "";
       saveState();
       render();
 
@@ -4150,6 +4189,11 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       }
       aiReplyRetryCount = 0;
       pendingAiRequestId = "";
+      state.eventMode = "none";
+      state.choiceStep = 0;
+      state.pendingOptionTexts = [];
+      state.selectedChoiceText = "";
+      state.selectedChoiceRating = "";
       const errorText = "生成剧情失败，未获取到酒馆角色的有效回复。请点击右侧“编辑提示词重发”重试。";
       state.lastStory = errorText;
       if (state.activeStoryNode) state.activeStoryNode.ready = true;
@@ -4173,6 +4217,11 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     }
     aiReplyRetryCount = 0;
     pendingAiRequestId = "";
+    state.eventMode = "none";
+    state.choiceStep = 0;
+    state.pendingOptionTexts = [];
+    state.selectedChoiceText = "";
+    state.selectedChoiceRating = "";
     state.lastStory = reply;
     if (state.activeStoryNode) state.activeStoryNode.ready = true;
     if (state.log[0]) {
