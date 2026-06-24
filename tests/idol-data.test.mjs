@@ -64,9 +64,9 @@ for (const [name, suppliedStats] of Object.entries(expected)) {
 
 test("every playable idol has a stable background filename", () => {
   const backgrounds = {
-    "藤田琴音": "./assets/idols/fujita-kotone.jpeg",
-    "月村手毬": "./assets/idols/tsukimura-temari.jpeg",
-    "花海咲季": "./assets/idols/hanami-saki.jpeg",
+    "藤田琴音": "./assets/idols/fujita-kotone.png",
+    "月村手毬": "./assets/idols/tsukimura-temari.png",
+    "花海咲季": "./assets/idols/hanami-saki.png",
     "花海祐芽": "./assets/idols/hanami-ume.png",
     "篠泽广": "./assets/idols/shinosawa-hiro.png",
     "十王星南": "./assets/idols/juo-sena.png",
@@ -80,10 +80,17 @@ test("every playable idol has a stable background filename", () => {
   for (const [name, background] of Object.entries(backgrounds)) {
     assert.equal(idols[name].background, background);
   }
-  for (const background of Object.values(backgrounds).filter((path) => ["fujita-kotone.jpeg", "tsukimura-temari.jpeg", "hanami-saki.jpeg", "hataya-misuzu.png"].some((file) => path.endsWith(file)))) {
+  for (const background of Object.values(backgrounds).filter((path) => ["fujita-kotone.png", "tsukimura-temari.png", "hanami-saki.png", "hataya-misuzu.png"].some((file) => path.endsWith(file)))) {
     assert.equal(existsSync(new URL(`../${background.replace("./", "")}`, import.meta.url)), true);
   }
   assert.match(source, /function applyIdolBackground\(/);
+});
+
+test("configured BGM files exist", () => {
+  const bgmConfig = readObjectLiteral("BGM_CONFIG");
+  for (const path of Object.values(bgmConfig)) {
+    assert.equal(existsSync(new URL(`../${path.replace("./", "")}`, import.meta.url)), true, `${path} must exist`);
+  }
 });
 
 test("every playable idol has a stable avatar filename", () => {

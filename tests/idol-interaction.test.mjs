@@ -51,6 +51,7 @@ const context = {
   getPhase: () => "First Live 前期",
   getAffinityStageLine: () => "好感度阶段标签：AFF_KOTONE_20",
   roundLabel: () => "第 2 / 3 轮行动",
+  buildProducerPromptSection: () => "",
   outputContract: (text) => `OUTPUT:${text}`
 };
 

@@ -290,6 +290,9 @@
             }
           }
         }
+        if (data.type === 'aiReplyAck') {
+          handleReplyAck(data);
+        }
         if (data.type === 'saveState') {
           saveChatState(data.state);
         }
@@ -521,6 +524,11 @@
             sendLatestAiReplyToFrame(messageId, true);
           });
         }
+        if (eventTypes.MESSAGE_SWIPED) {
+          eventSource.on(eventTypes.MESSAGE_SWIPED, (messageId) => {
+            sendLatestAiReplyToFrame(messageId, true);
+          });
+        }
       } catch (error) {
         console.warn('[初星直接桥接] 无法绑定角色回复监听。', error);
       }
@@ -571,8 +579,28 @@
       }
     }
 
+    function resolveReplyAck(data, activeRequestId) {
+      if (!data?.requestId || data.requestId !== activeRequestId) return 'ignore';
+      if (data.accepted) {
+        return data.isFinal !== false ? 'accept' : 'ignore';
+      }
+      return data.retry ? 'retry' : 'cancel';
+    }
+
+    function handleReplyAck(data) {
+      const resolution = resolveReplyAck(data, pendingRequestId);
+      if (resolution === 'ignore') return;
+      if (resolution === 'accept' || resolution === 'cancel') {
+        clearPendingReplyRequest();
+        return;
+      }
+      pendingCandidateInFlight = false;
+      scheduleReplyRetry(pendingCandidateMessageId);
+    }
+
     function scheduleReplyRetry(messageId, delay = 600) {
       if (!pendingRequestId) return;
+      if (!Number.isInteger(Number(messageId)) || Number(messageId) < 0) return;
       if (pendingReplyRetryTimer) window.clearTimeout(pendingReplyRetryTimer);
       pendingReplyRetryTimer = window.setTimeout(() => {
         pendingReplyRetryTimer = 0;

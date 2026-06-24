@@ -47,7 +47,9 @@ test("opening can be confirmed before its AI reply arrives", () => {
 });
 
 test("a skipped opening reply is ignored after its request is cleared", () => {
-  const shouldAcceptAiReply = vm.runInNewContext(`(${readFunction("shouldAcceptAiReply")})`);
+  const shouldAcceptAiReply = vm.runInNewContext(`(${readFunction("shouldAcceptAiReply")})`, {
+    state: { pendingAiRequestId: "" }
+  });
   assert.equal(shouldAcceptAiReply("opening-request", ""), false);
   assert.equal(shouldAcceptAiReply("current-request", "current-request"), true);
   assert.equal(shouldAcceptAiReply("old-request", "current-request"), false);

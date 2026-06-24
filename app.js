@@ -482,7 +482,7 @@
     select: "./assets/bgm/select.mp3",
     lobby: "./assets/bgm/lobby.mp3",
     lesson: "./assets/bgm/lesson.mp3",
-    outing: "./assets/bgm/outing.mp3",
+    outing: "./assets/bgm/out.mp3",
     talk: "./assets/bgm/talk.mp3",
     rest: "./assets/bgm/rest.mp3",
     live_prep: "./assets/bgm/live_prep.mp3"
@@ -1372,6 +1372,7 @@ ${optionsPrompt}
     return `[初星育成系统：互动分支结算与收尾]
 
 担当偶像：${state.idol}
+${getAffinityStageLine(state.idol, state.trust)}
 绑定角色卡：${state.boundCharacter?.name || "未绑定，按担当偶像写"}
 当前日程：第 ${state.day} 天，${roundLabel()}
 行动：${actionName}
@@ -2618,6 +2619,18 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     if (regenBtn) regenBtn.disabled = !enabled;
     const aiBtn = document.getElementById("eventAiBtn");
     if (aiBtn) aiBtn.disabled = !enabled;
+    setVnControlsEnabled(enabled);
+  }
+
+  function setVnControlsEnabled(enabled) {
+    ["vnBtnRegen", "vnBtnEdit", "vnBtnAuto", "vnBtnSkip"].forEach((id) => {
+      const button = document.getElementById(id);
+      if (button) button.disabled = !enabled;
+    });
+  }
+
+  function buildChoiceContinuationDisplayStory(intro, chosenLine, reply) {
+    return [chosenLine, reply].filter(Boolean).join("\n\n");
   }
 
   function triggerRegeneration() {
@@ -2689,14 +2702,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     }
 
     // 同步 VN 控制按钮的可点击状态
-    const regenBtn = document.getElementById("vnBtnRegen");
-    if (regenBtn) regenBtn.disabled = !!pendingAiRequestId;
-    const editBtn = document.getElementById("vnBtnEdit");
-    if (editBtn) editBtn.disabled = !!pendingAiRequestId;
-    const autoBtn = document.getElementById("vnBtnAuto");
-    if (autoBtn) autoBtn.disabled = !!pendingAiRequestId;
-    const skipBtn = document.getElementById("vnBtnSkip");
-    if (skipBtn) skipBtn.disabled = !!pendingAiRequestId;
+    setVnControlsEnabled(!pendingAiRequestId);
 
     const eventOverlay = document.getElementById("eventOverlay");
     const isAlreadyOpen = eventOverlay && !eventOverlay.hidden;
@@ -3061,7 +3067,10 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       const dialogueBox = document.getElementById("vnDialogueBox");
       if (dialogueBox) {
         dialogueBox.onclick = null;
-        dialogueBox.onclick = () => {
+        dialogueBox.onclick = (event) => {
+          if (event.target.closest(".vn-controls") || event.target.closest(".vn-btn")) {
+            return;
+          }
           const confirmBtn = document.getElementById("eventConfirmBtn");
           if (confirmBtn && !confirmBtn.disabled) {
             confirmBtn.click();
@@ -3696,9 +3705,9 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       
       const storyEl = document.getElementById("eventStory");
       const chosenLine = `<narration>▶ 制作人的选择：${state.selectedChoiceText || ""} (${state.selectedChoiceRating || ""})</narration>`;
+      const displayStory = buildChoiceContinuationDisplayStory(state.lastStory, chosenLine, reply);
       if (storyEl && reply) {
-        const intro = state.lastStory || "";
-        storyEl.innerHTML = formatStoryText(intro + "\n\n" + chosenLine + "\n\n" + reply);
+        storyEl.innerHTML = formatStoryText(displayStory);
       }
 
       if (!isFinal) {
@@ -3719,7 +3728,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       const actionName = state.pendingActionContext 
         ? actionLabel(state.pendingActionContext.action, state.pendingActionContext.attribute)
         : "外出/交流";
-      openEventOverlay(actionName, "已收到 SillyTavern 角色回复", state.lastStory);
+      openEventOverlay(actionName, "已收到 SillyTavern 角色回复", displayStory);
       sendAiReplyAck(requestId, true, false);
       return;
     }

@@ -103,12 +103,15 @@ test("affinity stage line uses the exact worldbook trigger format", () => {
 test("every AI prompt builder includes the affinity stage line", () => {
   const builders = [
     "buildPrompt",
+    "buildChoicePhase1Prompt",
+    "buildChoicePhase2Prompt",
     "buildOpeningPrompt",
     "buildLivePrompt",
     "buildAffinityPrompt",
     "buildFreeChatPrompt",
     "buildIdolInteractionPrompt",
-    "buildFirstLivePrompt"
+    "buildFirstLivePrePrompt",
+    "buildFirstLivePostPrompt"
   ];
 
   for (const [index, name] of builders.entries()) {
