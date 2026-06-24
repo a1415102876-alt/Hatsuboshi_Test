@@ -293,6 +293,8 @@
     { name: "拉面店", description: "高热量美食与饮食管理，尤其容易触发手毬的反应。" },
     { name: "琴音打工的快餐店", description: "打工、收入、家庭压力，以及努力被看见的地方。" }
   ];
+  const FINAL_LIVE_DAY = 22;
+  const REQUIRED_BOND_THRESHOLDS = [20, 40, 60, 80];
   const affinityThresholds = [20, 40, 60, 80, 100];
 
   function getAffinityStageThreshold(trust) {
@@ -320,7 +322,7 @@
     20: { title: "相互试探", theme: "围绕“为什么选择她、她为什么愿意接受你”推进早期信任。", timing: "好感度达到 20 后解锁。" },
     40: { title: "核心问题暴露", theme: "揭示该偶像最主要的矛盾与弱点，让数值育成和个人主线接上。", timing: "好感度达到 40 后解锁。" },
     60: { title: "关系转折", theme: "制作人与偶像的信任关系发生明确变化，角色开始把支持视为自己的力量。", timing: "好感度达到 60 后解锁。" },
-    80: { title: "舞台前夜", theme: "First Live 前夜的最后深谈，面对上台前的心结、恐惧和决心。", timing: "好感度达到 80，且进入第 18 天前才解锁。" },
+    80: { title: "路线后半转折", theme: "First Live 前的重要个人主线节点，回收旧关系、核心矛盾或上台前必须面对的课题。", timing: "好感度达到 80 后解锁，下一天进入羁绊事件日。" },
     100: { title: "First Live 之后", theme: "演出成功后的故事收尾，让角色关系完成 First Live 篇章的闭环。", timing: "First Live 成功且好感度达到 100 后解锁。" }
   };
   const affinityRouteSeeds = {
@@ -336,9 +338,9 @@
       0: "冷淡拒绝，但因为制作人知道她的失败与丑闻仍然选择她而动摇。",
       20: "她嘴硬地设下界限，实际在观察制作人是否能理解现在的自己。",
       40: "体力、体重、心理疲劳和组合崩坏暴露出来，她害怕再次失控。",
-      60: "饮食、录像和训练逐渐拆解问题，她第一次承认自己只有一点点相信制作人。",
-      80: "First Live 前夜，她必须承认努力过头也是脆弱，接受被严格支撑。",
-      100: "演出之后，她用别扭的方式承认自己已经不再是孤身一人。"
+      60: "首场 Live 失败：彩排用力过猛导致正式上场体力不足。制作人分析手毬实力受感情影响极大，上限很高、下限也很低；今后的目标不是压低输出，而是稳定发挥并充分利用她的上限。",
+      80: "电话依赖、美铃视角、SyngUp 重组提案、拒绝回到过去、下场 Live 赌约。手毬越来越依赖制作人，美铃担心她一个人不行并请求重组 SyngUp；制作人承认担心但拒绝简单回到旧组合，以下一场 Live 作为赌约，让美铃见证手毬的改变。",
+      100: "First Live 成功后：赌约兑现、美铃放手、关系修复、不能回到过去、只属于自己的制作人、成为偶像的根源、人工翅膀、陪我到最高峰。手毬与美铃互相道歉，承认无法回到过去的 SyngUp，但可以重新成为朋友；之后手毬向制作人说出自己成为偶像的根源，制作人确认选择的正是这个靠痛苦努力长出人工翅膀的手毬。"
     },
     "花海咲季": {
       0: "自信、好胜、完美姐姐登场，要求制作人证明自己了解她的烦恼。",
@@ -814,6 +816,7 @@
       unlocked: [],
       pending: [],
       viewed: [],
+      bondUnlockDay: {},
       ...(state.affinity || {})
     };
     state.affinity.unlocked = Array.from(new Set(state.affinity.unlocked || [])).map(Number).sort((a, b) => a - b);
@@ -857,12 +860,12 @@
     if (state.liveReady) return "First Live 待考核";
     if (state.day <= 6) return "First Live 前期";
     if (state.day <= 12) return "First Live 中期";
-    if (state.day <= 17) return "First Live 后期";
+    if (state.day <= FINAL_LIVE_DAY - 1) return "First Live 后期";
     return "First Live 当日";
   }
 
   function daysLeft() {
-    return Math.max(0, 19 - state.day);
+    return Math.max(0, FINAL_LIVE_DAY + 1 - state.day);
   }
 
   function presetFor(idolName) {
@@ -973,6 +976,10 @@
     if (!state.affinity.unlocked.includes(threshold)) state.affinity.unlocked.push(threshold);
     if (!state.affinity.viewed.includes(threshold) && !state.affinity.pending.includes(threshold)) {
       state.affinity.pending.push(threshold);
+      if (REQUIRED_BOND_THRESHOLDS.includes(Number(threshold))) {
+        state.affinity.bondUnlockDay = state.affinity.bondUnlockDay || {};
+        state.affinity.bondUnlockDay[threshold] = state.day;
+      }
     }
     state.affinity.unlocked.sort((a, b) => a - b);
     state.affinity.pending.sort((a, b) => a - b);
@@ -990,13 +997,39 @@
     [20, 40, 60].forEach((threshold) => {
       if (state.trust >= threshold) markAffinityUnlocked(threshold);
     });
-    if (state.trust >= 80 && state.day >= 18) markAffinityUnlocked(80);
+    if (state.trust >= 80) markAffinityUnlocked(80);
     if (state.trust >= 100 && state.firstLive.success) markAffinityUnlocked(100);
   }
 
   function pendingAffinityCount() {
     ensureStateShape();
     return state.affinity.pending.filter((threshold) => threshold !== 0 || !state.affinity.openingComplete).length;
+  }
+
+  function pendingRequiredBondThreshold() {
+    ensureStateShape();
+    const pending = state.affinity.pending || [];
+    return REQUIRED_BOND_THRESHOLDS.find((threshold) => {
+      if (!pending.includes(threshold) || state.affinity.viewed.includes(threshold)) return false;
+      const unlockDay = Number(state.affinity.bondUnlockDay?.[threshold]);
+      return !Number.isFinite(unlockDay) || state.day > unlockDay;
+    }) || null;
+  }
+
+  function isBondEventDay() {
+    return Boolean(state.idol && !state.liveReady && pendingRequiredBondThreshold());
+  }
+
+  function completeBondEventDay(threshold) {
+    markAffinityViewed(Number(threshold));
+    state.activeStoryNode = null;
+    state.round = 1;
+    if (state.day >= FINAL_LIVE_DAY - 1) {
+      state.day = FINAL_LIVE_DAY;
+      state.liveReady = true;
+    } else {
+      state.day += 1;
+    }
   }
 
   function actionLabel(action, attribute) {
@@ -1014,6 +1047,7 @@
   }
 
   function isActionAvailable(action) {
+    if (isBondEventDay()) return action === "bond";
     return isExtraRound()
       ? new Set(["outing", "companion"]).has(action)
       : new Set(["lesson", "training", "rest"]).has(action);
@@ -1029,8 +1063,8 @@
       return;
     }
     state.round = 1;
-    if (state.day >= 17) {
-      state.day = 18;
+    if (state.day >= FINAL_LIVE_DAY - 1) {
+      state.day = FINAL_LIVE_DAY;
       state.liveReady = true;
       return;
     }
@@ -1048,6 +1082,11 @@
     }
     if (state.liveReady) {
       startFirstLive();
+      return;
+    }
+    if (isBondEventDay()) {
+      showToast("羁绊事件日", "今天需要先完成已解锁的羁绊事件。", "warn");
+      triggerAffinityStory(pendingRequiredBondThreshold());
       return;
     }
     if (!isActionAvailable(action)) {
@@ -1471,7 +1510,7 @@ ${seed}
 叙事要求：
 - 这是角色专属好感度剧情，不是普通行动短叙事。
 - 参考种子只提供矛盾结构，不要复述原剧情原句。
-- 好感度80固定写成 First Live 前夜。
+- 好感度80不要固定写成 First Live 前夜；请按参考种子推进该偶像的路线后半转折。
 - 好感度100固定写成 First Live 成功后的故事结尾。
 - 不要重新计算数值。
 - 不要改变前端已经结算的结果。
@@ -1570,6 +1609,9 @@ ${outputContract("请写一段 1200 字以内的完整偶像互动剧情，在�
 
   function buildFirstLivePrePrompt() {
     const profile = idols[state.idol];
+    const preSeed = state.idol === "月村手毬"
+      ? "手毬登台前想起与美铃的赌约，担心自己能否赢、能否让美铃放心；她确认制作人是否仍愿意支持自己，甚至担心制作人会不会厌烦 SyngUp 的麻烦。制作人需要把她拉回舞台，提醒她不要在彩排或候场里耗尽自己，这次要在正式舞台上发挥全部实力。"
+      : "";
     return `[初星育成系统：First Live 最终演出 - 登台前夜候场]
 
 担当偶像：${state.idol}
@@ -1580,6 +1622,7 @@ ${getAffinityStageLine(state.idol, state.trust)}
 角色核心：
 ${profile.core}
 ${buildProducerPromptSection()}
+${preSeed ? `\n角色专属登台前种子：\n${preSeed}\n` : ""}
 
 叙事时间范围：
 - 正文必须限定在后台准备室/候场区，直到登台前的一刻。
@@ -2020,7 +2063,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     if (!name) {
       if (kicker) kicker.textContent = "Hatsuboshi Produce";
       if (title) title.textContent = "选择担当偶像";
-      if (desc) desc.textContent = "18 天 First Live 育成。前端裁定数值、行动与随机事件，LLM 负责把结果写成角色叙事。";
+      if (desc) desc.textContent = "22 天 First Live 育成。20/40/60/80 羁绊事件会占用专属剧情日，LLM 负责把前端结果写成角色叙事。";
       if (rules) rules.style.display = "";
       if (confirmContainer) {
         confirmContainer.style.display = "none";
@@ -2223,6 +2266,16 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   function renderActionButtons() {
     const container = document.getElementById("actionButtons");
     container.innerHTML = "";
+    if (isBondEventDay()) {
+      const threshold = pendingRequiredBondThreshold();
+      const node = affinityNodes[threshold];
+      container.appendChild(createActionButton(`好感度${threshold}羁绊`, "bond", null, "#ff4f9a", "剧情日"));
+      container.appendChild(createActionButton("闲聊", "freechat", null, "#8c73ff", "行动0"));
+      container.appendChild(createActionButton("互动", "interaction", null, "#ff783f", "行动0"));
+      document.getElementById("actionModeLabel").textContent = `羁绊事件日：${node?.title || "羁绊事件"}`;
+      renderActionHighlights();
+      return;
+    }
     if (state.liveReady) {
       container.appendChild(createActionButton(state.firstLive.completed ? "First Live已完成" : "开始First Live", "live", null, "#ff4f9a", state.firstLive.completed ? "已结算" : "最终考核"));
       container.appendChild(createActionButton("闲聊", "freechat", null, "#8c73ff", "行动0"));
@@ -2264,6 +2317,8 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     document.querySelectorAll(".action-button").forEach((button) => {
       if (["freechat", "interaction"].includes(button.dataset.action)) {
         button.disabled = false;
+      } else if (button.dataset.action === "bond") {
+        button.disabled = !isBondEventDay();
       } else if (button.dataset.action === "live") {
         button.disabled = Boolean(state.firstLive.completed);
       } else {
@@ -3190,11 +3245,16 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
           setElementHidden("eventOverlay", true);
           return;
         }
-        markAffinityViewed(Number(node.threshold));
-        if (Number(node.threshold) === 0) {
+        const thresholdValue = Number(node.threshold);
+        if (thresholdValue === 0) {
+          markAffinityViewed(thresholdValue);
           state.affinity.openingComplete = true;
+        } else if (REQUIRED_BOND_THRESHOLDS.includes(thresholdValue)) {
+          completeBondEventDay(thresholdValue);
+        } else {
+          markAffinityViewed(thresholdValue);
         }
-        state.activeStoryNode = null;
+        if (state.activeStoryNode?.type === "affinity") state.activeStoryNode = null;
         saveState();
         render();
       } else if (node?.type === "firstLivePre") {
@@ -3913,7 +3973,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
           ["当前担当", state.idol || "未选择"]
         ],
         "规则": [
-          ["日程", "18 天育成，每天 3 次普通行动与 1 次额外行动。"],
+          ["日程", "22 天育成，每天 3 次普通行动与 1 次额外行动；20/40/60/80 羁绊事件会占用专属剧情日。"],
           ["普通行动", "上课、训练、休息。休息回复 30 体力。"],
           ["额外行动", "外出回复较多体力并增加信赖，交流增加更多信赖并回复少量体力。"]
         ],
@@ -3929,8 +3989,8 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         "日程": [
           ["第 1-6 天", "First Live 前期，建立基础数值与担当关系。"],
           ["第 7-12 天", "First Live 中期，随机互动与信赖剧情开始成为主要变量。"],
-          ["第 13-17 天", "First Live 后期，数值门槛与角色矛盾共同推向考核。"],
-          ["第 18 天", "最终日程固定为 First Live，不再进行普通行动。"]
+          ["第 13-21 天", "First Live 后期，数值门槛与角色矛盾共同推向考核。"],
+          ["第 22 天", "最终日程固定为 First Live，不再进行普通行动。"]
         ],
         "轮次": [
           ["普通轮次", "每天第 1、2、3 轮，只显示上课、训练和休息。"],
@@ -3938,8 +3998,8 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
           ["防误操作", "体力危险时仍可选择休息，避免路线被单次失误锁死。"]
         ],
         "考核": [
-          ["First Live", "第 18 天点击开始最终演出，由前端判定三项数值是否达标。"],
-          ["好感度80", "好感度达到 80 后，会在第 18 天前解锁舞台前夜。"],
+          ["First Live", "第 22 天点击开始最终演出，由前端判定三项数值是否达标。"],
+          ["好感度80", "好感度达到 80 后，下一天进入该偶像的路线后半羁绊事件。"],
           ["好感度100", "First Live 成功且好感度达到 100 后解锁最终剧情。"],
           ["数值门槛", "Vo、Da、Vi 的门槛与上限来自角色成长率预设。"]
         ]
@@ -3957,7 +4017,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         "输出标签": [
           ["短叙事", "默认 400 字以内，适合直接插入酒馆对话。"],
           ["好感剧情", "0 为强制开场，20/40/60/80/100 由羁绊事件按钮主动触发。"],
-          ["考核剧情", "第 18 天由最终状态进入 First Live 数值判定。"]
+          ["考核剧情", "第 22 天由最终状态进入 First Live 数值判定。"]
         ],
         "边界": [
           ["禁止改数值", "模型不得改变当前状态、行动结果或随机奖励。"],
@@ -4193,7 +4253,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         </style>
         <div class="dev-form-row">
           <label>育成天数</label>
-          <input type="number" id="devInputDay" min="1" max="18" value="${state.day}">
+          <input type="number" id="devInputDay" min="1" max="${FINAL_LIVE_DAY}" value="${state.day}">
           <label>日程轮次</label>
           <input type="number" id="devInputRound" min="1" max="4" value="${state.round}">
         </div>
@@ -4228,7 +4288,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       body.appendChild(devPanel);
       
       document.getElementById("devApplyBtn").addEventListener("click", () => {
-        state.day = clamp(parseInt(document.getElementById("devInputDay").value) || 1, 1, 18);
+        state.day = clamp(parseInt(document.getElementById("devInputDay").value) || 1, 1, FINAL_LIVE_DAY);
         state.round = clamp(parseInt(document.getElementById("devInputRound").value) || 1, 1, 4);
         state.Vo = Math.max(0, parseInt(document.getElementById("devInputVo").value) || 0);
         state.Da = Math.max(0, parseInt(document.getElementById("devInputDa").value) || 0);
@@ -4294,6 +4354,11 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     }
     if (button.dataset.action === "outing") {
       openOutingOverlay();
+      return;
+    }
+    if (button.dataset.action === "bond") {
+      const threshold = pendingRequiredBondThreshold();
+      if (threshold) triggerAffinityStory(threshold);
       return;
     }
     settleAction(button.dataset.action, button.dataset.attribute);
@@ -4565,7 +4630,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   if (state.idol && (!state.growth || !state.cap || !state.sp)) applyIdolPreset(state.idol);
   // Expose developer commands globally
   window.produceDev = {
-    setDay: (d) => { state.day = clamp(d, 1, 18); saveState(); render(); return `Day set to ${state.day}`; },
+    setDay: (d) => { state.day = clamp(d, 1, FINAL_LIVE_DAY); saveState(); render(); return `Day set to ${state.day}`; },
     setRound: (r) => { state.round = clamp(r, 1, 4); saveState(); render(); return `Round set to ${state.round}`; },
     setStamina: (s) => { state.stamina = clamp(s, 0, 100); saveState(); render(); return `Stamina set to ${state.stamina}`; },
     setStress: (s) => { state.stress = clamp(s, 0, 100); saveState(); render(); return `Stress set to ${state.stress}`; },
