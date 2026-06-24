@@ -692,7 +692,36 @@
       color = idols[idolName].theme || color;
     }
 
-    container.style.setProperty("--wipe-color", color);
+    // Helper for Hex to RGB conversion
+    const hexToRgb = (hexStr) => {
+      const cleaned = hexStr.replace("#", "");
+      const r = parseInt(cleaned.substring(0, 2), 16);
+      const g = parseInt(cleaned.substring(2, 4), 16);
+      const b = parseInt(cleaned.substring(4, 6), 16);
+      return { r, g, b };
+    };
+
+    try {
+      const rgb = hexToRgb(color);
+      const stripes = container.querySelectorAll(".wipe-stripe");
+      if (stripes && stripes.length >= 5) {
+        // Stripe 1: Light pastel variation
+        stripes[0].style.backgroundColor = `rgb(${Math.min(255, rgb.r + 55)}, ${Math.min(255, rgb.g + 55)}, ${Math.min(255, rgb.b + 55)})`;
+        // Stripe 2: Bright version
+        stripes[1].style.backgroundColor = `rgb(${Math.min(255, rgb.r + 20)}, ${Math.min(255, rgb.g + 20)}, ${Math.min(255, rgb.b + 20)})`;
+        // Stripe 3: Pure white accent (classic in Gakuen Idolmaster)
+        stripes[2].style.backgroundColor = "#ffffff";
+        // Stripe 4: Main theme color
+        stripes[3].style.backgroundColor = color;
+        // Stripe 5: Slightly darker version
+        stripes[4].style.backgroundColor = `rgb(${Math.max(0, rgb.r - 35)}, ${Math.max(0, rgb.g - 35)}, ${Math.max(0, rgb.b - 35)})`;
+      } else {
+        container.style.setProperty("--wipe-color", color);
+      }
+    } catch (e) {
+      container.style.setProperty("--wipe-color", color);
+    }
+
     container.removeAttribute("hidden");
     container.classList.add("animating");
 
@@ -2653,11 +2682,6 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       setEventActionsEnabled(true, false);
     }
 
-    setElementHidden("eventOverlay", false);
-    
-    // 2. 判断当前是否为加载状态
-    const isLoading = pendingAiRequestId || story.includes("等待角色卡") || story.includes("等待 AI") || story.includes("正在重新生成");
-    
     // 同步 VN 控制按钮的可点击状态
     const regenBtn = document.getElementById("vnBtnRegen");
     if (regenBtn) regenBtn.disabled = !!pendingAiRequestId;
@@ -2668,17 +2692,33 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     const skipBtn = document.getElementById("vnBtnSkip");
     if (skipBtn) skipBtn.disabled = !!pendingAiRequestId;
 
-    if (isLoading) {
-      // 如果正在加载，直接显示一行静态文本，并禁用 VN 对话框点击动作
-      const slides = [{ type: "narration", speaker: "", text: story }];
-      initVisualNovelPlayer(slides);
-      completeVnSlideText();
-      const dialogueBox = document.getElementById("vnDialogueBox");
-      if (dialogueBox) dialogueBox.onclick = null;
+    const eventOverlay = document.getElementById("eventOverlay");
+    const isAlreadyOpen = eventOverlay && !eventOverlay.hidden;
+
+    const initContent = () => {
+      setElementHidden("eventOverlay", false);
+      
+      // 2. 判断当前是否为加载状态
+      const isLoading = pendingAiRequestId || story.includes("等待角色卡") || story.includes("等待 AI") || story.includes("正在重新生成");
+      
+      if (isLoading) {
+        // 如果正在加载，直接显示一行静态文本，并禁用 VN 对话框点击动作
+        const slides = [{ type: "narration", speaker: "", text: story }];
+        initVisualNovelPlayer(slides);
+        completeVnSlideText();
+        const dialogueBox = document.getElementById("vnDialogueBox");
+        if (dialogueBox) dialogueBox.onclick = null;
+      } else {
+        // 解析流式生成/已完成的剧本并启动 VN 对话播放
+        const slides = parseNovelSlides(story);
+        initVisualNovelPlayer(slides);
+      }
+    };
+
+    if (isAlreadyOpen) {
+      initContent();
     } else {
-      // 解析流式生成/已完成的剧本并启动 VN 对话播放
-      const slides = parseNovelSlides(story);
-      initVisualNovelPlayer(slides);
+      triggerWipeTransition(initContent);
     }
   }
 
@@ -3088,51 +3128,53 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       clearInterval(vnTypewriterTimer);
       vnTypewriterTimer = 0;
     }
-    const node = state.activeStoryNode;
-    if (node?.type === "affinity") {
-      if (!node.ready) {
-        if (Number(node.threshold) === 0) {
-          skipPendingOpening();
-          saveState();
-          render();
+    triggerWipeTransition(() => {
+      const node = state.activeStoryNode;
+      if (node?.type === "affinity") {
+        if (!node.ready) {
+          if (Number(node.threshold) === 0) {
+            skipPendingOpening();
+            saveState();
+            render();
+            setElementHidden("eventOverlay", true);
+            return;
+          }
           setElementHidden("eventOverlay", true);
           return;
         }
-        setElementHidden("eventOverlay", true);
-        return;
+        markAffinityViewed(Number(node.threshold));
+        if (Number(node.threshold) === 0) {
+          state.affinity.openingComplete = true;
+        }
+        state.activeStoryNode = null;
+        saveState();
+        render();
+      } else if (node?.type === "firstLivePre") {
+        if (!node.ready) {
+          setElementHidden("eventOverlay", true);
+          return;
+        }
+        startFirstLivePostStage();
+      } else if (node?.type === "firstLivePost") {
+        if (!node.ready) {
+          setElementHidden("eventOverlay", true);
+          return;
+        }
+        state.activeStoryNode = null;
+        refreshAffinityUnlocks();
+        saveState();
+        render();
+      } else if (["freechat", "interaction"].includes(node?.type)) {
+        if (!node.ready) {
+          setElementHidden("eventOverlay", true);
+          return;
+        }
+        state.activeStoryNode = null;
+        saveState();
+        render();
       }
-      markAffinityViewed(Number(node.threshold));
-      if (Number(node.threshold) === 0) {
-        state.affinity.openingComplete = true;
-      }
-      state.activeStoryNode = null;
-      saveState();
-      render();
-    } else if (node?.type === "firstLivePre") {
-      if (!node.ready) {
-        setElementHidden("eventOverlay", true);
-        return;
-      }
-      startFirstLivePostStage();
-    } else if (node?.type === "firstLivePost") {
-      if (!node.ready) {
-        setElementHidden("eventOverlay", true);
-        return;
-      }
-      state.activeStoryNode = null;
-      refreshAffinityUnlocks();
-      saveState();
-      render();
-    } else if (["freechat", "interaction"].includes(node?.type)) {
-      if (!node.ready) {
-        setElementHidden("eventOverlay", true);
-        return;
-      }
-      state.activeStoryNode = null;
-      saveState();
-      render();
-    }
-    setElementHidden("eventOverlay", true);
+      setElementHidden("eventOverlay", true);
+    });
   }
 
   function reopenLastEvent() {

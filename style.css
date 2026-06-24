@@ -2308,12 +2308,12 @@ p {
 
 .wipe-stripe {
   position: fixed;
-  left: 0;
-  width: 100vw;
+  left: -10vw;
+  width: 120vw;
   height: calc(100vh / 5 + 2px);
   top: calc(var(--i) * 20vh);
   background-color: var(--wipe-color, #ff4f9a);
-  transform: scaleX(0);
+  transform: skewX(-20deg) scaleX(0);
   transform-origin: left;
   will-change: transform;
 }
@@ -2325,23 +2325,23 @@ p {
 
 @keyframes stripeWipe {
   0% {
-    transform: scaleX(0);
+    transform: skewX(-20deg) scaleX(0);
     transform-origin: left;
   }
   30% {
-    transform: scaleX(1);
+    transform: skewX(-20deg) scaleX(1);
     transform-origin: left;
   }
   70% {
-    transform: scaleX(1);
+    transform: skewX(-20deg) scaleX(1);
     transform-origin: left;
   }
   70.1% {
-    transform: scaleX(1);
+    transform: skewX(-20deg) scaleX(1);
     transform-origin: right;
   }
   100% {
-    transform: scaleX(0);
+    transform: skewX(-20deg) scaleX(0);
     transform-origin: right;
   }
 }
