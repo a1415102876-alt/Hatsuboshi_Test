@@ -2717,7 +2717,8 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       } else {
         // 解析流式生成/已完成的剧本并启动 VN 对话播放
         const slides = parseNovelSlides(story);
-        initVisualNovelPlayer(slides);
+        const isResume = (state.choiceStep === 2 || !!state.selectedChoiceText);
+        initVisualNovelPlayer(slides, isResume);
       }
     };
 
@@ -2760,46 +2761,63 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     const slides = [];
     const xmlRegex = /<(dialogue|narration)(?:\s+char="([^"]+)")?>([\s\S]*?)<\/\1>/gi;
     let match;
+    let lastIndex = 0;
     let hasXmlTags = false;
     
+    // Helper to parse plain text segments using the same paragraph-splitting logic
+    const parseFallbackParagraphs = (str) => {
+      const paragraphs = str
+        .split(/\n+/)
+        .map(p => p.trim())
+        .filter(Boolean);
+
+      for (const p of paragraphs) {
+        if (p.startsWith("▶") || p.startsWith("?")) {
+          slides.push({ type: "narration", speaker: "", text: p });
+          continue;
+        }
+        
+        const speakerMatch = p.match(/^([^：:「“"'\s]{1,10})\s*[：:]\s*([\s\S]+)$/);
+        if (speakerMatch) {
+          const speaker = speakerMatch[1].trim();
+          const content = speakerMatch[2].trim();
+          slides.push({ type: "dialogue", speaker, text: content });
+        } else if (p.startsWith("“") || p.startsWith("「") || p.startsWith('"') || p.startsWith("'")) {
+          slides.push({ type: "dialogue", speaker: state.idol || "偶像", text: p });
+        } else {
+          slides.push({ type: "narration", speaker: "", text: p });
+        }
+      }
+    };
+
     while ((match = xmlRegex.exec(cleanText)) !== null) {
       hasXmlTags = true;
+      // Parse any raw text that appears before this XML tag
+      const rawTextBefore = cleanText.slice(lastIndex, match.index).trim();
+      if (rawTextBefore) {
+        parseFallbackParagraphs(rawTextBefore);
+      }
+      
       const type = match[1].toLowerCase();
       const speaker = match[2] || "";
       const content = match[3].trim();
       if (content) {
         slides.push({ type, speaker, text: content });
       }
+      lastIndex = xmlRegex.lastIndex;
     }
 
-    if (hasXmlTags && slides.length > 0) {
+    if (hasXmlTags) {
+      // Parse any remaining raw text that appears after the last XML tag
+      const rawTextAfter = cleanText.slice(lastIndex).trim();
+      if (rawTextAfter) {
+        parseFallbackParagraphs(rawTextAfter);
+      }
       return slides;
     }
 
-    // 容错降级：按行/段落解析，智能提取说话人和内心活动
-    const paragraphs = cleanText
-      .split(/\n+/)
-      .map(p => p.trim())
-      .filter(Boolean);
-
-    for (const p of paragraphs) {
-      if (p.startsWith("▶") || p.startsWith("?")) {
-        slides.push({ type: "narration", speaker: "", text: p });
-        continue;
-      }
-      
-      const speakerMatch = p.match(/^([^：:「“"'\s]{1,10})\s*[：:]\s*([\s\S]+)$/);
-      if (speakerMatch) {
-        const speaker = speakerMatch[1].trim();
-        const content = speakerMatch[2].trim();
-        slides.push({ type: "dialogue", speaker, text: content });
-      } else if (p.startsWith("“") || p.startsWith("「") || p.startsWith('"') || p.startsWith("'")) {
-        slides.push({ type: "dialogue", speaker: state.idol || "偶像", text: p });
-      } else {
-        slides.push({ type: "narration", speaker: "", text: p });
-      }
-    }
-
+    // Fallback: entire text is treated as plain text paragraphs
+    parseFallbackParagraphs(cleanText);
     return slides;
   }
 
