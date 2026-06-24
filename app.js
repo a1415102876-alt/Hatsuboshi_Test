@@ -2840,11 +2840,18 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     return "./assets/scenes/campus.png";
   }
 
-  function initVisualNovelPlayer(slides) {
+  function initVisualNovelPlayer(slides, isResume = false) {
     vnSlides = slides || [];
     vnCurrentIndex = 0;
     vnIsTyping = false;
     stopVnAuto();
+
+    if (isResume) {
+      const choiceIdx = vnSlides.findIndex(slide => slide.text && (slide.text.includes("制作人的选择") || slide.text.includes("▶ 制作人的选择")));
+      if (choiceIdx !== -1) {
+        vnCurrentIndex = choiceIdx;
+      }
+    }
     
     // 切换背景
     const bgUrl = getSceneBackground();
@@ -2869,7 +2876,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       };
     }
     
-    renderVnSlide(0);
+    renderVnSlide(vnCurrentIndex);
   }
 
   function handleVnBoxClick() {
@@ -3314,6 +3321,19 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;");
       
+    // Format escaped XML tags
+    html = html.replace(/&lt;dialogue\s+char="([^"]+)"&gt;([\s\S]*?)&lt;\/dialogue&gt;/gi, (match, speaker, content) => {
+      let cleanContent = content.trim();
+      if ((cleanContent.startsWith("“") && cleanContent.endsWith("”")) || (cleanContent.startsWith('"') && cleanContent.endsWith('"')) || (cleanContent.startsWith('「') && cleanContent.endsWith('」'))) {
+        return `<strong>${speaker}</strong>：${cleanContent}`;
+      }
+      return `<strong>${speaker}</strong>：“${cleanContent}”`;
+    });
+    
+    html = html.replace(/&lt;narration&gt;([\s\S]*?)&lt;\/narration&gt;/gi, (match, content) => {
+      return content.trim();
+    });
+
     // 1. Headers: ###, ##, #
     html = html.replace(/^###\s+(.*)$/gm, '<span class="story-h4">$1</span>');
     html = html.replace(/^##\s+(.*)$/gm, '<span class="story-h3">$1</span>');
@@ -3657,9 +3677,9 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       const reply = extractReplyText([source]);
       
       const storyEl = document.getElementById("eventStory");
+      const chosenLine = `<narration>▶ 制作人的选择：${state.selectedChoiceText || ""} (${state.selectedChoiceRating || ""})</narration>`;
       if (storyEl && reply) {
         const intro = state.lastStory || "";
-        const chosenLine = `▶ 制作人的选择：${state.selectedChoiceText || ""} (${state.selectedChoiceRating || ""})`;
         storyEl.innerHTML = formatStoryText(intro + "\n\n" + chosenLine + "\n\n" + reply);
       }
 
@@ -3670,7 +3690,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       }
 
       pendingAiRequestId = "";
-      state.lastStory = `${state.lastStory}\n\n▶ 制作人的选择：${state.selectedChoiceText} (${state.selectedChoiceRating})\n\n${reply}`;
+      state.lastStory = `${state.lastStory}\n\n${chosenLine}\n\n${reply}`;
       if (state.log[0]) {
         state.log[0].aiReply = reply;
       }
