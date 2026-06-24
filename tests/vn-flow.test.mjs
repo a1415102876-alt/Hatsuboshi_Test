@@ -155,6 +155,50 @@ test("opening a non-choice event clears stale choice UI", () => {
   assert.equal(elements.get("vnChoicesContainer").innerHTML, "");
 });
 
+test("ended non-choice VN dialogue hides stale choice overlay", () => {
+  const elements = new Map();
+  const makeElement = (id) => {
+    const element = {
+      id,
+      innerHTML: "stale option",
+      textContent: "",
+      disabled: false,
+      style: { display: "flex" },
+      classList: { add() {}, remove() {} },
+      onclick: null
+    };
+    elements.set(id, element);
+    return element;
+  };
+  [
+    "vnText",
+    "vnNameplate",
+    "vnDialogueBox",
+    "vnChoicesOverlay",
+    "vnChoicesContainer",
+    "eventConfirmBtn"
+  ].forEach(makeElement);
+
+  const context = {
+    state: { choiceStep: 0, pendingOptionTexts: ["A", "B", "C", "D"] },
+    document: { getElementById: (id) => elements.get(id) || null },
+    stopVnAuto() {},
+    showVnChoicesOverlay() {
+      elements.get("vnChoicesOverlay").style.display = "flex";
+    },
+    closeEventOverlay() {}
+  };
+  vm.runInNewContext(
+    `${readFunction("handleVnSlidesEnd")}\nthis.handleVnSlidesEnd = handleVnSlidesEnd;`,
+    context
+  );
+
+  context.handleVnSlidesEnd();
+
+  assert.equal(elements.get("vnChoicesOverlay").style.display, "none");
+  assert.equal(elements.get("vnChoicesContainer").innerHTML, "");
+});
+
 test("malformed choice fallback clears pending generation state", () => {
   const body = readFunction("fallbackChoiceSettlement");
   assert.match(body, /pendingAiRequestId\s*=\s*""/);

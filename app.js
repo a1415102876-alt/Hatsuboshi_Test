@@ -3354,6 +3354,11 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     if (hasChoices) {
       showVnChoicesOverlay();
     } else {
+      const choiceOverlay = document.getElementById("vnChoicesOverlay");
+      if (choiceOverlay) choiceOverlay.style.display = "none";
+      const choiceContainer = document.getElementById("vnChoicesContainer");
+      if (choiceContainer) choiceContainer.innerHTML = "";
+
       const textEl = document.getElementById("vnText");
       if (textEl) {
         textEl.innerHTML = "<strong>[ 本次事件已播放完毕，点击对话框以继续 ]</strong>";
