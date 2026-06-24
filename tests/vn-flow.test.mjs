@@ -127,6 +127,30 @@ test("choice parser accepts story and option tags without an end marker", () => 
   assert.match(payload.story, /星南问制作人/);
 });
 
+test("choice parser accepts multiline story and option tags from outing replies", () => {
+  const extractChoicePayload = vm.runInNewContext(`(${readFunction("extractChoicePayload")})`, {
+    cleanReplyText: (value) => String(value || "").replace(/<[^>]+>/g, "").trim()
+  });
+  const source = `【初星正文开始】
+<story>
+<narration>游乐园入口广场的彩色气球在下午四点的风里左右摇晃。</narration>
+<dialogue char="月村手毬">“我不觉得来游乐园是一项有效的训练内容。”</dialogue>
+<narration>制作人把卡片递了过去。</narration>
+</story>
+<option1>“由我来重新排明天的日程吧。”</option1>
+<option2>“我知道您讨厌被当成需要休息的人。”</option2>
+<option3>“……给您。热可可。”</option3>
+<option4>“48不是软弱的数字。”</option4>
+【初星正文结束】`;
+
+  const payload = extractChoicePayload(source);
+
+  assert.match(payload.story, /游乐园入口广场/);
+  assert.equal(payload.options.length, 4);
+  assert.equal(payload.options[0], "“由我来重新排明天的日程吧。”");
+  assert.equal(payload.options[3], "“48不是软弱的数字。”");
+});
+
 test("choice parser recovers options when custom tags are stripped into plain text", () => {
   const extractChoicePayload = vm.runInNewContext(`(${readFunction("extractChoicePayload")})`, {
     cleanReplyText: (value) => String(value || "").replace(/<[^>]+>/g, "").trim()

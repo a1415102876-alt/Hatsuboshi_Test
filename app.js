@@ -423,6 +423,96 @@
       100: "演出之后，她接受成熟、少女心、脆弱与竞争欲都属于姬崎莉波，也让两人的关系不再被姐姐与弟弟的称呼限制。"
     }
   };
+  const temariBondRoutes = {
+    20: {
+      title: "相互试探",
+      objective: "分析手毬状态下滑的原因，并确立制作人成为新同伴的关系。",
+      canonAnchor: "胖了、报复性节食、组合解散、失去燐羽和美铃的支撑、重新说出顶级偶像目标。",
+      phase1Title: "第一轮选项：制作人先指出什么问题",
+      phase1Setup: "开场要从手毬状态下滑、嘴硬和回避开始，停在制作人必须决定如何切入问题的时刻。",
+      phase1Options: [
+        "直接指出体重和体力管理出了问题",
+        "先问她最近有没有好好吃饭",
+        "从训练录像里指出她动作变钝的原因",
+        "不谈体重，先说“你现在像是在惩罚自己”"
+      ],
+      phase2Title: "第二轮选项：组合解散后，制作人如何回应",
+      phase2Setup: "中段必须让她说出组合解散、燐羽和美铃不在身边、自己无法被托住的痛点。",
+      phase2Options: [
+        "“那从今天开始，我来托住你。”",
+        "“你不需要回到以前的组合，也能重新成为顶级偶像。”",
+        "“燐羽和美铃不在，不代表你只能一个人摔下去。”",
+        "“如果你还想成为顶级偶像，就把这个目标重新说出口。”"
+      ],
+      resolution: "改善饮食计划成立，制作人承诺托住她，手毬重新说出成为顶级偶像的目标。"
+    },
+    40: {
+      title: "核心问题暴露",
+      objective: "揭开 SyngUp 旧关系和手毬体力燃尽的根本问题，确立单人偶像训练目标。",
+      canonAnchor: "制作人邀请手毬讨论训练计划；手毬看到一整墙自己的照片被吓到。她讲述 SyngUp 时期燐羽和美铃为了配合她压制实力。制作人指出她越集中越能发挥实力，但体力会燃尽。手毬因愧疚退出组合。之后用录像复盘训练，发生拍照误会与课堂看制作人照片被没收手机的日常插曲。",
+      phase1Title: "第一轮选项：制作人如何揭开 SyngUp 的真相",
+      phase1Setup: "开场从训练计划讨论和照片墙误会切入，停在制作人必须决定如何揭开 SyngUp 真相的时刻。",
+      phase1Options: [
+        "直接播放训练录像，对比手毬集中前后的体力消耗",
+        "先问她为什么认为燐羽和美铃是在“迁就”自己",
+        "用数据说明她不是实力不够，而是输出方式太极端",
+        "直接指出她退出组合不是因为讨厌两人，而是受不了善意"
+      ],
+      phase2Title: "第二轮选项：训练目标如何落地",
+      phase2Setup: "中段必须写出她对燐羽和美铃的愧疚，以及她不想再被同伴温柔托住的痛苦。",
+      phase2Options: [
+        "制作人提出从体力分配训练开始，先做到完整唱完一首歌",
+        "制作人提出录像复盘，把燃尽的瞬间一帧一帧找出来",
+        "制作人要求她不要再把同伴的善意当成羞辱",
+        "制作人让她亲口说出：这一次要作为单人偶像唱到最后"
+      ],
+      resolution: "训练目标定为作为单人偶像唱到最后；随后用录像复盘和拍照误会收束，让严肃剖析转成关系变近的日常。"
+    },
+    60: {
+      title: "关系转折",
+      objective: "通过首场 Live 失败确认手毬的能力波动：上限极高，下限也低，受感情影响强。",
+      canonAnchor: "手毬举办首场 Live，彩排用力过猛导致正式上场时体力不足，Live 失败。制作人分析她不是没有实力，而是感情越高涨越会燃尽，今后要训练稳定发挥上限。",
+      phase1Title: "第一轮选项：制作人如何处理彩排用力过猛",
+      phase1Setup: "开场写首场 Live 前的彩排，手毬因紧张和兴奋过度投入，停在制作人是否介入彩排的时刻。",
+      phase1Options: [
+        "立刻中止彩排，要求她保存体力",
+        "记录彩排中爆发最好的一瞬间",
+        "不打断她，先观察她为什么停不下来",
+        "告诉她真正的舞台不是彩排，必须把热量留到正式演出"
+      ],
+      phase2Title: "第二轮选项：Live 失败后，制作人如何定义这次失败",
+      phase2Setup: "中段必须写出正式演出体力不足、声音或动作失误，Live 失败明确发生。",
+      phase2Options: [
+        "“失败不是因为你弱，而是因为你的上限太高，身体追不上。”",
+        "“你需要学会把感情留到最该燃烧的地方。”",
+        "“今天不是终点，是我们第一次看清你的波动幅度。”",
+        "“我要训练的不是平均的你，而是能稳定到达最高点的你。”"
+      ],
+      resolution: "手毬承认自己无法稳定控制状态；制作人确认训练目标不是压低输出，而是让她在正式舞台上充分发挥上限。"
+    },
+    80: {
+      title: "路线后半转折",
+      objective: "让美铃重新进入主线，建立下场 Live 赌约，为 100 的成功与和解铺路。",
+      canonAnchor: "手毬频繁打电话，表现对制作人的依赖。制作人遇见美铃，美铃担心手毬一个人不行并提出重组 SyngUp。手毬赶到后听见提案。制作人拒绝简单回到过去，提出下场 Live 赌约：如果美铃看完仍担心，就考虑提案；如果手毬证明自己，美铃要和手毬好好谈。",
+      phase1Title: "第一轮选项：制作人如何回应手毬的电话依赖",
+      phase1Setup: "开场写手毬打电话、抱怨制作人没有立刻接、又小心确认制作人是否生气，停在制作人如何回应她依赖的时刻。",
+      phase1Options: [
+        "先接电话，告诉她自己正在处理她的负面传闻",
+        "故意晚一点回拨，观察她为什么这么不安",
+        "直接问她是不是害怕自己生气",
+        "让她稍后当面来谈，不在电话里继续绕圈"
+      ],
+      phase2Title: "第二轮选项：面对美铃的 SyngUp 重组提案",
+      phase2Setup: "中段必须写制作人与美铃会谈、手毬赶到、重组 SyngUp 提案被摆到台面上。",
+      phase2Options: [
+        "直接拒绝：手毬不能靠回到过去解决现在的问题",
+        "先承认美铃的担心，再指出重组不是唯一答案",
+        "要求美铃看完手毬下一场 Live 后再判断",
+        "当着手毬的面说明：现在托住她的人会是制作人"
+      ],
+      resolution: "美铃的担心被承认，手毬没有被简单塞回 SyngUp；制作人以下一场 Live 作为验证，让美铃见证手毬的改变。"
+    }
+  };
 
   const baseState = {
     uiVersion: UI_VERSION,
@@ -464,14 +554,16 @@
     pendingActionContext: null,
     pendingOptionTexts: [],
     selectedChoiceText: "",
-    selectedChoiceRating: ""
+    selectedChoiceRating: "",
+    bondChoiceRound: 0,
+    bondFirstChoiceText: ""
   };
 
   const statLabels = { Vo: "Vocal", Da: "Dance", Vi: "Visual", stamina: "体力", stress: "压力", trust: "信赖" };
   const statShort = { Vo: "Vo.", Da: "Da.", Vi: "Vi." };
   const statIcons = { Vo: "mic", Da: "dance", Vi: "visual" };
   const statColors = { Vo: "#ff4f9a", Da: "#26a9f4", Vi: "#ffca35" };
-  const actionIcons = { lesson: "book", training: "dance", rest: "rest", outing: "map", companion: "chat", freechat: "chat", interaction: "star" };
+  const actionIcons = { lesson: "book", training: "dance", rest: "rest", outing: "map", companion: "chat", freechat: "chat", interaction: "star", bond: "heart" };
   const promptPanels = { prompt: "tabPrompt", log: "tabLog", debug: "tabDebug" };
   const idolBackgroundStatus = new Map();
   let activePromptTab = "prompt";
@@ -837,6 +929,8 @@
     state.pendingOptionTexts = Array.isArray(state.pendingOptionTexts) ? state.pendingOptionTexts : [];
     state.selectedChoiceText = state.selectedChoiceText || "";
     state.selectedChoiceRating = state.selectedChoiceRating || "";
+    state.bondChoiceRound = Number.isInteger(state.bondChoiceRound) ? state.bondChoiceRound : 0;
+    state.bondFirstChoiceText = state.bondFirstChoiceText || "";
   }
 
   function clamp(value, min, max) {
@@ -1033,9 +1127,19 @@
   }
 
   function actionLabel(action, attribute) {
-    const names = { lesson: "上课", training: "训练", rest: "休息", outing: "外出", companion: "交流" };
+    const names = { lesson: "上课", training: "训练", rest: "休息", outing: "外出", companion: "交流", bond: "羁绊事件" };
     const sp = action === "training" && attribute && state.sp?.[attribute] ? "SP" : "";
     return attribute ? `${attribute}${sp}${names[action]}` : names[action];
+  }
+
+  function currentChoiceActionTitle() {
+    if (state.pendingActionContext?.action === "bond") {
+      const threshold = state.pendingActionContext.threshold;
+      return `好感度 ${threshold}：${affinityNodes[threshold]?.title || "羁绊事件"}`;
+    }
+    return state.pendingActionContext
+      ? actionLabel(state.pendingActionContext.action, state.pendingActionContext.attribute)
+      : "外出/交流";
   }
 
   function roundLabel() {
@@ -1482,10 +1586,118 @@ ${buildProducerPromptSection()}
 先写考核前的短暂候场与制作人确认状态，等待玩家点击开始 First Live。`;
   }
 
+  function formatBondOptions(options) {
+    return options.map((option, index) => `<option${index + 1}>${option}</option${index + 1}>`).join("\n");
+  }
+
+  function buildTemariBondPhase1Prompt(threshold) {
+    const profile = idols[state.idol];
+    const route = temariBondRoutes[threshold];
+    return `[初星育成系统：手毬羁绊事件 - 第一轮选择]
+
+担当偶像：${state.idol}
+${getAffinityStageLine(state.idol, state.trust)}
+绑定角色卡：${state.boundCharacter?.name || "未绑定，按担当偶像写"}
+剧情节点：好感度 ${threshold} / ${route.title}
+当前阶段：${getPhase()}
+当前日程：第 ${state.day} 天，羁绊事件日
+当前状态：Vo ${state.Vo} / Da ${state.Da} / Vi ${state.Vi} / 体力 ${state.stamina} / 压力 ${state.stress} / 信赖 ${state.trust}
+
+角色核心：
+${profile.core}
+${buildProducerPromptSection()}
+
+本节点目标：
+${route.objective}
+
+原作锚点：
+${route.canonAnchor}
+
+第一段要求：
+${route.phase1Setup}
+
+${route.phase1Title}：
+${formatBondOptions(route.phase1Options)}
+
+输出硬规则：
+1. 必须输出【初星正文开始】与【初星正文结束】。
+2. 分隔符内部只能包含一个 <story> 与四个 <option1> 到 <option4>。
+3. <story> 只写本羁绊事件开场，不要把整个事件写完。
+4. 四个选项必须严格使用上方给定选项文本，不要改写含义，不要添加数值。
+5. 不要写系统说明、列表解释、思考过程。
+
+输出示例：
+【初星正文开始】
+<story>这里写开场剧情，停在制作人需要做第一次选择的转折点。</story>
+${formatBondOptions(route.phase1Options)}
+【初星正文结束】`;
+  }
+
+  function buildTemariBondPhase2Prompt(threshold, firstChoiceText) {
+    const route = temariBondRoutes[threshold];
+    return `[初星育成系统：手毬羁绊事件 - 第二轮选择]
+
+担当偶像：${state.idol}
+${getAffinityStageLine(state.idol, state.trust)}
+剧情节点：好感度 ${threshold} / ${route.title}
+当前日程：第 ${state.day} 天，羁绊事件日
+
+第一轮制作人选择：
+${firstChoiceText}
+
+中段要求：
+${route.phase2Setup}
+
+${route.phase2Title}：
+${formatBondOptions(route.phase2Options)}
+
+叙事要求：
+- 承接第一轮选择，不要重写开场。
+- 让剧情推进到更深层矛盾暴露处，再停在制作人需要做第二次选择的时刻。
+- 四个选项必须严格使用上方给定选项文本。
+- 不要结算或推进数值。
+
+输出硬规则：
+【初星正文开始】
+<story>这里写中段剧情，停在第二次选择前。</story>
+${formatBondOptions(route.phase2Options)}
+【初星正文结束】`;
+  }
+
+  function buildTemariBondFinalPrompt(threshold, firstChoiceText, secondChoiceText) {
+    const route = temariBondRoutes[threshold];
+    return `[初星育成系统：手毬羁绊事件 - 收束]
+
+担当偶像：${state.idol}
+${getAffinityStageLine(state.idol, state.trust)}
+剧情节点：好感度 ${threshold} / ${route.title}
+当前日程：第 ${state.day} 天，羁绊事件日
+
+第一轮制作人选择：
+${firstChoiceText}
+
+第二轮制作人选择：
+${secondChoiceText}
+
+最终收束目标：
+${route.resolution}
+
+叙事要求：
+- 承接前两轮选择，写出本羁绊事件最后一段。
+- 不要重新写开场，不要生成新的选项。
+- 不要改变数值，不要推进日程。
+- 结尾必须完成本节点的情绪收束，并为后续节点留下自然余韵。
+
+${outputContract("请写一段 900 字以内的羁绊事件收束剧情。")}`;
+  }
+
   function buildAffinityPrompt(threshold) {
     const profile = idols[state.idol];
     const node = affinityNodes[threshold];
     const seed = affinityRouteSeeds[state.idol]?.[threshold] || node.theme;
+    if (state.idol === "月村手毬" && temariBondRoutes[threshold]) {
+      return buildTemariBondPhase1Prompt(threshold);
+    }
     return `[初星育成系统：好感度剧情触发]
 
 担当偶像：${state.idol}
@@ -1702,6 +1914,20 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     const prompt = threshold === 0 ? buildOpeningPrompt() : buildAffinityPrompt(threshold);
     const requestId = createRequestId();
     state.activeStoryNode = { type: "affinity", threshold, ready: false };
+    if (state.idol === "月村手毬" && temariBondRoutes[threshold]) {
+      state.choiceStep = 1;
+      state.bondChoiceRound = 1;
+      state.bondFirstChoiceText = "";
+      state.pendingActionContext = { action: "bond", threshold };
+      state.pendingChoiceRewards = [0, 0, 0, 0];
+      state.pendingOptionTexts = [];
+      state.selectedChoiceText = "";
+      state.selectedChoiceRating = "";
+    } else {
+      state.choiceStep = 0;
+      state.bondChoiceRound = 0;
+      state.bondFirstChoiceText = "";
+    }
     state.lastPrompt = prompt;
     state.lastStory = `好感度 ${threshold}：${node.title} 正在生成。`;
     saveState();
@@ -3583,6 +3809,39 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     buttons.forEach(btn => btn.disabled = true);
     
     const { action, attribute, actionContext } = state.pendingActionContext;
+    if (action === "bond") {
+      const threshold = state.pendingActionContext.threshold;
+      const chosenOptionText = state.pendingOptionTexts[index] || "选择该选项";
+      const chosenLine = `<narration>▶ 制作人的选择：${chosenOptionText}</narration>`;
+      const requestId = createRequestId();
+      pendingAiRequestId = requestId;
+      state.selectedChoiceText = chosenOptionText;
+      state.selectedChoiceRating = "羁绊选择";
+
+      if (state.bondChoiceRound === 1) {
+        state.bondFirstChoiceText = chosenOptionText;
+        state.bondChoiceRound = 2;
+        state.choiceStep = 1;
+        state.pendingOptionTexts = [];
+        state.lastPrompt = buildTemariBondPhase2Prompt(threshold, chosenOptionText);
+        state.lastStory = `${state.lastStory}\n\n${chosenLine}`;
+        state.lastDebug = `手毬羁绊事件：第一轮已选择“${chosenOptionText}”，等待第二轮选项。`;
+      } else {
+        state.choiceStep = 2;
+        state.lastPrompt = buildTemariBondFinalPrompt(threshold, state.bondFirstChoiceText, chosenOptionText);
+        state.lastDebug = `手毬羁绊事件：第二轮已选择“${chosenOptionText}”，等待最终收束。`;
+      }
+
+      saveState();
+      render();
+      const pendingStory = buildChoicePendingDisplayStory(state.lastStory, chosenLine);
+      openEventOverlay(`好感度 ${threshold}：${affinityNodes[threshold]?.title || "羁绊事件"}`, "已发送羁绊事件后续请求，等待 AI 回复", pendingStory);
+      if (!requestHostPromptSend(state.lastPrompt, requestId)) {
+        openAiPromptOverlay("当前页面未连接 SillyTavern。请编辑或复制羁绊事件提示词后手动发送。");
+      }
+      return;
+    }
+
     const trustGain = state.pendingChoiceRewards[index] || 5;
     const chosenOptionText = state.pendingOptionTexts[index] || "选择该选项";
     const ratingName = (action === "outing" && trustGain === 10) || (action === "companion" && trustGain === 20)
@@ -3676,12 +3935,20 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       .replace(/&amp;/g, "&")
       .replace(/\u200b/g, "");
 
+    const choiceFallbackPayload = (() => {
+      if (state.choiceStep === 1) return null;
+      const pendingAction = state.pendingActionContext?.action;
+      if (!["outing", "companion", "bond"].includes(pendingAction)) return null;
+      const payload = extractChoicePayload(source);
+      return payload.story && payload.options.length === 4 ? payload : null;
+    })();
+
     // ==========================================
     // 交互式选项第一阶段：提取剧情和选项标签
     // ==========================================
-    if (state.choiceStep === 1) {
+    if (state.choiceStep === 1 || choiceFallbackPayload) {
       let choiceContent = source;
-      let choicePayload = extractChoicePayload(source);
+      let choicePayload = choiceFallbackPayload || extractChoicePayload(source);
       let [opt1, opt2, opt3, opt4] = choicePayload.options;
       let story = choicePayload.story;
 
@@ -3738,12 +4005,15 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         }
 
         pendingAiRequestId = "";
-        state.lastStory = story;
+        state.choiceStep = 1;
+        if (state.pendingActionContext?.action === "bond" && state.bondChoiceRound === 2) {
+          state.lastStory = `${state.lastStory}\n\n${story}`;
+        } else {
+          state.lastStory = story;
+        }
         saveState();
 
-        const actionName = state.pendingActionContext 
-          ? actionLabel(state.pendingActionContext.action, state.pendingActionContext.attribute)
-          : "外出/交流";
+        const actionName = currentChoiceActionTitle();
         openEventOverlay(actionName, "请做出你的选择", story);
 
         // 渲染 4 个选项按钮
@@ -3817,6 +4087,11 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
 
       pendingAiRequestId = "";
       state.lastStory = `${state.lastStory}\n\n${chosenLine}\n\n${reply}`;
+      if (state.pendingActionContext?.action === "bond" && state.activeStoryNode?.type === "affinity") {
+        state.activeStoryNode.ready = true;
+        state.bondChoiceRound = 0;
+        state.bondFirstChoiceText = "";
+      }
       if (state.log[0]) {
         state.log[0].aiReply = reply;
       }
@@ -3824,9 +4099,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       saveState();
       render();
 
-      const actionName = state.pendingActionContext 
-        ? actionLabel(state.pendingActionContext.action, state.pendingActionContext.attribute)
-        : "外出/交流";
+      const actionName = currentChoiceActionTitle();
       openEventOverlay(actionName, "已收到 SillyTavern 角色回复", displayStory);
       sendAiReplyAck(requestId, true, false);
       return;
