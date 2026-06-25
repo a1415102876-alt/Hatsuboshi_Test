@@ -23,3 +23,23 @@ test("st.html loader uses a responsive mobile viewport instead of a fixed deskto
   assert.match(stSource, /visualViewport/);
   assert.match(stSource, /@media\s*\(max-width:\s*560px\)/);
 });
+
+test("st.html pauses floor hiding when the opening floor is not mounted", () => {
+  assert.match(stSource, /hatsuboshi-floor-hide-enabled/);
+  assert.match(stSource, /querySelector\('\.mes\[mesid="0"\]'\)/);
+  assert.match(stSource, /classList\.toggle\('hatsuboshi-floor-hide-enabled', shouldHide\)/);
+});
+
+test("st.html remounts the fullscreen overlay if the host removes it", () => {
+  assert.match(stSource, /function ensureHatsuOverlayMounted\(/);
+  assert.match(stSource, /new MutationObserver/);
+  assert.match(stSource, /ensureHatsuOverlayMounted\(\)/);
+});
+
+test("st.html removes older Hatsuboshi user prompt floors from chat completion payloads", () => {
+  assert.match(stSource, /CHAT_COMPLETION_PROMPT_READY/);
+  assert.match(stSource, /function pruneHatsuChatCompletionPayload\(/);
+  assert.match(stSource, /isHatsuFrontendPromptMessage/);
+  assert.match(stSource, /lastHatsuUserPromptIndex/);
+  assert.match(stSource, /eventData\.chat\.splice\(0, eventData\.chat\.length, \.\.\.filtered\)/);
+});

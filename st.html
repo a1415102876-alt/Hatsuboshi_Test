@@ -83,6 +83,18 @@
 
     document.body.appendChild(overlay);
 
+    function ensureHatsuOverlayMounted() {
+      if (!document.body) return;
+      if (!document.getElementById('hatsu-fullscreen-overlay')) {
+        document.body.appendChild(overlay);
+      }
+    }
+
+    const overlayMountObserver = new MutationObserver(() => {
+      ensureHatsuOverlayMounted();
+    });
+    overlayMountObserver.observe(document.body, { childList: true });
+
     const page = overlay.querySelector('#hatsu-st-page');
     page.innerHTML = doc.body.innerHTML;
 
@@ -201,7 +213,7 @@
       }
 
       /* 隐式生成：处于初星学园聊天时，隐藏除第一楼（开场白）外的所有聊天气泡和输入状态 */
-      body.hatsuboshi-active .mes[mesid]:not([mesid="0"]) {
+      body.hatsuboshi-active.hatsuboshi-floor-hide-enabled .mes[mesid]:not([mesid="0"]) {
         display: none !important;
       }
       body.hatsuboshi-active .writing_indicator {
@@ -218,7 +230,7 @@
           const parentStyle = parentDoc.createElement('style');
           parentStyle.id = 'hatsuboshi-parent-styles';
           parentStyle.textContent = `
-            body.hatsuboshi-active .mes[mesid]:not([mesid="0"]) {
+            body.hatsuboshi-active.hatsuboshi-floor-hide-enabled .mes[mesid]:not([mesid="0"]) {
               display: none !important;
             }
             body.hatsuboshi-active .writing_indicator {
@@ -377,9 +389,13 @@
             postCharacterToFrame();
             updateInPageHatsuClass();
           });
+          if (eventTypes.CHAT_COMPLETION_PROMPT_READY) {
+            eventSource.on(eventTypes.CHAT_COMPLETION_PROMPT_READY, pruneHatsuChatCompletionPayload);
+          }
         }
 
         updateInPageHatsuClass();
+        bindChatDomObserver();
         console.log('[Hatsu ST Loader] 零安装直接桥接（In-page Bridge）启动成功。');
       } catch (err) {
         console.error('[Hatsu ST Loader] 启动直接桥接失败：', err);
@@ -447,21 +463,28 @@
         }
       } catch (e) {}
 
-      const shouldHide = isHatsu && window.hatsuFloorsHidden !== false;
+      const mainDoc = window.parent?.document || document;
+      const openingFloorMounted = Boolean(mainDoc.querySelector('.mes[mesid="0"]'));
+      const shouldHide = isHatsu && window.hatsuFloorsHidden !== false && openingFloorMounted;
 
       targets.forEach(body => {
-        if (shouldHide) {
+        if (isHatsu) {
           body.classList.add('hatsuboshi-active');
         } else {
           body.classList.remove('hatsuboshi-active');
         }
+        body.classList.toggle('hatsuboshi-floor-hide-enabled', shouldHide);
       });
 
       const btn = document.getElementById('hatsu-toggle-floors-btn');
       if (btn) {
         if (isHatsu) {
           btn.style.display = 'block';
-          btn.textContent = shouldHide ? '取消隐藏下方楼层' : '继续隐藏下方楼层';
+          btn.textContent = shouldHide
+            ? '取消隐藏下方楼层'
+            : openingFloorMounted
+              ? '继续隐藏下方楼层'
+              : '0L未挂载，已暂停隐藏';
         } else {
           btn.style.display = 'none';
         }
@@ -611,6 +634,52 @@
           scheduleReplyRetry(messageId, 2500);
         }
       }
+    }
+
+    let chatDomObserver = null;
+    let chatDomUpdateTimer = 0;
+    function bindChatDomObserver() {
+      if (chatDomObserver) return;
+      let mainDoc = document;
+      try {
+        mainDoc = window.parent?.document || document;
+      } catch (e) {}
+      const target = mainDoc.body;
+      if (!target) return;
+      chatDomObserver = new MutationObserver(() => {
+        if (chatDomUpdateTimer) return;
+        chatDomUpdateTimer = window.setTimeout(() => {
+          chatDomUpdateTimer = 0;
+          updateInPageHatsuClass();
+        }, 150);
+      });
+      chatDomObserver.observe(target, { childList: true, subtree: true });
+    }
+
+    function isHatsuFrontendPromptMessage(message) {
+      if (!message || message.role !== 'user') return false;
+      const content = Array.isArray(message.content)
+        ? message.content.map(part => typeof part === 'string' ? part : part?.text || '').join('\n')
+        : String(message.content || '');
+      return content.includes('初星育成系统') || content.includes('【初星学园 Galgame 渲染规则契约】');
+    }
+
+    function pruneHatsuChatCompletionPayload(eventData) {
+      if (!eventData || eventData.dryRun || !Array.isArray(eventData.chat)) return;
+      const contextInfo = getCurrentContextInfo();
+      const characterName = contextInfo.character?.name || '';
+      const isHatsu = characterName.includes('初星学园') || characterName.includes('初星') || characterName.includes('Hatsuboshi');
+      if (!isHatsu) return;
+
+      const lastHatsuUserPromptIndex = eventData.chat.reduce((lastIndex, message, index) => {
+        return isHatsuFrontendPromptMessage(message) ? index : lastIndex;
+      }, -1);
+      if (lastHatsuUserPromptIndex === -1) return;
+
+      const filtered = eventData.chat.filter((message, index) => {
+        return !isHatsuFrontendPromptMessage(message) || index === lastHatsuUserPromptIndex;
+      });
+      eventData.chat.splice(0, eventData.chat.length, ...filtered);
     }
 
     function resolveReplyAck(data, activeRequestId) {
