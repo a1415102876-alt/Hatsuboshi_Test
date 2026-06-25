@@ -367,12 +367,12 @@
       100: "演出之后，她承担起宣言带来的影响力，作为不完美的人继续闪耀。"
     },
     "秦谷美铃": {
-      0: "茶道室午睡般登场，温柔地确认制作人是否能接受她的步调。",
-      20: "她看似偷懒，却在观察制作人是否能看懂自己的努力方式。",
-      40: "SyngUp! 与手毬旧关系浮现，她必须从辅助者走向自己的单人演唱。",
-      60: "她开始主动表达照顾欲和温柔独占欲，关系从旁观变成共犯。",
-      80: "First Live 前夜，她用自己的步调面对舞台，也面对想让重要的人听见的心意。",
-      100: "演出之后，她不再只做温柔旁观者，而是主动选择继续向顶点走。"
+      0: "初见即表现出超然物外的懒散态度，制作人通过调查理解其本质并提出培育。锚点是：茶道室的午睡、前优等生的伪装、选择“慢悠悠”的偶像道路、与制作人定下悠闲登顶的约定。",
+      20: "确立制作人作为“同行者”的关系，并揭露曾经的组合羁绊。锚点是：阴天训练约定、作为“前优等生”的过去、对SyngUp的执着怀念、决心阻止手毬为了冲动而自我毁灭。",
+      40: "打破对“努力”的定义，将“散步”转化为实力提升的捷径。锚点是：练习室歌唱训练、制作人对她独特的“努力”方式的肯定、为她铺平前路的捷径、确认以自身步调散步超越手毬的战略。",
+      60: "面对单人偶像的挑战，剖析内心真实的执念与独占欲。锚点是：筹备个人演出、否定组合式的依赖唱法、制作人要求融入“真情实感”、揭露内心深处想让观众“离不开自己”的恐怖且强烈的独占欲。",
+      80: "通过观摩手毬演出确认差距与决心，发出回应式的挑战。锚点是：作为“头号粉丝”观摩手毬演出、对不顾一切演出的担忧与胃药关怀、以自身歌声为回击的“战书”、亲口教训并直面手毬。",
+      100: "First Live 成功后：自我觉醒、关系重塑。锚点是：Live获得认可、与手毬互相道歉并承认无法回到过去的组合，但确认了新的同伴关系；美铃向制作人吐露成为偶像的根源（并非憧憬，而是对光的占有欲与不甘心）；确认制作人是让自己登上最高峰、并能在那里安稳小睡的唯一共犯。"
     },
     "花海祐芽": {
       0: "迟到入学后凭直觉请求制作人担当，单纯又热烈地相信对方能成为力量。",
@@ -503,7 +503,7 @@
         "让她稍后当面来谈，不在电话里继续绕圈"
       ],
       phase2Title: "第二轮选项：面对美铃的 SyngUp 重组提案",
-      phase2Setup: "中段必须写制作人与美铃会谈、手毬赶到、重组 SyngUp 提案被摆到台面上。",
+      phase2Setup: "中段必须写制作人与美铃会谈、手毬赶到、重组 SyngUp 提案被摆到台面上。美铃希望制作人可以当SyngUp的制作人",
       phase2Options: [
         "直接拒绝：手毬不能靠回到过去解决现在的问题",
         "先承认美铃的担心，再指出重组不是唯一答案",
@@ -511,6 +511,97 @@
         "当着手毬的面说明：现在托住她的人会是制作人"
       ],
       resolution: "美铃的担心被承认，手毬没有被简单塞回 SyngUp；制作人以下一场 Live 作为验证，让美铃见证手毬的改变。"
+    }
+  };
+
+  const misuzuBondRoutes = {
+    20: {
+      title: "同行者关系",
+      objective: "确立制作人作为美铃的同行者，并揭露她对 SyngUp 与手毬的执着怀念。",
+      canonAnchor: "阴天训练约定、作为前优等生的过去、对 SyngUp 的执着怀念、决心阻止手毬为了冲动而自我毁灭。",
+      phase1Title: "第一轮选项：制作人如何理解她的懒散与过去",
+      phase1Setup: "开场从阴天训练约定切入。美铃照常慢悠悠，却没有真的逃避训练；停在制作人必须决定如何触碰她“前优等生”过去的时刻。",
+      phase1Options: [
+        "直接指出她不是懒散，而是在用自己的方式保存余力",
+        "先问她为什么明明讨厌麻烦，却还是准时来到训练室",
+        "提起前优等生时期的资料，确认她是不是故意藏起锋芒",
+        "不拆穿她，只说今天可以按她的步调慢慢开始"
+      ],
+      phase2Title: "第二轮选项：面对 SyngUp 与手毬时，制作人如何回应",
+      phase2Setup: "中段必须让美铃谈起 SyngUp，谈起她对手毬的担忧：她怀念组合，也害怕手毬又为了冲动把自己毁掉。",
+      phase2Options: [
+        "“你不是想把她拉回过去，而是不想再看她一个人摔下去。”",
+        "“如果你要阻止手毬，那我会陪你一起找不会毁掉她的方法。”",
+        "“怀念 SyngUp 不丢人，但你现在也需要自己的道路。”",
+        "“那就别只站在旁边担心，秦谷小姐。把你的歌也拿出来。”"
+      ],
+      resolution: "制作人被确认为能与她同速同行的人；美铃承认自己仍怀念 SyngUp，也承认阻止手毬自毁是她继续成为偶像的重要理由。"
+    },
+    40: {
+      title: "散步即努力",
+      objective: "打破对努力的定义，把美铃的散步、观察和慢节奏转化为实力提升的捷径。",
+      canonAnchor: "练习室歌唱训练、制作人对她独特努力方式的肯定、为她铺平前路的捷径、确认以自身步调散步超越手毬的战略。",
+      phase1Title: "第一轮选项：制作人如何重新定义美铃的努力",
+      phase1Setup: "开场从练习室歌唱训练开始。美铃看起来像是在散步、喝茶、偷懒，却准确抓住训练重点；停在制作人要不要承认这种方式也是努力的时刻。",
+      phase1Options: [
+        "告诉她这不是偷懒，而是她独有的观察和吸收方式",
+        "把她刚才散步时记住的节奏变化全部指出来",
+        "要求她不用模仿热血训练，把慢节奏继续贯彻到底",
+        "故意把训练计划写成散步路线图，让她按路线完成"
+      ],
+      phase2Title: "第二轮选项：捷径如何变成超越手毬的战略",
+      phase2Setup: "中段必须写出制作人为她铺路：不否定努力，而是寻找适合美铃的捷径。美铃开始确认自己可以用自身步调散步般接近甚至超越手毬。",
+      phase2Options: [
+        "“捷径不是作弊，是为了让你把力气用在最可怕的地方。”",
+        "“你不用追着手毬跑。你可以慢慢走到她前面。”",
+        "“从今天开始，散步就是你的训练项目之一。”",
+        "“如果别人靠燃烧抵达舞台，你就靠不浪费一步抵达。”"
+      ],
+      resolution: "美铃接受自己的慢节奏不是缺陷；制作人与她确立以散步、观察、精准发力为核心的训练战略，把捷径变成属于她的正攻法。"
+    },
+    60: {
+      title: "独占欲暴露",
+      objective: "面对单人偶像挑战，剖析美铃内心真实的执念与独占欲。",
+      canonAnchor: "筹备个人演出、否定组合式的依赖唱法、制作人要求融入真情实感、揭露内心深处想让观众离不开自己的恐怖且强烈的独占欲。",
+      phase1Title: "第一轮选项：制作人如何拆掉组合式唱法",
+      phase1Setup: "开场从个人演出筹备开始。美铃的唱法依然像是在照顾旁边的同伴，漂亮、稳定，却没有把自己放到中心；停在制作人必须指出问题的时刻。",
+      phase1Options: [
+        "直接否定她依赖组合呼吸的唱法，要求她把自己放在中央",
+        "让她关掉伴奏，只用自己的声音填满练习室",
+        "指出她不是不会独唱，而是不愿承认自己想被独占地听见",
+        "要求她别再替不存在的同伴留位置"
+      ],
+      phase2Title: "第二轮选项：制作人如何逼近她的真情实感",
+      phase2Setup: "中段必须让美铃说出或被迫面对内心深处的欲望：她并不只是温柔照顾别人，也想让观众离不开自己、把目光留在自己身上。",
+      phase2Options: [
+        "“把那份想让所有人离不开你的心情唱出来。”",
+        "“这不是温柔的歌也没关系。让我听见你真正想占有的东西。”",
+        "“你害怕的不是一个人唱，而是承认自己想成为唯一。”",
+        "“秦谷小姐，今天不用照顾任何人。只要让大家看着你。”"
+      ],
+      resolution: "美铃承认自己温柔外壳下存在强烈的独占欲；制作人没有否定这份恐怖的真情，而是把它定义为她作为单人偶像最锋利的核心。"
+    },
+    80: {
+      title: "回应式战书",
+      objective: "通过观摩手毬演出确认差距与决心，让美铃以自己的歌声向手毬发出回应式挑战。",
+      canonAnchor: "作为头号粉丝观摩手毬演出、对不顾一切演出的担忧与胃药关怀、以自身歌声为回击的战书、亲口教训并直面手毬。",
+      phase1Title: "第一轮选项：制作人如何陪她看完手毬的演出",
+      phase1Setup: "开场写美铃作为头号粉丝观摩手毬演出。她看得很认真，也因为手毬不顾一切的燃烧方式而担心；停在制作人如何回应她复杂表情的时刻。",
+      phase1Options: [
+        "承认手毬很强，同时指出美铃看见的是自己必须回应的光",
+        "把胃药递给她，提醒她担心也可以成为战斗理由",
+        "问她现在更想照顾手毬，还是更想赢过手毬",
+        "告诉她不用假装冷静，她现在的嫉妒和担心都是真的"
+      ],
+      phase2Title: "第二轮选项：美铃如何把担忧变成战书",
+      phase2Setup: "中段必须推进到美铃决定用自己的歌声回应手毬。她不是回到过去做支撑者，而是亲口教训、直面手毬，并把下一次演出变成战书。",
+      phase2Options: [
+        "“那就用你的歌告诉她：别再一个人乱来了。”",
+        "“如果你是她的头号粉丝，就亲口去教训她。”",
+        "“这次不是胃药，也不是搀扶。把你的歌递到她面前。”",
+        "“别回到 SyngUp 的位置。站在她对面，让她听见你。”"
+      ],
+      resolution: "美铃把担忧、嫉妒和怀念整理成回应式挑战；她决定不再只照顾手毬，而是用自己的舞台与歌声直面手毬。"
     }
   };
 
@@ -537,6 +628,7 @@
     boundCharacter: null,
     producer: {
       name: "{{user}}",
+      gender: "",
       personality: "",
       style: "",
       settings: ""
@@ -836,6 +928,7 @@
   }
   let pendingAiRequestId = "";
   let aiReplyRetryCount = 0;
+  let deferredLivePostReply = null;
   let interactionMode = "specified";
   let selectedInteractionCharacters = new Set();
   let activeStorageKey = STORAGE_KEY;
@@ -919,6 +1012,7 @@
     state.activeStoryNode = state.activeStoryNode || null;
     state.producer = {
       name: "{{user}}",
+      gender: "",
       personality: "",
       style: "",
       settings: "",
@@ -1236,7 +1330,7 @@
         ? `准备前往：${actionContext.destination || "散步"}` 
         : action === "companion"
           ? `发起与${state.idol}的交流`
-          : `与${state.idol}进行清水亲密互动`;
+          : `与${state.idol}进行亲密互动`;
       
       const story = action === "outing"
         ? `正在前往 ${actionContext.destination || "散步"}...`
@@ -1247,7 +1341,7 @@
       state.lastStory = story;
       state.lastPrompt = prompt;
       state.lastDebug = action === "intimacy"
-        ? "第一阶段剧情生成：等待 AI 设计 4 个清水亲密选项。本行动固定结算体力 +38、压力 -10，不增加信赖。"
+        ? "第一阶段剧情生成：等待 AI 设计 4 个亲密选项。本行动固定结算体力 +38、压力 -10，不增加信赖。"
         : `第一阶段剧情生成：等待 AI 设计 4 个选项。加成映射：\n` + shuffled.map((r, i) => `选项 ${i + 1} 对应加成 +${r}`).join("\n");
       
       saveState();
@@ -1395,6 +1489,7 @@
     return `
 制作人（{{user}}）设定：
 - 称呼：${state.producer.name || "{{user}}"}
+- 性别：${state.producer.gender || "由 AI 自行发挥"}
 - 性格：${state.producer.personality || "由 AI 自行发挥"}
 - 说话风格：${state.producer.style || "由 AI 自行发挥"}
 - 额外人设背景：${state.producer.settings || "由 AI 自行发挥"}
@@ -1461,7 +1556,7 @@ ${outputContract(narrativeLength)}
     const profile = idols[state.idol];
     const actionName = actionLabel(action, attribute);
     const actionStyle = action === "intimacy"
-      ? `${profile.styles.companion || profile.styles.rest} 这是好感度100后解锁的清水亲密互动，重点写安心、信任、被允许靠近与互相照顾。禁止露骨性描写，不写NSFW内容。`
+      ? `${profile.styles.companion || profile.styles.rest} 这是好感度100后解锁亲密互动，重点写安心、信任、被允许靠近与互相照顾。`
       : profile.styles[action] || profile.styles.rest;
     
     const destinationPrompt = action === "outing" && actionContext.destination ? `
@@ -1490,7 +1585,7 @@ ${outputContract(narrativeLength)}
           "- 选项 1：摸头、整理发丝、轻声夸奖之类的温柔安抚。",
           "- 选项 2：牵手、并肩坐下、靠肩休息之类的安心陪伴。",
           "- 选项 3：短暂拥抱、披外套、递热饮之类的照顾动作。",
-          "- 选项 4：带一点笨拙或害羞，但仍然清水、尊重边界的亲近举动。"
+          "- 选项 4：带一点笨拙或害羞，的亲近举动。"
         ].join("\n")
       : shuffledRewards.map((reward, index) => {
           return `- 选项 ${index + 1}（加成权重：+${reward} 信赖值）：${tierDescriptions[reward]}`;
@@ -1513,7 +1608,7 @@ ${buildProducerPromptSection()}
 ${destinationPrompt}
 
 请为本次${actionName}生成【前半段剧情】并设计【4个互动分支选项】供制作人选择。
-${action === "intimacy" ? "\n亲密行动限制：本次只允许清水亲密、照顾、安抚、撒娇、拥抱、牵手、摸头、靠肩等全年龄内容。不要写露骨性描写，不要写NSFW内容。" : ""}
+${action === "intimacy" ? "\n亲密行动限制：本次写亲密、照顾、安抚、撒娇、拥抱、牵手、摸头、靠肩等内容。" : ""}
 
 ==================================================
 ⚠️⚠️【输出硬规则：违反本规则将导致整个游戏崩溃报错，请务必严格服从！】⚠️⚠️
@@ -1528,7 +1623,7 @@ ${action === "intimacy" ? "\n亲密行动限制：本次只允许清水亲密、
 4. 不要在标签外写任何思考（thinking/details）、计划、规则复述、系统提示。
 ==================================================
 
-${action === "intimacy" ? "亲密选项方向（四个选项都应是正向但风味不同的清水亲近方式）：" : "选项生成质量映射规则（请根据以下等级设计对应好感的回复）："}
+${action === "intimacy" ? "亲密选项方向（四个选项都应是正向但风味不同的亲近方式）：" : "选项生成质量映射规则（请根据以下等级设计对应好感的回复）："}
 ${optionsPrompt}
 
 输出示例：
@@ -1544,7 +1639,7 @@ ${optionsPrompt}
   function buildChoicePhase2Prompt(action, attribute, chosenOptionText, trustGain, actionContext = {}) {
     const actionName = actionLabel(action, attribute);
     const outcomeName = action === "intimacy"
-      ? "【清水亲密】"
+      ? "【亲密】"
       : (action === "outing" && trustGain === 10) || (action === "companion" && trustGain === 20)
       ? "【完美互动】"
       : (action === "outing" && trustGain === 8) || (action === "companion" && trustGain === 15)
@@ -1561,7 +1656,7 @@ ${optionsPrompt}
         ? "交流的收尾/当天的总结"
         : "外出的收尾/当天的总结";
     const intimacyRule = action === "intimacy"
-      ? "\n- 本次为清水亲密路线，只写温柔、安心、信任、撒娇、拥抱、牵手、摸头、靠肩等全年龄内容。不要写露骨性描写，不要写NSFW内容。"
+      ? "\n- 本次为亲密路线，只写温柔、安心、信任、撒娇、拥抱、牵手、摸头、靠肩等内容。"
       : "";
 
     return `[初星育成系统：互动分支结算与收尾]
@@ -1643,10 +1738,22 @@ ${buildProducerPromptSection()}
     return options.map((option, index) => `<option${index + 1}>${option}</option${index + 1}>`).join("\n");
   }
 
-  function buildTemariBondPhase1Prompt(threshold) {
+  function specialBondRoutesFor(idolName = state.idol) {
+    if (idolName === "月村手毬") return temariBondRoutes;
+    if (idolName === "秦谷美铃") return misuzuBondRoutes;
+    return null;
+  }
+
+  function specialBondLabel(idolName = state.idol) {
+    if (idolName === "月村手毬") return "手毬羁绊事件";
+    if (idolName === "秦谷美铃") return "美铃羁绊事件";
+    return `${idolName || "偶像"}羁绊事件`;
+  }
+
+  function buildSpecialBondPhase1Prompt(threshold) {
     const profile = idols[state.idol];
-    const route = temariBondRoutes[threshold];
-    return `[初星育成系统：手毬羁绊事件 - 第一轮选择]
+    const route = specialBondRoutesFor()?.[threshold];
+    return `[初星育成系统：${specialBondLabel()} - 第一轮选择]
 
 担当偶像：${state.idol}
 ${getAffinityStageLine(state.idol, state.trust)}
@@ -1686,9 +1793,9 @@ ${formatBondOptions(route.phase1Options)}
 【初星正文结束】`;
   }
 
-  function buildTemariBondPhase2Prompt(threshold, firstChoiceText) {
-    const route = temariBondRoutes[threshold];
-    return `[初星育成系统：手毬羁绊事件 - 第二轮选择]
+  function buildSpecialBondPhase2Prompt(threshold, firstChoiceText) {
+    const route = specialBondRoutesFor()?.[threshold];
+    return `[初星育成系统：${specialBondLabel()} - 第二轮选择]
 
 担当偶像：${state.idol}
 ${getAffinityStageLine(state.idol, state.trust)}
@@ -1717,9 +1824,9 @@ ${formatBondOptions(route.phase2Options)}
 【初星正文结束】`;
   }
 
-  function buildTemariBondFinalPrompt(threshold, firstChoiceText, secondChoiceText) {
-    const route = temariBondRoutes[threshold];
-    return `[初星育成系统：手毬羁绊事件 - 收束]
+  function buildSpecialBondFinalPrompt(threshold, firstChoiceText, secondChoiceText) {
+    const route = specialBondRoutesFor()?.[threshold];
+    return `[初星育成系统：${specialBondLabel()} - 收束]
 
 担当偶像：${state.idol}
 ${getAffinityStageLine(state.idol, state.trust)}
@@ -1744,12 +1851,24 @@ ${route.resolution}
 ${outputContract("请写一段 900 字以内的羁绊事件收束剧情。")}`;
   }
 
+  function buildTemariBondPhase1Prompt(threshold) {
+    return buildSpecialBondPhase1Prompt(threshold);
+  }
+
+  function buildTemariBondPhase2Prompt(threshold, firstChoiceText) {
+    return buildSpecialBondPhase2Prompt(threshold, firstChoiceText);
+  }
+
+  function buildTemariBondFinalPrompt(threshold, firstChoiceText, secondChoiceText) {
+    return buildSpecialBondFinalPrompt(threshold, firstChoiceText, secondChoiceText);
+  }
+
   function buildAffinityPrompt(threshold) {
     const profile = idols[state.idol];
     const node = affinityNodes[threshold];
     const seed = affinityRouteSeeds[state.idol]?.[threshold] || node.theme;
-    if (state.idol === "月村手毬" && temariBondRoutes[threshold]) {
-      return buildTemariBondPhase1Prompt(threshold);
+    if (specialBondRoutesFor()?.[threshold]) {
+      return buildSpecialBondPhase1Prompt(threshold);
     }
     return `[初星育成系统：好感度剧情触发]
 
@@ -1967,7 +2086,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     const prompt = threshold === 0 ? buildOpeningPrompt() : buildAffinityPrompt(threshold);
     const requestId = createRequestId();
     state.activeStoryNode = { type: "affinity", threshold, ready: false };
-    if (state.idol === "月村手毬" && temariBondRoutes[threshold]) {
+    if (specialBondRoutesFor()?.[threshold]) {
       state.eventMode = "choice_prompt";
       state.choiceStep = 1;
       state.bondChoiceRound = 1;
@@ -2020,6 +2139,19 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       `${VIDEO_CDN}/${file}`
     ])
   );
+
+  function isLiveTheaterActive() {
+    const overlay = document.getElementById("liveTheater");
+    return Boolean(overlay && !overlay.hidden);
+  }
+
+  function flushDeferredLivePostReply() {
+    if (!deferredLivePostReply) return false;
+    const payload = deferredLivePostReply;
+    deferredLivePostReply = null;
+    openEventOverlay(payload.title, payload.result, payload.story);
+    return true;
+  }
 
   function playLiveVideo(videoUrl, onComplete) {
     const overlay = document.getElementById("liveTheater");
@@ -2113,7 +2245,9 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       setTimeout(() => {
         setElementHidden("liveTheater", true);
         video.src = "";
-        onComplete();
+        if (!flushDeferredLivePostReply()) {
+          onComplete();
+        }
       }, 500);
     }
 
@@ -2134,6 +2268,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
 
   function startFirstLivePostStage() {
     const result = state.firstLive.result;
+    deferredLivePostReply = null;
     state.activeStoryNode = { type: "firstLivePost", ready: false };
     const postRequestId = createRequestId();
     pendingAiRequestId = postRequestId;
@@ -3920,14 +4055,14 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         state.eventMode = "choice_prompt";
         state.choiceStep = 1;
         state.pendingOptionTexts = [];
-        state.lastPrompt = buildTemariBondPhase2Prompt(threshold, chosenOptionText);
+        state.lastPrompt = buildSpecialBondPhase2Prompt(threshold, chosenOptionText);
         state.lastStory = `${state.lastStory}\n\n${chosenLine}`;
-        state.lastDebug = `手毬羁绊事件：第一轮已选择“${chosenOptionText}”，等待第二轮选项。`;
+        state.lastDebug = `${specialBondLabel()}：第一轮已选择“${chosenOptionText}”，等待第二轮选项。`;
       } else {
         state.eventMode = "choice_resolution";
         state.choiceStep = 2;
-        state.lastPrompt = buildTemariBondFinalPrompt(threshold, state.bondFirstChoiceText, chosenOptionText);
-        state.lastDebug = `手毬羁绊事件：第二轮已选择“${chosenOptionText}”，等待最终收束。`;
+        state.lastPrompt = buildSpecialBondFinalPrompt(threshold, state.bondFirstChoiceText, chosenOptionText);
+        state.lastDebug = `${specialBondLabel()}：第二轮已选择“${chosenOptionText}”，等待最终收束。`;
       }
 
       saveState();
@@ -4301,6 +4436,11 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
             : node?.type === "interaction"
               ? "偶像互动"
               : (state.log[0]?.action || "AI 后续剧情");
+    if (node?.type === "firstLivePost" && isLiveTheaterActive()) {
+      deferredLivePostReply = { title, result: "已收到 SillyTavern 角色回复", story: reply };
+      sendAiReplyAck(requestId, true, false);
+      return;
+    }
     openEventOverlay(title, "已收到 SillyTavern 角色回复", reply);
     sendAiReplyAck(requestId, true, false);
   }
@@ -4509,6 +4649,10 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
           <input type="text" id="modalProdName" value="${state.producer?.name || '{{user}}'}">
         </div>
         <div class="prod-setting-row">
+          <label for="modalProdGender">制作人性别</label>
+          <input type="text" id="modalProdGender" value="${state.producer?.gender || ''}">
+        </div>
+        <div class="prod-setting-row">
           <label for="modalProdPersonality">性格特征</label>
           <textarea id="modalProdPersonality" rows="2">${state.producer?.personality || ''}</textarea>
         </div>
@@ -4527,6 +4671,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       document.getElementById("modalProdSaveBtn").addEventListener("click", () => {
         state.producer = {
           name: document.getElementById("modalProdName").value.trim() || "{{user}}",
+          gender: document.getElementById("modalProdGender").value.trim(),
           personality: document.getElementById("modalProdPersonality").value.trim(),
           style: document.getElementById("modalProdStyle").value.trim(),
           settings: document.getElementById("modalProdSettings").value.trim()
@@ -4787,6 +4932,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
 
       // Populate producer setup form with existing state if any
       document.getElementById("prodNameInput").value = state.producer?.name || "{{user}}";
+      document.getElementById("prodGenderInput").value = state.producer?.gender || "";
       document.getElementById("prodPersonalityInput").value = state.producer?.personality || "";
       document.getElementById("prodStyleInput").value = state.producer?.style || "";
       document.getElementById("prodSettingsInput").value = state.producer?.settings || "";
@@ -4852,10 +4998,11 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
 
     // Save producer settings immediately
     const name = document.getElementById("prodNameInput").value.trim() || "{{user}}";
+    const gender = document.getElementById("prodGenderInput").value.trim();
     const personality = document.getElementById("prodPersonalityInput").value.trim();
     const style = document.getElementById("prodStyleInput").value.trim();
     const settings = document.getElementById("prodSettingsInput").value.trim();
-    state.producer = { name, personality, style, settings };
+    state.producer = { name, gender, personality, style, settings };
 
     triggerWipeTransition(() => {
       // Start produce game

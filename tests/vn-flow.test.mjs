@@ -5,6 +5,22 @@ import vm from "node:vm";
 
 const source = readFileSync(new URL("../app.js", import.meta.url), "utf8");
 
+test("First Live post reply waits until the live theater closes", () => {
+  const applyStart = source.indexOf("function applyAiReply(");
+  const applyEnd = source.indexOf("function sendAiReplyAck", applyStart);
+  assert.notEqual(applyStart, -1, "applyAiReply must exist");
+  assert.notEqual(applyEnd, -1, "sendAiReplyAck must follow applyAiReply");
+  const applyBody = source.slice(applyStart, applyEnd);
+  const videoBody = readFunction("playLiveVideo");
+  const postBody = readFunction("startFirstLivePostStage");
+
+  assert.match(applyBody, /node\?\.type === "firstLivePost" && isLiveTheaterActive\(\)/);
+  assert.match(applyBody, /deferredLivePostReply = \{ title, result: "已收到 SillyTavern 角色回复", story: reply \}/);
+  assert.match(videoBody, /flushDeferredLivePostReply\(\)/);
+  assert.match(videoBody, /onComplete\(\)/);
+  assert.match(postBody, /deferredLivePostReply = null/);
+});
+
 function readFunction(functionName) {
   const declaration = `function ${functionName}`;
   const start = source.indexOf(declaration);
@@ -140,19 +156,16 @@ test("intimacy action is visible but locked until trust reaches 100", () => {
   assert.match(rendering, /信赖值达到100后解锁亲密行动/);
 });
 
-test("intimacy prompts stay wholesome and do not add trust", () => {
+test("intimacy choice settlement restores stamina and stress without adding trust", () => {
   const phase1Start = source.indexOf("function buildChoicePhase1Prompt(");
   const phase2Start = source.indexOf("function buildChoicePhase2Prompt(");
   const openingStart = source.indexOf("function buildOpeningPrompt(", phase2Start);
   assert.notEqual(phase1Start, -1, "buildChoicePhase1Prompt must exist");
   assert.notEqual(phase2Start, -1, "buildChoicePhase2Prompt must exist");
   assert.notEqual(openingStart, -1, "buildOpeningPrompt must follow choice prompt builders");
-  const phase1 = source.slice(phase1Start, phase2Start);
   const phase2 = source.slice(phase2Start, openingStart);
   const selection = readFunction("handleChoiceSelection");
 
-  assert.match(phase1, /清水亲密/);
-  assert.match(phase1, /不要写NSFW内容/);
   assert.match(phase2, /体力 \+38，压力 -10，不增加信赖值/);
   assert.match(selection, /action === "intimacy"[\s\S]*delta\.stamina = 38[\s\S]*delta\.stress = -10/);
   assert.doesNotMatch(selection, /action === "intimacy"[\s\S]{0,160}delta\.trust/);

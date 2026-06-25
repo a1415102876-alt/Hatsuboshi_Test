@@ -80,6 +80,7 @@ function makePromptBuilder() {
     affinityNodes: readObjectLiteral("affinityNodes"),
     affinityRouteSeeds: readObjectLiteral("affinityRouteSeeds"),
     temariBondRoutes: readObjectLiteral("temariBondRoutes"),
+    misuzuBondRoutes: readObjectLiteral("misuzuBondRoutes"),
     getAffinityStageLine: () => "好感度阶段标签：AFF_TEMARI_40",
     buildProducerPromptSection: () => "",
     getPhase: () => "First Live 中期",
@@ -87,7 +88,7 @@ function makePromptBuilder() {
     outputContract: (text) => `输出格式要求：${text}`
   };
   vm.runInNewContext(
-    `${readFunction("formatBondOptions")}\n${readFunction("buildTemariBondPhase1Prompt")}\n${readFunction("buildTemariBondPhase2Prompt")}\n${readFunction("buildTemariBondFinalPrompt")}\n${readFunction("buildAffinityPrompt")}\nthis.buildAffinityPrompt = buildAffinityPrompt;`,
+    `${readFunction("formatBondOptions")}\n${readFunction("specialBondRoutesFor")}\n${readFunction("specialBondLabel")}\n${readFunction("buildSpecialBondPhase1Prompt")}\n${readFunction("buildSpecialBondPhase2Prompt")}\n${readFunction("buildSpecialBondFinalPrompt")}\n${readFunction("buildTemariBondPhase1Prompt")}\n${readFunction("buildTemariBondPhase2Prompt")}\n${readFunction("buildTemariBondFinalPrompt")}\n${readFunction("buildAffinityPrompt")}\nthis.buildAffinityPrompt = buildAffinityPrompt;`,
     context
   );
   return context.buildAffinityPrompt;
@@ -111,4 +112,23 @@ test("Temari bond 100 remains a completed post-live ending prompt", () => {
   assert.match(prompt, /First Live 成功后的故事结尾/);
   assert.match(prompt, /First Live 成功后：赌约兑现/);
   assert.doesNotMatch(prompt, /手毬羁绊事件 - 第一轮选择/);
+});
+
+test("Misuzu has dedicated two-choice bond route seeds", () => {
+  const routes = readObjectLiteral("misuzuBondRoutes");
+  assert.deepEqual(Object.keys(routes).map(Number), [20, 40, 60, 80]);
+  assert.match(routes[20].canonAnchor, /SyngUp/);
+  assert.match(routes[40].objective, /散步/);
+  assert.match(routes[60].canonAnchor, /独占欲/);
+  assert.match(routes[80].resolution, /直面手毬/);
+
+  const routeSelector = readFunction("specialBondRoutesFor");
+  const affinityPrompt = readFunction("buildAffinityPrompt");
+  const triggerStart = source.indexOf("function triggerAffinityStory(");
+  const triggerEnd = source.indexOf("const VIDEO_CDN", triggerStart);
+  const triggerBody = source.slice(triggerStart, triggerEnd);
+
+  assert.match(routeSelector, /idolName === "秦谷美铃"[\s\S]*misuzuBondRoutes/);
+  assert.match(affinityPrompt, /specialBondRoutesFor\(\)\?\.\[threshold\]/);
+  assert.match(triggerBody, /specialBondRoutesFor\(\)\?\.\[threshold\]/);
 });
