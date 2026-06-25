@@ -105,6 +105,28 @@ test("newly unlocked bond nodes do not interrupt the same day", () => {
   assert.equal(context.isBondEventDay(), true);
 });
 
+test("settlement refreshes affinity unlocks before advancing schedule", () => {
+  const settlementStart = source.indexOf("function settleAction(");
+  const requestIdStart = source.indexOf("function createRequestId(", settlementStart);
+  assert.notEqual(settlementStart, -1, "settleAction must exist");
+  assert.notEqual(requestIdStart, -1, "createRequestId must follow settleAction");
+  const settlement = source.slice(settlementStart, requestIdStart);
+  const choiceSettlement = readFunction("handleChoiceSelection");
+  const fallbackSettlement = readFunction("fallbackChoiceSettlement");
+
+  const assertRefreshBeforeAdvance = (body, label) => {
+    const refreshIndex = body.indexOf("refreshAffinityUnlocks();");
+    const advanceIndex = body.indexOf("advanceRound();");
+    assert.notEqual(refreshIndex, -1, `${label} must refresh affinity unlocks`);
+    assert.notEqual(advanceIndex, -1, `${label} must advance the schedule`);
+    assert.ok(refreshIndex < advanceIndex, `${label} must record unlock day before changing day`);
+  };
+
+  assertRefreshBeforeAdvance(settlement, "normal settlement");
+  assertRefreshBeforeAdvance(choiceSettlement, "choice settlement");
+  assertRefreshBeforeAdvance(fallbackSettlement, "fallback settlement");
+});
+
 test("affinity 100 does not consume a schedule day", () => {
   const context = makeContext({
     affinity: { openingComplete: true, unlocked: [100], pending: [100], viewed: [] }

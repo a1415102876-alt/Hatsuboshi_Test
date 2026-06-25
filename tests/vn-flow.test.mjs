@@ -124,8 +124,37 @@ test("choice UI is gated by explicit event mode and action whitelist", () => {
   context.state.pendingActionContext = { action: "companion" };
   assert.equal(context.isChoicePromptMode(), true);
 
+  context.state.pendingActionContext = { action: "intimacy" };
+  assert.equal(context.isChoicePromptMode(), true);
+
   context.state.pendingActionContext = { action: "bond" };
   assert.equal(context.isChoicePromptMode(), true);
+});
+
+test("intimacy action unlocks only in extra round after trust reaches 100", () => {
+  const availability = readFunction("isActionAvailable");
+  const rendering = readFunction("renderActionButtons");
+
+  assert.match(availability, /action === "intimacy"\s*\?\s*state\.trust >= 100/);
+  assert.match(rendering, /state\.trust >= 100[\s\S]*\["亲密",\s*"intimacy"/);
+});
+
+test("intimacy prompts stay wholesome and do not add trust", () => {
+  const phase1Start = source.indexOf("function buildChoicePhase1Prompt(");
+  const phase2Start = source.indexOf("function buildChoicePhase2Prompt(");
+  const openingStart = source.indexOf("function buildOpeningPrompt(", phase2Start);
+  assert.notEqual(phase1Start, -1, "buildChoicePhase1Prompt must exist");
+  assert.notEqual(phase2Start, -1, "buildChoicePhase2Prompt must exist");
+  assert.notEqual(openingStart, -1, "buildOpeningPrompt must follow choice prompt builders");
+  const phase1 = source.slice(phase1Start, phase2Start);
+  const phase2 = source.slice(phase2Start, openingStart);
+  const selection = readFunction("handleChoiceSelection");
+
+  assert.match(phase1, /清水亲密/);
+  assert.match(phase1, /不要写NSFW内容/);
+  assert.match(phase2, /体力 \+38，压力 -10，不增加信赖值/);
+  assert.match(selection, /action === "intimacy"[\s\S]*delta\.stamina = 38[\s\S]*delta\.stress = -10/);
+  assert.doesNotMatch(selection, /action === "intimacy"[\s\S]{0,160}delta\.trust/);
 });
 
 test("choice resolution mode is separate from choice prompt parsing", () => {
@@ -157,6 +186,35 @@ test("AI reply routing uses explicit event modes instead of raw choiceStep gates
   assert.match(body, /state\.eventMode\s*!==\s*"choice_prompt"/);
   assert.doesNotMatch(body, /if\s*\(\s*state\.choiceStep\s*===\s*1\s*\|\|/);
   assert.doesNotMatch(body, /if\s*\(\s*state\.choiceStep\s*===\s*2\s*\)/);
+});
+
+test("choice prompt regeneration resends the original prompt instead of host regenerate", () => {
+  const body = readFunction("triggerRegeneration");
+
+  assert.match(body, /isChoicePromptMode\(\)/);
+  assert.match(body, /requestHostPromptSend\(state\.lastPrompt,\s*requestId\)/);
+});
+
+test("line fallback requires numbered choices instead of ordinary quoted dialogue", () => {
+  const start = source.indexOf("function applyAiReply(");
+  const end = source.indexOf("function sendAiReplyAck", start);
+  assert.notEqual(start, -1, "applyAiReply must exist");
+  assert.notEqual(end, -1, "sendAiReplyAck must follow applyAiReply");
+  const body = source.slice(start, end);
+
+  assert.doesNotMatch(body, /return\s+hasQuotes\s*\|\|\s*hasNumberPrefix/);
+  assert.match(body, /return\s+hasNumberPrefix/);
+});
+
+test("malformed choice prompt stays regenerable instead of settling the action", () => {
+  const start = source.indexOf("function applyAiReply(");
+  const end = source.indexOf("function sendAiReplyAck", start);
+  assert.notEqual(start, -1, "applyAiReply must exist");
+  assert.notEqual(end, -1, "sendAiReplyAck must follow applyAiReply");
+  const body = source.slice(start, end);
+
+  assert.match(body, /选项生成不完整/);
+  assert.doesNotMatch(body, /fallbackChoiceSettlement\(reply\)/);
 });
 
 test("opening a non-choice event clears stale choice UI", () => {

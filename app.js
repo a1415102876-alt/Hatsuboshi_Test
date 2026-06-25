@@ -564,7 +564,7 @@
   const statShort = { Vo: "Vo.", Da: "Da.", Vi: "Vi." };
   const statIcons = { Vo: "mic", Da: "dance", Vi: "visual" };
   const statColors = { Vo: "#ff4f9a", Da: "#26a9f4", Vi: "#ffca35" };
-  const actionIcons = { lesson: "book", training: "dance", rest: "rest", outing: "map", companion: "chat", freechat: "chat", interaction: "star", bond: "heart" };
+  const actionIcons = { lesson: "book", training: "dance", rest: "rest", outing: "map", companion: "chat", intimacy: "heart", freechat: "chat", interaction: "star", bond: "heart" };
   const promptPanels = { prompt: "tabPrompt", log: "tabLog", debug: "tabDebug" };
   const idolBackgroundStatus = new Map();
   let activePromptTab = "prompt";
@@ -1129,13 +1129,13 @@
   }
 
   function actionLabel(action, attribute) {
-    const names = { lesson: "上课", training: "训练", rest: "休息", outing: "外出", companion: "交流", bond: "羁绊事件" };
+    const names = { lesson: "上课", training: "训练", rest: "休息", outing: "外出", companion: "交流", intimacy: "亲密", bond: "羁绊事件" };
     const sp = action === "training" && attribute && state.sp?.[attribute] ? "SP" : "";
     return attribute ? `${attribute}${sp}${names[action]}` : names[action];
   }
 
   function isChoicePromptAction(action) {
-    return action === "outing" || action === "companion" || action === "bond";
+    return action === "outing" || action === "companion" || action === "intimacy" || action === "bond";
   }
 
   function isChoicePromptMode() {
@@ -1153,7 +1153,7 @@
     }
     return state.pendingActionContext
       ? actionLabel(state.pendingActionContext.action, state.pendingActionContext.attribute)
-      : "外出/交流";
+      : "外出/交流/亲密";
   }
 
   function roundLabel() {
@@ -1167,7 +1167,7 @@
   function isActionAvailable(action) {
     if (isBondEventDay()) return action === "bond";
     return isExtraRound()
-      ? new Set(["outing", "companion"]).has(action)
+      ? (action === "intimacy" ? state.trust >= 100 : new Set(["outing", "companion"]).has(action))
       : new Set(["lesson", "training", "rest"]).has(action);
   }
 
@@ -1208,18 +1208,17 @@
       return;
     }
     if (!isActionAvailable(action)) {
-      showToast("当前轮次不可用", "前三轮只开放上课、训练和休息；额外轮次只开放外出和交流。", "warn");
+      showToast("当前轮次不可用", "前三轮只开放上课、训练和休息；额外轮次开放外出、交流和好感100后的亲密。", "warn");
       return;
     }
 
     state.pendingActionContext = { action, attribute, actionContext };
 
-    if (action === "outing" || action === "companion") {
+    if (action === "outing" || action === "companion" || action === "intimacy") {
       state.eventMode = "choice_prompt";
       state.choiceStep = 1;
       
-      // 外出是最高10，交流是最高20
-      const baseRewards = action === "outing" ? [10, 8, 6, 4] : [20, 15, 10, 5];
+      const baseRewards = action === "outing" ? [10, 8, 6, 4] : action === "companion" ? [20, 15, 10, 5] : [0, 0, 0, 0];
       // 随机分配
       const shuffled = [...baseRewards].sort(() => Math.random() - 0.5);
       state.pendingChoiceRewards = shuffled;
@@ -1235,16 +1234,21 @@
       
       const resultSummary = action === "outing" 
         ? `准备前往：${actionContext.destination || "散步"}` 
-        : `发起与${state.idol}的交流`;
+        : action === "companion"
+          ? `发起与${state.idol}的交流`
+          : `与${state.idol}进行清水亲密互动`;
       
       const story = action === "outing"
         ? `正在前往 ${actionContext.destination || "散步"}...`
-        : `正在准备与${state.idol}的对话主题...`;
+        : action === "companion"
+          ? `正在准备与${state.idol}的对话主题...`
+          : `正在准备与${state.idol}的亲密安抚场景...`;
         
       state.lastStory = story;
       state.lastPrompt = prompt;
-      state.lastDebug = `第一阶段剧情生成：等待 AI 设计 4 个选项。加成映射：\n` + 
-        shuffled.map((r, i) => `选项 ${i + 1} 对应加成 +${r}`).join("\n");
+      state.lastDebug = action === "intimacy"
+        ? "第一阶段剧情生成：等待 AI 设计 4 个清水亲密选项。本行动固定结算体力 +38、压力 -10，不增加信赖。"
+        : `第一阶段剧情生成：等待 AI 设计 4 个选项。加成映射：\n` + shuffled.map((r, i) => `选项 ${i + 1} 对应加成 +${r}`).join("\n");
       
       saveState();
       render();
@@ -1300,6 +1304,9 @@
       delta.stamina = 18;
       delta.stress = -2;
       delta.trust = 15;
+    } else if (action === "intimacy") {
+      delta.stamina = 38;
+      delta.stress = -10;
     }
 
     if (randomEvent) {
@@ -1328,8 +1335,8 @@
     state.log.unshift({ day: state.day, round: state.round, phase: getPhase(), action: actionName, result: resultSummary, rawAction: action, rawAttribute: attribute });
     state.log = state.log.slice(0, 24);
 
-    advanceRound();
     refreshAffinityUnlocks();
+    advanceRound();
     rollSpCandidates();
     saveState();
     render();
@@ -1420,8 +1427,8 @@
 - 先承认随机结果已经由前端结算，再用角色关系和性格解释为什么产生这个额外增益。
 - 不要额外增加未列出的数值。` : "";
 
-    const narrativeLength = ["outing", "companion"].includes(action)
-      ? "请写一段 900 字以内的完整场景叙事。本次回复需要把外出/交流的情景从开始、互动推进到当天收束完整写完，不要停在待续。"
+    const narrativeLength = ["outing", "companion", "intimacy"].includes(action)
+      ? "请写一段 900 字以内的完整场景叙事。本次回复需要把本次行动的情景从开始、互动推进到当天收束完整写完，不要停在待续。"
       : "请写一段 400 字以内的短叙事。";
 
     return `[初星育成系统：行动已经由前端结算]
@@ -1453,7 +1460,9 @@ ${outputContract(narrativeLength)}
   function buildChoicePhase1Prompt(action, attribute, shuffledRewards, actionContext = {}) {
     const profile = idols[state.idol];
     const actionName = actionLabel(action, attribute);
-    const actionStyle = profile.styles[action] || profile.styles.rest;
+    const actionStyle = action === "intimacy"
+      ? `${profile.styles.companion || profile.styles.rest} 这是好感度100后解锁的清水亲密互动，重点写安心、信任、被允许靠近与互相照顾。禁止露骨性描写，不写NSFW内容。`
+      : profile.styles[action] || profile.styles.rest;
     
     const destinationPrompt = action === "outing" && actionContext.destination ? `
 本次外出地点：${actionContext.destination}
@@ -1476,9 +1485,16 @@ ${outputContract(narrativeLength)}
       4: "【笨拙回复】：有点不解风情、笨拙、让人感到无奈或者微微叹气娇嗔的选项。"
     };
 
-    const optionsPrompt = shuffledRewards.map((reward, index) => {
-      return `- 选项 ${index + 1}（加成权重：+${reward} 信赖值）：${tierDescriptions[reward]}`;
-    }).join("\n");
+    const optionsPrompt = action === "intimacy"
+      ? [
+          "- 选项 1：摸头、整理发丝、轻声夸奖之类的温柔安抚。",
+          "- 选项 2：牵手、并肩坐下、靠肩休息之类的安心陪伴。",
+          "- 选项 3：短暂拥抱、披外套、递热饮之类的照顾动作。",
+          "- 选项 4：带一点笨拙或害羞，但仍然清水、尊重边界的亲近举动。"
+        ].join("\n")
+      : shuffledRewards.map((reward, index) => {
+          return `- 选项 ${index + 1}（加成权重：+${reward} 信赖值）：${tierDescriptions[reward]}`;
+        }).join("\n");
 
     return `[初星育成系统：互动分支设计]
 
@@ -1497,6 +1513,7 @@ ${buildProducerPromptSection()}
 ${destinationPrompt}
 
 请为本次${actionName}生成【前半段剧情】并设计【4个互动分支选项】供制作人选择。
+${action === "intimacy" ? "\n亲密行动限制：本次只允许清水亲密、照顾、安抚、撒娇、拥抱、牵手、摸头、靠肩等全年龄内容。不要写露骨性描写，不要写NSFW内容。" : ""}
 
 ==================================================
 ⚠️⚠️【输出硬规则：违反本规则将导致整个游戏崩溃报错，请务必严格服从！】⚠️⚠️
@@ -1511,7 +1528,7 @@ ${destinationPrompt}
 4. 不要在标签外写任何思考（thinking/details）、计划、规则复述、系统提示。
 ==================================================
 
-选项生成质量映射规则（请根据以下等级设计对应好感的回复）：
+${action === "intimacy" ? "亲密选项方向（四个选项都应是正向但风味不同的清水亲近方式）：" : "选项生成质量映射规则（请根据以下等级设计对应好感的回复）："}
 ${optionsPrompt}
 
 输出示例：
@@ -1526,13 +1543,26 @@ ${optionsPrompt}
 
   function buildChoicePhase2Prompt(action, attribute, chosenOptionText, trustGain, actionContext = {}) {
     const actionName = actionLabel(action, attribute);
-    const outcomeName = (action === "outing" && trustGain === 10) || (action === "companion" && trustGain === 20)
+    const outcomeName = action === "intimacy"
+      ? "【清水亲密】"
+      : (action === "outing" && trustGain === 10) || (action === "companion" && trustGain === 20)
       ? "【完美互动】"
       : (action === "outing" && trustGain === 8) || (action === "companion" && trustGain === 15)
         ? "【极佳互动】"
         : (action === "outing" && trustGain === 6) || (action === "companion" && trustGain === 10)
           ? "【普通互动】"
           : "【笨拙互动】";
+    const outcomeLine = action === "intimacy"
+      ? `本次选择的判定结果为：${outcomeName}（前端已结算：体力 +38，压力 -10，不增加信赖值）`
+      : `本次选择的判定结果为：${outcomeName}（给玩家增加了 +${trustGain} 信赖值）`;
+    const closureTarget = action === "intimacy"
+      ? "亲密互动的收尾/当天的安抚总结"
+      : action === "companion"
+        ? "交流的收尾/当天的总结"
+        : "外出的收尾/当天的总结";
+    const intimacyRule = action === "intimacy"
+      ? "\n- 本次为清水亲密路线，只写温柔、安心、信任、撒娇、拥抱、牵手、摸头、靠肩等全年龄内容。不要写露骨性描写，不要写NSFW内容。"
+      : "";
 
     return `[初星育成系统：互动分支结算与收尾]
 
@@ -1546,14 +1576,15 @@ ${getAffinityStageLine(state.idol, state.trust)}
 制作人刚才做出了以下选择（或行动）：
 “${chosenOptionText}”
 
-本次选择的判定结果为：${outcomeName}（给玩家增加了 +${trustGain} 信赖值）
+${outcomeLine}
 
-请承接前半段剧情，写出你（${state.idol}）在面对制作人这个选择时的【反应剧情】以及本次【外出的收尾/当天的总结】。
+请承接前半段剧情，写出你（${state.idol}）在面对制作人这个选择时的【反应剧情】以及本次【${closureTarget}】。
 
 叙事要求：
 - 请以符合偶像性格的语调展开，根据选择的优劣档次表现出对应的反应。
 - 在本段剧情中完成事件的收束，结束当天的活动。
 - 限制在 600 字以内。
+${intimacyRule}
 
 输出格式要求：
 【初星正文开始】
@@ -2543,6 +2574,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       ? [
           ["外出", "outing", null, "#20dfad", "体力+38"],
           ["交流", "companion", null, "#ff4f9a", "信赖+15"],
+          ...(state.trust >= 100 ? [["亲密", "intimacy", null, "#f58ab5", "压-10"]] : []),
           ["闲聊", "freechat", null, "#8c73ff", "行动0"],
           ["互动", "interaction", null, "#ff783f", "行动0"]
         ]
@@ -2979,6 +3011,16 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     
     // 同步 VN 播放器显示为重新生成中的加载状态
     openEventOverlay(state.lastEventTitle, "正在重新生成...", loadText);
+
+    if (isChoicePromptMode()) {
+      if (requestHostPromptSend(state.lastPrompt, requestId)) {
+        showToast("正在重新生成选项", "已重新发送完整选项提示词，等待 SillyTavern 回复。", "info");
+        return;
+      }
+      openAiPromptOverlay("当前页面未连接 SillyTavern。请复制或编辑完整选项提示词后手动发送。");
+      showToast("提示词已准备", "重新生成选项需要发送完整提示词。", "warn");
+      return;
+    }
     
     if (isSillyTavernHost()) {
       console.log('[Hatsu Produce] 正在发送 regenerate 消息到宿主端...', requestId);
@@ -3182,7 +3224,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       if (action === "outing") {
         return "./assets/scenes/campus.png";
       }
-      if (action === "companion") {
+      if (action === "companion" || action === "intimacy") {
         return "./assets/scenes/rest.png";
       }
     }
@@ -3806,6 +3848,9 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       delta.stamina = 18;
       delta.stress = -2;
       delta.trust = 15; // 降级时的默认交流信赖值
+    } else if (action === "intimacy") {
+      delta.stamina = 38;
+      delta.stress = -10;
     }
     
     Object.entries(delta).forEach(([key, value]) => {
@@ -3813,8 +3858,8 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       state[key] = clamp((state[key] || 0) + value, 0, max);
     });
     
-    advanceRound();
     refreshAffinityUnlocks();
+    advanceRound();
     rollSpCandidates();
     
     const actionName = actionLabel(action, attribute);
@@ -3890,9 +3935,11 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       return;
     }
 
-    const trustGain = state.pendingChoiceRewards[index] || 5;
+    const trustGain = state.pendingChoiceRewards[index] ?? (action === "intimacy" ? 0 : 5);
     const chosenOptionText = state.pendingOptionTexts[index] || "选择该选项";
-    const ratingName = (action === "outing" && trustGain === 10) || (action === "companion" && trustGain === 20)
+    const ratingName = action === "intimacy"
+      ? "【清水亲密】"
+      : (action === "outing" && trustGain === 10) || (action === "companion" && trustGain === 20)
       ? "【完美】"
       : (action === "outing" && trustGain === 8) || (action === "companion" && trustGain === 15)
         ? "【极佳】"
@@ -3910,6 +3957,9 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       delta.stamina = 18;
       delta.stress = -2;
       delta.trust = trustGain;
+    } else if (action === "intimacy") {
+      delta.stamina = 38;
+      delta.stress = -10;
     }
     
     Object.entries(delta).forEach(([key, value]) => {
@@ -3918,8 +3968,8 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     });
     
     // 2. 推进回合与日常刷新
-    advanceRound();
     refreshAffinityUnlocks();
+    advanceRound();
     rollSpCandidates();
     
     // 3. 记录日志
@@ -3940,7 +3990,9 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     
     const prompt = buildChoicePhase2Prompt(action, attribute, chosenOptionText, trustGain, actionContext);
     state.lastPrompt = prompt;
-    state.lastDebug = `第二阶段剧情生成：已选择“${chosenOptionText}”，获得信赖度 +${trustGain}（${ratingName}）。等待 AI 生成偶像反应。`;
+    state.lastDebug = action === "intimacy"
+      ? `第二阶段剧情生成：已选择“${chosenOptionText}”，亲密行动固定结算体力 +38、压力 -10（${ratingName}）。等待 AI 生成偶像反应。`
+      : `第二阶段剧情生成：已选择“${chosenOptionText}”，获得信赖度 +${trustGain}（${ratingName}）。等待 AI 生成偶像反应。`;
     
     saveState();
     render();
@@ -3987,7 +4039,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     const choiceFallbackPayload = (() => {
       if (state.eventMode !== "choice_prompt" || isChoicePromptMode()) return null;
       const pendingAction = state.pendingActionContext?.action;
-      if (!["outing", "companion", "bond"].includes(pendingAction)) return null;
+      if (!["outing", "companion", "intimacy", "bond"].includes(pendingAction)) return null;
       const payload = extractChoicePayload(source);
       return payload.story && payload.options.length === 4 ? payload : null;
     })();
@@ -4012,17 +4064,13 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         const lines = choiceContent.split('\n').map(l => l.trim()).filter(Boolean);
         if (lines.length >= 5) {
           const last4 = lines.slice(-4);
-          const isQuotedOrNumbered = last4.every(line => {
-            const hasQuotes = (line.startsWith("“") && line.endsWith("”")) ||
-                              (line.startsWith('"') && line.endsWith('"')) ||
-                              (line.startsWith("「") && line.endsWith("」")) ||
-                              (line.startsWith("'") && line.endsWith("'"));
+          const isNumberedChoices = last4.every(line => {
             const hasNumberPrefix = /^[1-4\u2460-\u2463\uff11-\uff14\u4e00-\u56dbA-Da-d][\.\u3002\u3001、\-\s:]/.test(line) ||
                                     /^(选项|Option|分支)[\s1-4\u4e00-\u56dbA-Da-d]/.test(line);
-            return hasQuotes || hasNumberPrefix;
+            return hasNumberPrefix;
           });
 
-          if (isQuotedOrNumbered) {
+          if (isNumberedChoices) {
             const cleanOption = (text) => {
               let cleaned = text.trim();
               cleaned = cleaned.replace(/^(选项|Option|分支|)[1-4\u4e00-\u56dbA-Da-d][\.\u3002\u3001、\-\s：:]*/i, '');
@@ -4108,10 +4156,17 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         return;
       }
 
-      // 完结了但 XML 格式缺失，降级至普通单阶段结算
-      console.warn("[Hatsu Choices] XML parsing failed. Falling back to default settlement.");
+      // 完结了但选项格式缺失，保留事件等待玩家重新生成
+      console.warn("[Hatsu Choices] Choice prompt incomplete. Waiting for regeneration.");
       const reply = cleanReplyText(choiceContent);
-      fallbackChoiceSettlement(reply);
+      pendingAiRequestId = "";
+      state.eventMode = "choice_prompt";
+      state.choiceStep = 1;
+      state.pendingOptionTexts = [];
+      state.lastStory = reply || "选项生成不完整，请点击重新生成。";
+      saveState();
+      render();
+      openEventOverlay(currentChoiceActionTitle(), "选项生成不完整，请点击重新生成", state.lastStory);
       sendAiReplyAck(requestId, true, false);
       return;
     }
