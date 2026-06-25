@@ -76,6 +76,36 @@ test("Misuzu training multiplier is applied before the existing SP bonus", () =>
   assert.equal(context.calculateTrainingGain(50, 1, true), 75);
 });
 
+test("stamina-consuming lessons and training are unavailable without enough stamina", () => {
+  const context = {
+    state: { idol: "藤田琴音", stamina: 0, round: 1, liveReady: false },
+    canonicalIdolName: (name) => name,
+    lessonEventChance: 45,
+    trainingEventChance: 55,
+    isBondEventDay: () => false,
+    isExtraRound: () => false
+  };
+  vm.runInNewContext(
+    `${readFunction("getActionTuning")}\n${readFunction("hasEnoughStaminaForAction")}\n${readFunction("isActionAvailable")}\nthis.isActionAvailable = isActionAvailable;`,
+    context
+  );
+
+  assert.equal(context.isActionAvailable("training"), false);
+  assert.equal(context.isActionAvailable("lesson"), false);
+  assert.equal(context.isActionAvailable("rest"), true);
+
+  context.state.stamina = 11;
+  assert.equal(context.isActionAvailable("training"), false);
+  context.state.stamina = 12;
+  assert.equal(context.isActionAvailable("training"), true);
+
+  context.state.idol = "秦谷美铃";
+  context.state.stamina = 32;
+  assert.equal(context.isActionAvailable("training"), false);
+  context.state.stamina = 33;
+  assert.equal(context.isActionAvailable("training"), true);
+});
+
 test("settlement, random events, and UI consume shared action tuning", () => {
   assert.match(readFunction("settleAction"), /getActionTuning\(state\.idol, action\)/);
   assert.match(readFunction("settleAction"), /calculateTrainingGain/);

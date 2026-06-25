@@ -1270,11 +1270,17 @@
     return state.round === 4;
   }
 
+  function hasEnoughStaminaForAction(action) {
+    const staminaDelta = getActionTuning(state.idol, action).staminaDelta;
+    return staminaDelta >= 0 || Number(state.stamina || 0) >= Math.abs(staminaDelta);
+  }
+
   function isActionAvailable(action) {
     if (isBondEventDay()) return action === "bond";
-    return isExtraRound()
+    const scheduleAvailable = isExtraRound()
       ? (action === "intimacy" ? state.trust >= 100 : new Set(["outing", "companion"]).has(action))
       : new Set(["lesson", "training", "rest"]).has(action);
+    return scheduleAvailable && hasEnoughStaminaForAction(action);
   }
 
   function advanceRound() {
