@@ -2574,7 +2574,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       ? [
           ["外出", "outing", null, "#20dfad", "体力+38"],
           ["交流", "companion", null, "#ff4f9a", "信赖+15"],
-          ...(state.trust >= 100 ? [["亲密", "intimacy", null, "#f58ab5", "压-10"]] : []),
+          ["亲密", "intimacy", null, "#f58ab5", state.trust >= 100 ? "压-10" : "信赖100解锁"],
           ["闲聊", "freechat", null, "#8c73ff", "行动0"],
           ["互动", "interaction", null, "#ff783f", "行动0"]
         ]
@@ -2590,7 +2590,12 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
           ["互动", "interaction", null, "#ff783f", "行动0"]
         ];
     actions.forEach(([label, action, attribute, color, cost]) => {
-      container.appendChild(createActionButton(label, action, attribute, color, cost));
+      const button = createActionButton(label, action, attribute, color, cost);
+      if (action === "intimacy" && state.trust < 100) {
+        button.title = "信赖值达到100后解锁亲密行动";
+        button.setAttribute("aria-label", "亲密，信赖值100解锁");
+      }
+      container.appendChild(button);
     });
     document.getElementById("actionModeLabel").textContent = isExtraRound()
       ? "请选择额外行动"
