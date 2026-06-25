@@ -128,3 +128,31 @@ test("every AI prompt builder includes the affinity stage line", () => {
     assert.match(body, /getAffinityStageLine\(state\.idol, state\.trust\)/, `${name} must include the current affinity tag`);
   }
 });
+
+test("AI prompt builders include the galgame render contract", () => {
+  const builders = [
+    "buildPrompt",
+    "buildChoicePhase1Prompt",
+    "buildChoicePhase2Prompt",
+    "buildOpeningPrompt",
+    "buildLivePrompt",
+    "buildAffinityPrompt",
+    "buildFreeChatPrompt",
+    "buildIdolInteractionPrompt",
+    "buildFirstLivePrePrompt",
+    "buildFirstLivePostPrompt"
+  ];
+
+  assert.match(source, /function galgameRenderContract\(/, "shared render contract helper must exist");
+  assert.match(source, /【初星学园 Galgame 渲染规则契约】/);
+  assert.match(source, /普通剧情中只使用：/);
+  assert.match(source, /选项剧情必须输出完整四个 option。/);
+
+  for (const name of builders) {
+    const start = source.indexOf(`  function ${name}(`);
+    assert.notEqual(start, -1, `${name} must exist`);
+    const end = source.indexOf("\n  function ", start + 1);
+    const body = source.slice(start, end === -1 ? source.length : end);
+    assert.match(body, /galgameRenderContract\(|outputContract\(/, `${name} must include the shared render contract`);
+  }
+});

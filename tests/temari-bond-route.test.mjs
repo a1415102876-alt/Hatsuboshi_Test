@@ -88,7 +88,7 @@ function makePromptBuilder() {
     outputContract: (text) => `输出格式要求：${text}`
   };
   vm.runInNewContext(
-    `${readFunction("formatBondOptions")}\n${readFunction("specialBondRoutesFor")}\n${readFunction("specialBondLabel")}\n${readFunction("buildSpecialBondPhase1Prompt")}\n${readFunction("buildSpecialBondPhase2Prompt")}\n${readFunction("buildSpecialBondFinalPrompt")}\n${readFunction("buildTemariBondPhase1Prompt")}\n${readFunction("buildTemariBondPhase2Prompt")}\n${readFunction("buildTemariBondFinalPrompt")}\n${readFunction("buildAffinityPrompt")}\nthis.buildAffinityPrompt = buildAffinityPrompt;`,
+    `${readFunction("galgameRenderContract")}\n${readFunction("formatBondOptions")}\n${readFunction("specialBondRoutesFor")}\n${readFunction("specialBondLabel")}\n${readFunction("buildSpecialBondPhase1Prompt")}\n${readFunction("buildSpecialBondPhase2Prompt")}\n${readFunction("buildSpecialBondFinalPrompt")}\n${readFunction("buildTemariBondPhase1Prompt")}\n${readFunction("buildTemariBondPhase2Prompt")}\n${readFunction("buildTemariBondFinalPrompt")}\n${readFunction("buildAffinityPrompt")}\nthis.buildAffinityPrompt = buildAffinityPrompt;`,
     context
   );
   return context.buildAffinityPrompt;

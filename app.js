@@ -1486,13 +1486,53 @@
     return `${actionName}已经由前端完成结算。\n\n${resultSummary}\n\n剧情正文等待角色卡 AI 回复生成。点击“让 AI 生成后续”后，可以先编辑提示词，再发送给当前 SillyTavern 对话。${locationLine}${eventLine}`;
   }
 
-  function outputContract(maxText) {
-    return `输出格式要求：
-1. 最终展示给玩家的剧情正文必须且只能放在两行纯文本分隔符之间：
+  function galgameRenderContract(mode = "normal") {
+    if (mode === "choice") {
+      return `【初星学园 Galgame 渲染规则契约】
+
+选项剧情模式：
+如果本次提示词明确要求输出 <option1> 到 <option4>，则必须使用以下结构：
+
 【初星正文开始】
-这里是正文内容
+<story>
+<narration>...</narration>
+<dialogue char="角色名">“...”</dialogue>
+</story>
+<option1>选项文本</option1>
+<option2>选项文本</option2>
+<option3>选项文本</option3>
+<option4>选项文本</option4>
 【初星正文结束】
-2. 不要改变或重新计算前端已结算的数值。
+
+限制：
+- 选项剧情必须输出完整四个 option。
+- <story> 内部只能使用 <dialogue> 和 <narration>。
+- 不要输出 Markdown、列表、数值结算、解释文本。`;
+    }
+
+    return `【初星学园 Galgame 渲染规则契约】
+
+普通剧情模式：
+正文必须放在：
+【初星正文开始】
+...
+【初星正文结束】
+
+普通剧情中只使用：
+<dialogue char="角色名">“台词”</dialogue>
+<narration>旁白或动作</narration>
+
+限制：
+- 普通剧情不要输出 option。
+- 不要输出 Markdown、列表、数值结算、解释文本。`;
+  }
+
+  function outputContract(maxText) {
+    return `${galgameRenderContract("normal")}
+
+输出格式要求：
+1. 不要改变或重新计算前端已结算的数值。
+2. 不要在【初星正文开始】之前或【初星正文结束】之后输出任何内容。
 - ${maxText}`;
   }
 
@@ -1622,6 +1662,8 @@ ${destinationPrompt}
 请为本次${actionName}生成【前半段剧情】并设计【4个互动分支选项】供制作人选择。
 ${action === "intimacy" ? "\n亲密行动限制：本次写亲密、照顾、安抚、撒娇、拥抱、牵手、摸头、靠肩等内容。" : ""}
 
+${galgameRenderContract("choice")}
+
 ==================================================
 ⚠️⚠️【输出硬规则：违反本规则将导致整个游戏崩溃报错，请务必严格服从！】⚠️⚠️
 1. 你必须严格且完整地把所有输出包裹在【初星正文开始】与【初星正文结束】分隔符内。
@@ -1693,12 +1735,7 @@ ${outcomeLine}
 - 限制在 600 字以内。
 ${intimacyRule}
 
-输出格式要求：
-【初星正文开始】
-这里写你的反应与事件收尾剧情正文
-【初星正文结束】
-
-- 不要写思考、规则复述、标题或数值复盘。`;
+${outputContract("请写一段 600 字以内的反应与事件收尾剧情正文。")}`;
   }
 
   function buildOpeningPrompt() {
@@ -1743,7 +1780,9 @@ ${buildProducerPromptSection()}
 
 请准备进入 First Live 最终演出。
 不要重新计算数值。
-先写考核前的短暂候场与制作人确认状态，等待玩家点击开始 First Live。`;
+先写考核前的短暂候场与制作人确认状态，等待玩家点击开始 First Live。
+
+${outputContract("请写一段 400 字以内的 First Live 候场剧情，停在正式开始演出之前。")}`;
   }
 
   function formatBondOptions(options) {
@@ -1791,6 +1830,8 @@ ${route.phase1Setup}
 ${route.phase1Title}：
 ${formatBondOptions(route.phase1Options)}
 
+${galgameRenderContract("choice")}
+
 输出硬规则：
 1. 必须输出【初星正文开始】与【初星正文结束】。
 2. 分隔符内部只能包含一个 <story> 与四个 <option1> 到 <option4>。
@@ -1828,6 +1869,8 @@ ${formatBondOptions(route.phase2Options)}
 - 让剧情推进到更深层矛盾暴露处，再停在制作人需要做第二次选择的时刻。
 - 四个选项必须严格使用上方给定选项文本。
 - 不要结算或推进数值。
+
+${galgameRenderContract("choice")}
 
 输出硬规则：
 【初星正文开始】
