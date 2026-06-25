@@ -2467,6 +2467,85 @@ p {
   font-weight: 700;
 }
 
+.vn-log-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 34;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.vn-log-overlay[hidden] {
+  display: none !important;
+}
+
+.vn-log-panel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  width: min(720px, 100%);
+  max-height: min(760px, calc(100svh - 40px));
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(12, 10, 16, 0.9);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.5);
+}
+
+.vn-log-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.vn-log-head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 24px;
+}
+
+.vn-log-content {
+  min-height: 0;
+  overflow: auto;
+  padding: 16px 18px 20px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.vn-log-entry {
+  padding: 13px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.vn-log-entry:last-child {
+  border-bottom: 0;
+}
+
+.vn-log-entry strong {
+  display: block;
+  margin-bottom: 7px;
+  color: #fff;
+  font-size: 14px;
+}
+
+.vn-log-entry .vn-log-text {
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.vn-log-empty {
+  padding: 28px 12px;
+  color: rgba(255, 255, 255, 0.68);
+  text-align: center;
+}
+
 .story-h2 {
   display: block;
   font-size: 1.35em;

@@ -136,6 +136,21 @@ test("affinity 100 does not consume a schedule day", () => {
   assert.equal(context.pendingRequiredBondThreshold(), null);
 });
 
+test("post-live affinity 100 is exposed through the bond action button path", () => {
+  const renderActionButtons = readFunction("renderActionButtons");
+  const renderActionHighlights = readFunction("renderActionHighlights");
+  const actionClickHandlerStart = source.indexOf('if (button.dataset.action === "bond")');
+  assert.notEqual(actionClickHandlerStart, -1, "bond action click handler must exist");
+  const actionClickHandler = source.slice(actionClickHandlerStart, actionClickHandlerStart + 260);
+
+  assert.match(source, /function pendingFinalAffinityThreshold\(\)/);
+  assert.match(source, /function pendingAffinityActionThreshold\(\)/);
+  assert.match(renderActionButtons, /pendingAffinityActionThreshold\(\)/);
+  assert.match(renderActionButtons, /好感度\$\{threshold\}羁绊/);
+  assert.match(renderActionHighlights, /pendingAffinityActionThreshold\(\)/);
+  assert.match(actionClickHandler, /pendingAffinityActionThreshold\(\)/);
+});
+
 test("completing a bond event day advances to the next regular day", () => {
   const context = makeContext({
     day: 9,

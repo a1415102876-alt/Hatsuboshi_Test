@@ -116,6 +116,24 @@ test("ended VN dialogue clicks ignore control buttons", () => {
   assert.match(body, /target\.closest\("\.vn-btn"\)/);
 });
 
+test("VN log button opens the dark in-event dialogue history overlay", () => {
+  const openBody = readFunction("openVnLogView");
+  const closeBody = readFunction("closeVnLogView");
+  const eventBody = readFunction("openEventOverlay");
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const css = readFileSync(new URL("../style.css", import.meta.url), "utf8");
+
+  assert.match(html, /id="vnLogOverlay"/);
+  assert.match(html, /id="vnLogContent"/);
+  assert.match(css, /\.vn-log-overlay/);
+  assert.match(css, /rgba\(0,\s*0,\s*0,\s*0\.72\)/);
+  assert.match(openBody, /buildVnLogHtml\(\)/);
+  assert.match(openBody, /vnLogOverlay/);
+  assert.doesNotMatch(openBody, /vnClassicPanel/);
+  assert.match(closeBody, /vnLogOverlay/);
+  assert.match(eventBody, /closeVnLogView\(\)/);
+});
+
 test("choice UI is gated by explicit event mode and action whitelist", () => {
   const context = {
     state: {

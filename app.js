@@ -1210,6 +1210,18 @@
     return Boolean(state.idol && !state.liveReady && pendingRequiredBondThreshold());
   }
 
+  function pendingFinalAffinityThreshold() {
+    ensureStateShape();
+    const threshold = 100;
+    if (!state.idol || !state.firstLive.success) return null;
+    if (!state.affinity.pending.includes(threshold) || state.affinity.viewed.includes(threshold)) return null;
+    return threshold;
+  }
+
+  function pendingAffinityActionThreshold() {
+    return pendingRequiredBondThreshold() || pendingFinalAffinityThreshold();
+  }
+
   function completeBondEventDay(threshold) {
     markAffinityViewed(Number(threshold));
     state.activeStoryNode = null;
@@ -2685,13 +2697,17 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   function renderActionButtons() {
     const container = document.getElementById("actionButtons");
     container.innerHTML = "";
-    if (isBondEventDay()) {
-      const threshold = pendingRequiredBondThreshold();
+    const pendingAffinityThreshold = pendingAffinityActionThreshold();
+    if (pendingAffinityThreshold) {
+      const threshold = pendingAffinityThreshold;
       const node = affinityNodes[threshold];
-      container.appendChild(createActionButton(`好感度${threshold}羁绊`, "bond", null, "#ff4f9a", "剧情日"));
+      const costText = REQUIRED_BOND_THRESHOLDS.includes(Number(threshold)) ? "剧情日" : "剧情";
+      container.appendChild(createActionButton(`好感度${threshold}羁绊`, "bond", null, "#ff4f9a", costText));
       container.appendChild(createActionButton("闲聊", "freechat", null, "#8c73ff", "行动0"));
       container.appendChild(createActionButton("互动", "interaction", null, "#ff783f", "行动0"));
-      document.getElementById("actionModeLabel").textContent = `羁绊事件日：${node?.title || "羁绊事件"}`;
+      document.getElementById("actionModeLabel").textContent = REQUIRED_BOND_THRESHOLDS.includes(Number(threshold))
+        ? `羁绊事件日：${node?.title || "羁绊事件"}`
+        : `羁绊事件：${node?.title || "羁绊事件"}`;
       renderActionHighlights();
       return;
     }
@@ -2743,7 +2759,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       if (["freechat", "interaction"].includes(button.dataset.action)) {
         button.disabled = false;
       } else if (button.dataset.action === "bond") {
-        button.disabled = !isBondEventDay();
+        button.disabled = !pendingAffinityActionThreshold();
       } else if (button.dataset.action === "live") {
         button.disabled = Boolean(state.firstLive.completed);
       } else {
@@ -3177,6 +3193,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   }
 
   function openEventOverlay(title, result, story) {
+    if (typeof closeVnLogView === "function") closeVnLogView();
     state.lastEventTitle = title || "行动事件";
     state.lastEventResult = result || "本次行动已经完成结算。";
     state.lastEventStory = story || state.lastStory || "本次行动已经完成。";
@@ -3661,12 +3678,43 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     }
   }
 
+  function buildVnLogHtml() {
+    const entries = [];
+    if (vnSlides.length) {
+      entries.push(...vnSlides.map((slide, index) => ({
+        title: slide.speaker ? `${index + 1}. ${slide.speaker}` : `${index + 1}. 旁白`,
+        text: slide.text || ""
+      })));
+    }
+    (state.log || []).forEach((item) => {
+      if (!item.aiReply) return;
+      entries.push({
+        title: `过往记录：第 ${item.day} 天 ${item.action || "事件"}`,
+        text: item.aiReply
+      });
+    });
+    if (!entries.length) {
+      return `<div class="vn-log-empty">暂无对话记录。剧情显示后可以在这里回看文本。</div>`;
+    }
+    return entries.map((entry) => `
+      <article class="vn-log-entry">
+        <strong>${formatStoryText(entry.title)}</strong>
+        <div class="vn-log-text">${formatStoryText(entry.text)}</div>
+      </article>
+    `).join("");
+  }
+
   function openVnLogView() {
-    document.getElementById("vnClassicPanel").style.display = "grid";
+    const overlay = document.getElementById("vnLogOverlay");
+    const content = document.getElementById("vnLogContent");
+    if (!overlay || !content) return;
+    content.innerHTML = buildVnLogHtml();
+    overlay.hidden = false;
   }
 
   function closeVnLogView() {
-    document.getElementById("vnClassicPanel").style.display = "none";
+    const overlay = document.getElementById("vnLogOverlay");
+    if (overlay) overlay.hidden = true;
   }
 
   function triggerVnEditPrompt() {
@@ -4899,7 +4947,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       return;
     }
     if (button.dataset.action === "bond") {
-      const threshold = pendingRequiredBondThreshold();
+      const threshold = pendingAffinityActionThreshold();
       if (threshold) triggerAffinityStory(threshold);
       return;
     }
@@ -5060,6 +5108,10 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   });
   document.getElementById("vnBtnEdit").addEventListener("click", triggerVnEditPrompt);
   document.getElementById("closeClassicPanelBtn").addEventListener("click", closeVnLogView);
+  document.getElementById("vnLogCloseBtn").addEventListener("click", closeVnLogView);
+  document.getElementById("vnLogOverlay").addEventListener("click", (event) => {
+    if (event.target.id === "vnLogOverlay") closeVnLogView();
+  });
   document.getElementById("sideItemLastEvent").addEventListener("click", reopenLastEvent);
   document.getElementById("sideItemStory").addEventListener("click", openAffinityModal);
   document.getElementById("aiPromptCancelBtn").addEventListener("click", closeAiPromptOverlay);

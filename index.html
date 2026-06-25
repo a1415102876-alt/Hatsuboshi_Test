@@ -251,6 +251,18 @@
         <div class="vn-choices-title" id="vnChoicesTitle">请做出你的选择</div>
         <div id="vnChoicesContainer" class="vn-choices-container"></div>
       </div>
+      <div id="vnLogOverlay" class="vn-log-overlay" hidden>
+        <section class="vn-log-panel" role="dialog" aria-modal="true" aria-labelledby="vnLogTitle">
+          <header class="vn-log-head">
+            <div>
+              <p class="ui-kicker">Dialogue Log</p>
+              <h2 id="vnLogTitle">对话记录</h2>
+            </div>
+            <button id="vnLogCloseBtn" class="icon-button" type="button" aria-label="关闭对话记录"><svg><use href="#icon-close"></use></svg></button>
+          </header>
+          <div id="vnLogContent" class="vn-log-content"></div>
+        </section>
+      </div>
     </div>
 
     <!-- Classical Panel (Hidden by default, shown as log panel overlay) -->
