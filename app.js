@@ -769,7 +769,6 @@
     pendingOptionTexts: [],
     selectedChoiceText: "",
     selectedChoiceRating: "",
-    nsfwIntimacyHistory: [],
     bondChoiceRound: 0,
     bondFirstChoiceText: "",
     dailySummary: {
@@ -1174,7 +1173,6 @@
     state.pendingOptionTexts = Array.isArray(state.pendingOptionTexts) ? state.pendingOptionTexts : [];
     state.selectedChoiceText = state.selectedChoiceText || "";
     state.selectedChoiceRating = state.selectedChoiceRating || "";
-    state.nsfwIntimacyHistory = Array.isArray(state.nsfwIntimacyHistory) ? state.nsfwIntimacyHistory : [];
     state.bondChoiceRound = Number.isInteger(state.bondChoiceRound) ? state.bondChoiceRound : 0;
     state.bondFirstChoiceText = state.bondFirstChoiceText || "";
     state.dailySummary = {
@@ -1535,21 +1533,10 @@
     state.intimacyRoute = null;
   }
 
-  function resetNsfwIntimacyHistory() {
-    state.nsfwIntimacyHistory = [];
-  }
-
-  function appendNsfwIntimacyHistory(role, text) {
-    ensureStateShape();
-    const trimmed = String(text || "").trim();
-    if (!trimmed) return;
-    state.nsfwIntimacyHistory.push({ role, text: trimmed });
-  }
-
-  function formatNsfwIntimacyHistory() {
-    return (state.nsfwIntimacyHistory || [])
-      .map((entry) => (entry.role === "producer" ? `制作人：${entry.text}` : entry.text))
-      .join("\n\n") || "（尚无历史）";
+  function buildNsfwIntimacyChatContextLine() {
+    return `上下文说明：
+- 本次 NSFW 亲密的前文剧情与互动已在当前 SillyTavern 聊天记录中，请直接承接上文。
+- 不要复述前文，只写本轮新增内容。`;
   }
 
   function nsfwIntimacyActionTitle() {
@@ -1639,7 +1626,7 @@
       pendingAiRequestId = requestId;
       
       const prompt = isNsfwIntimacyActive()
-        ? (resetNsfwIntimacyHistory(), buildNsfwIntimacyOpeningPrompt(choiceContext))
+        ? buildNsfwIntimacyOpeningPrompt(choiceContext)
         : buildChoicePhase1Prompt(action, attribute, shuffled, choiceContext);
       
       const resultSummary = action === "outing" 
@@ -2184,8 +2171,7 @@ ${getAffinityStageLine(state.idol, state.trust)}
 - 玩家仍可在 VN 界面选择 4 个选项、自定义输入，或随时点“结束”进入收尾。
 - 不要写摸头、靠肩、递热饮等仅限清水互动的选项。
 
-已发生剧情与互动：
-${formatNsfwIntimacyHistory()}
+${buildNsfwIntimacyChatContextLine()}
 
 制作人刚才的行动或台词：
 ${producerAction}
@@ -2241,8 +2227,7 @@ ${getAffinityStageLine(state.idol, state.trust)}
 角色设定前提：
 - 制作人刚刚选择结束本次 NSFW 亲密互动。
 
-已发生剧情与互动：
-${formatNsfwIntimacyHistory()}
+${buildNsfwIntimacyChatContextLine()}
 
 前端已结算：体力 +38，压力 -10，不增加信赖值。
 
@@ -5253,7 +5238,6 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
 
   function requestNsfwIntimacyAiRound(producerAction, prompt, debugLine) {
     if (!state.pendingActionContext) return;
-    appendNsfwIntimacyHistory("producer", producerAction);
     const chosenLine = `<narration>▶ 制作人：${producerAction}</narration>`;
     state.pendingOptionTexts = [];
     state.eventMode = "choice_prompt";
@@ -5308,7 +5292,6 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     closeVnChoicesOverlay();
     settleNsfwIntimacyStats();
     const producerAction = "（结束本次亲密互动）";
-    appendNsfwIntimacyHistory("producer", producerAction);
     const chosenLine = `<narration>▶ 制作人选择结束本次 NSFW 亲密互动</narration>`;
     state.selectedChoiceText = "结束亲密";
     state.selectedChoiceRating = "【NSFW亲密·结束】";
@@ -6131,7 +6114,6 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         state.eventMode = "choice_prompt";
         state.choiceStep = 1;
         if (nsfwMode) {
-          appendNsfwIntimacyHistory("scene", segmentStory);
           state.lastStory = state.lastStory
             ? `${state.lastStory}\n\n${segmentStory}`
             : segmentStory;
@@ -6242,9 +6224,6 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         state.activeStoryNode.ready = true;
         state.bondChoiceRound = 0;
         state.bondFirstChoiceText = "";
-      }
-      if (isNsfwIntimacyActive()) {
-        resetNsfwIntimacyHistory();
       }
       clearIntimacyRoute();
       if (state.log[0]) {

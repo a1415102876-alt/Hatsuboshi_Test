@@ -186,8 +186,9 @@ test("NSFW intimacy uses multi-turn VN choices with custom input and end", () =>
   assert.match(source, /function buildNsfwIntimacyOpeningPrompt\(/);
   assert.match(source, /function buildNsfwIntimacyContinuePrompt\(/);
   assert.match(source, /function buildNsfwIntimacyClosingPrompt\(/);
-  assert.match(source, /function handleNsfwIntimacyEndChoice\(/);
-  assert.match(source, /function handleNsfwIntimacyCustomChoice\(/);
+  assert.match(source, /function buildNsfwIntimacyChatContextLine\(/);
+  assert.match(source, /SillyTavern 聊天记录中/);
+  assert.doesNotMatch(source, /已发生剧情与互动/);
   assert.match(html, /id="vnCustomChoicePanel"/);
   assert.match(html, /id="vnCustomChoiceInput"/);
   assert.match(source, /自定义输入/);
