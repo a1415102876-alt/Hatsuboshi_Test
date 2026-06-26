@@ -79,6 +79,7 @@ function makePromptBuilder() {
     },
     affinityNodes: readObjectLiteral("affinityNodes"),
     affinityRouteSeeds: readObjectLiteral("affinityRouteSeeds"),
+    kotoneBondRoutes: readObjectLiteral("kotoneBondRoutes"),
     temariBondRoutes: readObjectLiteral("temariBondRoutes"),
     misuzuBondRoutes: readObjectLiteral("misuzuBondRoutes"),
     getAffinityStageLine: () => "好感度阶段标签：AFF_TEMARI_40",
@@ -131,4 +132,16 @@ test("Misuzu has dedicated two-choice bond route seeds", () => {
   assert.match(routeSelector, /idolName === "秦谷美铃"[\s\S]*misuzuBondRoutes/);
   assert.match(affinityPrompt, /specialBondRoutesFor\(\)\?\.\[threshold\]/);
   assert.match(triggerBody, /specialBondRoutesFor\(\)\?\.\[threshold\]/);
+});
+
+test("Kotone has dedicated two-choice bond route seeds", () => {
+  const routes = readObjectLiteral("kotoneBondRoutes");
+  assert.deepEqual(Object.keys(routes).map(Number), [20, 40, 60, 80]);
+  assert.match(routes[20].canonAnchor, /不会抛弃/);
+  assert.match(routes[40].objective, /打工/);
+  assert.match(routes[60].canonAnchor, /玩偶秀/);
+  assert.match(routes[80].resolution, /堂堂正正站上舞台/);
+
+  const routeSelector = readFunction("specialBondRoutesFor");
+  assert.match(routeSelector, /idolName === "藤田琴音"[\s\S]*kotoneBondRoutes/);
 });
