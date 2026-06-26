@@ -165,13 +165,33 @@ test("choice UI is gated by explicit event mode and action whitelist", () => {
   assert.equal(context.isChoicePromptMode(), true);
 });
 
-test("intimacy action is visible but locked until trust reaches 100", () => {
+test("intimacy action is visible but locked until trust reaches 60", () => {
   const availability = readFunction("isActionAvailable");
   const rendering = readFunction("renderActionButtons");
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 
-  assert.match(availability, /action === "intimacy"\s*\?\s*state\.trust >= 100/);
-  assert.match(rendering, /\["亲密",\s*"intimacy",\s*null,\s*"#f58ab5",\s*state\.trust >= 100 \? "压-10" : "信赖100解锁"\]/);
-  assert.match(rendering, /信赖值达到100后解锁亲密行动/);
+  assert.match(source, /function isIntimacyUnlocked\(/);
+  assert.match(availability, /isIntimacyUnlocked\(\)/);
+  assert.match(rendering, /\["亲密",\s*"intimacy",\s*null,\s*"#f58ab5",\s*isIntimacyUnlocked\(\) \? "压-10" : "信赖60解锁"\]/);
+  assert.match(rendering, /信赖值达到 \$\{INTIMACY_UNLOCK_TRUST\} 后解锁亲密行动/);
+  assert.match(html, /id="intimacyOverlay"/);
+  assert.match(source, /function openIntimacyOverlay\(/);
+  assert.match(source, /function confirmIntimacyMode\(/);
+  assert.match(source, /INTIMACY_NSFW_UNLOCK_TRUST = 100/);
+});
+
+test("NSFW intimacy uses multi-turn VN choices with custom input and end", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+
+  assert.match(source, /function buildNsfwIntimacyOpeningPrompt\(/);
+  assert.match(source, /function buildNsfwIntimacyContinuePrompt\(/);
+  assert.match(source, /function buildNsfwIntimacyClosingPrompt\(/);
+  assert.match(source, /function handleNsfwIntimacyEndChoice\(/);
+  assert.match(source, /function handleNsfwIntimacyCustomChoice\(/);
+  assert.match(html, /id="vnCustomChoicePanel"/);
+  assert.match(html, /id="vnCustomChoiceInput"/);
+  assert.match(source, /自定义输入/);
+  assert.match(source, /handleNsfwIntimacyEndChoice/);
 });
 
 test("intimacy choice settlement restores stamina and stress without adding trust", () => {

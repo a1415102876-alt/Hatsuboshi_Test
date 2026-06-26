@@ -260,6 +260,14 @@
       <div id="vnChoicesOverlay" class="vn-choices-overlay" style="display: none;">
         <div class="vn-choices-title" id="vnChoicesTitle">请做出你的选择</div>
         <div id="vnChoicesContainer" class="vn-choices-container"></div>
+        <div id="vnCustomChoicePanel" class="vn-custom-choice-panel" hidden>
+          <label class="vn-custom-choice-label" for="vnCustomChoiceInput">自定义行动</label>
+          <textarea id="vnCustomChoiceInput" class="vn-custom-choice-input" rows="3" maxlength="200" placeholder="输入你想对担当说的话或想做的动作"></textarea>
+          <div class="vn-custom-choice-actions">
+            <button id="vnCustomChoiceCancelBtn" class="vn-choice-btn vn-choice-btn-muted" type="button">返回选项</button>
+            <button id="vnCustomChoiceConfirmBtn" class="vn-choice-btn vn-choice-btn-accent" type="button">发送</button>
+          </div>
+        </div>
       </div>
       <div id="vnLogOverlay" class="vn-log-overlay" hidden>
         <section class="vn-log-panel" role="dialog" aria-modal="true" aria-labelledby="vnLogTitle">
@@ -380,6 +388,34 @@
       <footer class="event-actions">
         <button id="outingCancelBtn" class="event-button secondary" type="button">取消</button>
         <button id="outingCustomConfirmBtn" class="event-button primary" type="button">前往自定义地点</button>
+      </footer>
+    </article>
+  </section>
+
+  <section id="intimacyOverlay" class="event-overlay" hidden aria-label="选择亲密模式">
+    <article class="event-panel intimacy-panel">
+      <header class="event-head">
+        <div>
+          <p class="ui-kicker">Intimacy Select</p>
+          <h2>选择亲密模式</h2>
+        </div>
+        <span id="intimacyPhaseBadge" class="event-phase">First Live 前期</span>
+      </header>
+      <p id="intimacyModeNote" class="ai-prompt-note">信赖 60 解锁普通亲密；信赖 100 解锁 NSFW 亲密。</p>
+      <div class="intimacy-mode-list" role="list">
+        <button id="intimacyNormalBtn" class="intimacy-mode-button" type="button" role="listitem">
+          <strong>普通亲密</strong>
+          <span>摸头、拥抱、牵手、安抚等清水向亲近互动。固定结算：体力 +38，压力 -10。</span>
+          <em class="intimacy-mode-badge is-ready">压-10</em>
+        </button>
+        <button id="intimacyNsfwBtn" class="intimacy-mode-button" type="button" role="listitem">
+          <strong>NSFW 亲密</strong>
+          <span>多轮 VN 演出：AI 提供 4 个选项，也可自定义输入，随时结束并生成收尾。</span>
+          <em id="intimacyNsfwBadge" class="intimacy-mode-badge">信赖100解锁</em>
+        </button>
+      </div>
+      <footer class="event-actions">
+        <button id="intimacyCancelBtn" class="event-button secondary" type="button">取消</button>
       </footer>
     </article>
   </section>

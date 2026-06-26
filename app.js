@@ -310,6 +310,8 @@
   ];
   const FINAL_LIVE_DAY = 22;
   const SUMMARY_ROUND = 5;
+  const INTIMACY_UNLOCK_TRUST = 60;
+  const INTIMACY_NSFW_UNLOCK_TRUST = 100;
   const PHONE_CHAT_LINE_DELAY_MS = 2800;
   const phoneAppRegistry = [
     {
@@ -763,9 +765,11 @@
     choiceStep: 0,
     pendingChoiceRewards: [],
     pendingActionContext: null,
+    intimacyRoute: null,
     pendingOptionTexts: [],
     selectedChoiceText: "",
     selectedChoiceRating: "",
+    nsfwIntimacyHistory: [],
     bondChoiceRound: 0,
     bondFirstChoiceText: "",
     dailySummary: {
@@ -1022,6 +1026,12 @@
       return;
     }
 
+    const intimacyOverlay = document.getElementById("intimacyOverlay");
+    if (intimacyOverlay && !intimacyOverlay.hidden) {
+      bgmManager.play("talk");
+      return;
+    }
+
     if (state.liveReady) {
       bgmManager.play("live_prep");
       return;
@@ -1160,9 +1170,11 @@
     state.choiceStep = Number.isInteger(state.choiceStep) ? state.choiceStep : 0;
     state.pendingChoiceRewards = Array.isArray(state.pendingChoiceRewards) ? state.pendingChoiceRewards : [];
     state.pendingActionContext = state.pendingActionContext || null;
+    state.intimacyRoute = state.intimacyRoute || null;
     state.pendingOptionTexts = Array.isArray(state.pendingOptionTexts) ? state.pendingOptionTexts : [];
     state.selectedChoiceText = state.selectedChoiceText || "";
     state.selectedChoiceRating = state.selectedChoiceRating || "";
+    state.nsfwIntimacyHistory = Array.isArray(state.nsfwIntimacyHistory) ? state.nsfwIntimacyHistory : [];
     state.bondChoiceRound = Number.isInteger(state.bondChoiceRound) ? state.bondChoiceRound : 0;
     state.bondFirstChoiceText = state.bondFirstChoiceText || "";
     state.dailySummary = {
@@ -1422,6 +1434,7 @@
   }
 
   function currentChoiceActionTitle() {
+    if (isNsfwIntimacyActive()) return nsfwIntimacyActionTitle();
     if (state.pendingActionContext?.action === "bond") {
       const threshold = state.pendingActionContext.threshold;
       return `好感度 ${threshold}：${affinityNodes[threshold]?.title || "羁绊事件"}`;
@@ -1498,10 +1511,55 @@
     return staminaDelta >= 0 || Number(state.stamina || 0) >= Math.abs(staminaDelta);
   }
 
+  function isIntimacyUnlocked() {
+    return Number(state.trust || 0) >= INTIMACY_UNLOCK_TRUST;
+  }
+
+  function isIntimacyNsfwUnlocked() {
+    return Number(state.trust || 0) >= INTIMACY_NSFW_UNLOCK_TRUST;
+  }
+
+  function getIntimacyMode() {
+    if (state.pendingActionContext?.action !== "intimacy") return "";
+    return state.intimacyRoute
+      || state.pendingActionContext?.intimacyMode
+      || state.pendingActionContext?.actionContext?.intimacyMode
+      || "normal";
+  }
+
+  function isNsfwIntimacyActive() {
+    return state.pendingActionContext?.action === "intimacy" && getIntimacyMode() === "nsfw";
+  }
+
+  function clearIntimacyRoute() {
+    state.intimacyRoute = null;
+  }
+
+  function resetNsfwIntimacyHistory() {
+    state.nsfwIntimacyHistory = [];
+  }
+
+  function appendNsfwIntimacyHistory(role, text) {
+    ensureStateShape();
+    const trimmed = String(text || "").trim();
+    if (!trimmed) return;
+    state.nsfwIntimacyHistory.push({ role, text: trimmed });
+  }
+
+  function formatNsfwIntimacyHistory() {
+    return (state.nsfwIntimacyHistory || [])
+      .map((entry) => (entry.role === "producer" ? `制作人：${entry.text}` : entry.text))
+      .join("\n\n") || "（尚无历史）";
+  }
+
+  function nsfwIntimacyActionTitle() {
+    return "NSFW 亲密";
+  }
+
   function isActionAvailable(action) {
     if (isBondEventDay()) return action === "bond";
     const scheduleAvailable = isExtraRound()
-      ? (action === "intimacy" ? state.trust >= 100 : new Set(["outing", "companion"]).has(action))
+      ? (action === "intimacy" ? isIntimacyUnlocked() : new Set(["outing", "companion"]).has(action))
       : new Set(["lesson", "training", "rest"]).has(action);
     return scheduleAvailable && hasEnoughStaminaForAction(action);
   }
@@ -1542,7 +1600,7 @@
       if (isSummaryRound()) {
         showToast("总结轮次", "请选择今日总结或进入下一天。", "warn");
       } else {
-        showToast("当前轮次不可用", "前三轮只开放上课、训练和休息；额外轮次开放外出、交流和好感100后的亲密。", "warn");
+        showToast("当前轮次不可用", "前三轮只开放上课、训练和休息；额外轮次开放外出、交流和信赖60后的亲密。", "warn");
       }
       return;
     }
@@ -1550,11 +1608,18 @@
     state.pendingActionContext = {
       action,
       attribute,
+      intimacyMode: action === "intimacy" ? (actionContext.intimacyMode === "nsfw" ? "nsfw" : "normal") : undefined,
       actionContext: {
         ...actionContext,
+        intimacyMode: action === "intimacy" ? (actionContext.intimacyMode === "nsfw" ? "nsfw" : "normal") : actionContext.intimacyMode,
         isDailyFinalAction: isExtraRound() && ["outing", "companion", "intimacy"].includes(action)
       }
     };
+    if (action === "intimacy") {
+      state.intimacyRoute = state.pendingActionContext.intimacyMode;
+    } else {
+      clearIntimacyRoute();
+    }
 
     if (action === "outing" || action === "companion" || action === "intimacy") {
       const choiceContext = state.pendingActionContext.actionContext;
@@ -1569,28 +1634,36 @@
       state.selectedChoiceText = "";
       state.selectedChoiceRating = "";
       
-      const actionName = actionLabel(action, attribute);
+      const actionName = isNsfwIntimacyActive() ? nsfwIntimacyActionTitle() : actionLabel(action, attribute);
       const requestId = createRequestId();
       pendingAiRequestId = requestId;
       
-      const prompt = buildChoicePhase1Prompt(action, attribute, shuffled, choiceContext);
+      const prompt = isNsfwIntimacyActive()
+        ? (resetNsfwIntimacyHistory(), buildNsfwIntimacyOpeningPrompt(choiceContext))
+        : buildChoicePhase1Prompt(action, attribute, shuffled, choiceContext);
       
       const resultSummary = action === "outing" 
         ? `准备前往：${actionContext.destination || "散步"}` 
         : action === "companion"
           ? `发起与${state.idol}的交流`
-          : `与${state.idol}进行亲密互动`;
+          : isNsfwIntimacyActive()
+            ? `与${state.idol}进行 NSFW 亲密互动`
+            : `与${state.idol}进行普通亲密互动`;
       
       const story = action === "outing"
         ? `正在前往 ${actionContext.destination || "散步"}...`
         : action === "companion"
           ? `正在准备与${state.idol}的对话主题...`
-          : `正在准备与${state.idol}的亲密安抚场景...`;
+          : isNsfwIntimacyActive()
+            ? `正在准备与${state.idol}的 NSFW 亲密场景...`
+            : `正在准备与${state.idol}的普通亲密场景...`;
         
       state.lastStory = story;
       state.lastPrompt = prompt;
       state.lastDebug = action === "intimacy"
-        ? "第一阶段剧情生成：等待 AI 设计 4 个亲密选项。本行动固定结算体力 +38、压力 -10，不增加信赖。"
+        ? isNsfwIntimacyActive()
+          ? "NSFW 亲密开场：等待 AI 生成 VN 剧情与 4 个选项（含自定义/结束入口）。"
+          : "普通亲密：等待 AI 设计 4 个选项。本行动固定结算体力 +38、压力 -10，不增加信赖。"
         : `第一阶段剧情生成：等待 AI 设计 4 个选项。加成映射：\n` + shuffled.map((r, i) => `选项 ${i + 1} 对应加成 +${r}`).join("\n");
       
       saveState();
@@ -1605,7 +1678,9 @@
       if (!requestHostPromptSend(prompt, requestId)) {
         openAiPromptOverlay("当前页面未连接 SillyTavern。请编辑或复制提示词后手动发送。");
       }
-      showToast("开始发起活动", `正在等待 AI 生成${actionName}剧情与互动选项...`, "info");
+      showToast("开始发起活动", isNsfwIntimacyActive()
+        ? "正在等待 AI 生成 NSFW 亲密剧情与选项..."
+        : `正在等待 AI 生成${actionName}剧情与互动选项...`, "info");
       return;
     }
 
@@ -1842,10 +1917,14 @@ ${outputContract(narrativeLength)}
   }
 
   function buildChoicePhase1Prompt(action, attribute, shuffledRewards, actionContext = {}) {
+    if (action === "intimacy" && getIntimacyMode() === "nsfw") {
+      return buildNsfwIntimacyOpeningPrompt(actionContext);
+    }
+
     const profile = idols[state.idol];
     const actionName = actionLabel(action, attribute);
     const actionStyle = action === "intimacy"
-      ? `${profile.styles.companion || profile.styles.rest} 这是好感度100后解锁亲密互动，重点写安心、信任、被允许靠近与互相照顾。`
+      ? `${profile.styles.companion || profile.styles.rest} 这是信赖值60后解锁的普通亲密互动，重点写安心、信任、被允许靠近与互相照顾。`
       : profile.styles[action] || profile.styles.rest;
     
     const destinationPrompt = action === "outing" && actionContext.destination ? `
@@ -1897,7 +1976,9 @@ ${buildProducerPromptSection()}
 ${destinationPrompt}
 
 请为本次${actionName}生成【前半段剧情】并设计【4个互动分支选项】供制作人选择。
-${action === "intimacy" ? "\n亲密行动限制：本次写亲密、照顾、安抚、撒娇、拥抱、牵手、摸头、靠肩等内容。" : ""}
+${action === "intimacy"
+  ? "\n普通亲密限制：本次写亲密、照顾、安抚、撒娇、拥抱、牵手、摸头、靠肩等清水向内容。不要写 NSFW 或成人向描写。"
+  : ""}
 
 ${galgameRenderContract("choice")}
 
@@ -1979,8 +2060,8 @@ ${optionsPrompt}
       : action === "companion"
         ? "交流的收尾/当天的总结"
         : "外出的收尾/当天的总结";
-    const intimacyRule = action === "intimacy"
-      ? "\n- 本次为亲密路线，只写温柔、安心、信任、撒娇、拥抱、牵手、摸头、靠肩等内容。"
+    const intimacyRule = action === "intimacy" && getIntimacyMode() !== "nsfw"
+      ? "\n- 本次为普通亲密路线，只写温柔、安心、信任、撒娇、拥抱、牵手、摸头、靠肩等清水向内容。"
       : "";
     const dailySummarySection = actionContext.isDailyFinalAction
       ? `
@@ -2025,6 +2106,151 @@ ${outcomeLine}
 - 在本段剧情中完成事件的收束，结束当天的活动。
 - 限制在 600 字以内。
 ${intimacyRule}
+
+${renderContract}`;
+  }
+
+  function buildNsfwIntimacyOptionContract() {
+    return `选项生成要求：
+- 必须输出 4 个由 AI 设计的制作人行动选项，供玩家在 VN 界面点选。
+- 每个选项必须是制作人第一人称口吻的一句行动或台词，风味不同但都应推进 NSFW 亲密。
+- 这不是【普通亲密】【清水亲密】模式：不要写摸头、靠肩、递热饮、整理发丝等仅限清水互动的选项。
+- 玩家界面还会额外提供“自定义输入”和“结束”按钮；你只需负责输出 4 个 option 标签。`;
+  }
+
+  function buildNsfwIntimacyOpeningPrompt(actionContext = {}) {
+    const profile = idols[state.idol] || {};
+    const actionStyle = `${profile.styles.companion || profile.styles.rest} 这是信赖值100后解锁的 NSFW 亲密互动，必须写成人向亲密、情欲张力、身体接触与彼此允许靠近的内容。`;
+    return `[初星育成系统：NSFW 亲密 · 开场]
+
+担当偶像：${state.idol}
+${getAffinityStageLine(state.idol, state.trust)}
+绑定角色卡：${state.boundCharacter?.name || "未绑定，按担当偶像写"}
+当前阶段：${getPhase()}
+当前日程：第 ${state.day} 天，${roundLabel()}
+行动：NSFW 亲密（不是普通亲密 / 清水亲密）
+
+角色设定前提：
+- 本次为私密、自愿、互相信赖的成人向亲密场景。
+- 前端会在 VN 界面展示 4 个选项，并额外提供自定义输入与结束按钮；玩家可随时点“结束”进入收尾。
+- 禁止把本次写成普通亲密、摸头安抚、递热饮、靠肩休息等清水向互动。
+
+当前担当偶像的性格基调（NSFW 亲密行为指南）：
+${actionStyle}
+
+${buildProducerPromptSection()}
+
+请生成本次 NSFW 亲密的开场剧情，并设计 4 个互动分支选项。
+${buildNsfwIntimacyOptionContract()}
+
+${galgameRenderContract("choice")}
+
+==================================================
+⚠️⚠️【输出硬规则：违反本规则将导致整个游戏崩溃报错，请务必严格服从！】⚠️⚠️
+1. 你必须严格且完整地把所有输出包裹在【初星正文开始】与【初星正文结束】分隔符内。
+2. 分隔符之内，【必须且只能】包含以下 5 个 XML 标签，绝对不能夹杂任何标签外的散落文本、Markdown 列表（如 - 或 1. 2. 等）、或者解释：
+   <story>写开场剧情，停留在需要制作人做选择的转折点</story>
+   <option1>选项 1 的文本内容（必须以制作人第一人称口吻写一句回复或行动）</option1>
+   <option2>选项 2 的文本内容（必须以制作人第一人称口吻写一句回复或行动）</option2>
+   <option3>选项 3 的文本内容（必须以制作人第一人称口吻写一句回复或行动）</option3>
+   <option4>选项 4 的文本内容（必须以制作人第一人称口吻写一句回复或行动）</option4>
+3. 选项标签内部的文本【绝对不能】带任何“选项 1：”等系统前缀或数值标签。
+4. 不要在标签外写任何思考（thinking/details）、计划、规则复述、系统说明。
+==================================================
+
+输出示例：
+【初星正文开始】
+<story>（开场剧情）</story>
+<option1>（选项 1）</option1>
+<option2>（选项 2）</option2>
+<option3>（选项 3）</option3>
+<option4>（选项 4）</option4>
+【初星正文结束】`;
+  }
+
+  function buildNsfwIntimacyContinuePrompt(producerAction) {
+    const profile = idols[state.idol] || {};
+    return `[初星育成系统：NSFW 亲密 · 继续]
+
+担当偶像：${state.idol}
+${getAffinityStageLine(state.idol, state.trust)}
+绑定角色卡：${state.boundCharacter?.name || "未绑定，按担当偶像写"}
+当前阶段：${getPhase()}
+当前日程：第 ${state.day} 天，${roundLabel()}
+行动：NSFW 亲密（多轮进行中）
+
+角色设定前提：
+- 本次仍为私密、自愿、互相信赖的成人向亲密场景，不是普通亲密 / 清水亲密。
+- 玩家仍可在 VN 界面选择 4 个选项、自定义输入，或随时点“结束”进入收尾。
+- 不要写摸头、靠肩、递热饮等仅限清水互动的选项。
+
+已发生剧情与互动：
+${formatNsfwIntimacyHistory()}
+
+制作人刚才的行动或台词：
+${producerAction}
+
+角色核心：
+${profile.core || "按初星学园偶像设定自然发挥。"}
+
+请承接上文，写出 ${state.idol} 的反应与场景推进，并重新设计 4 个新的互动分支选项。
+${buildNsfwIntimacyOptionContract()}
+
+${galgameRenderContract("choice")}
+
+==================================================
+⚠️⚠️【输出硬规则：违反本规则将导致整个游戏崩溃报错，请务必严格服从！】⚠️⚠️
+1. 你必须严格且完整地把所有输出包裹在【初星正文开始】与【初星正文结束】分隔符内。
+2. 分隔符之内，【必须且只能】包含 <story> 与 <option1> 到 <option4> 共 5 个 XML 标签。
+3. <story> 只写本轮新增反应与推进，不要重复已发生剧情全文。
+4. 不要在标签外写任何思考、计划、规则复述或系统说明。
+==================================================`;
+  }
+
+  function buildNsfwIntimacyClosingPrompt() {
+    const profile = idols[state.idol] || {};
+    const dailySummarySection = state.pendingActionContext?.actionContext?.isDailyFinalAction
+      ? `
+
+今日行动回顾（供总结使用，不要原样复述成列表）：
+${buildTodayActionRecapForSummary()}
+
+当前状态：Vo ${state.Vo} / Da ${state.Da} / Vi ${state.Vi} / 体力 ${state.stamina} / 压力 ${state.stress} / 信赖 ${state.trust}
+${getAffinityStageLine(state.idol, state.trust)}
+
+${buildDailySummaryContract()}`
+      : "";
+    const renderContract = state.pendingActionContext?.actionContext?.isDailyFinalAction
+      ? `${galgameRenderContract("normal")}
+
+输出格式要求：
+1. 先完成【初星正文开始】…【初星正文结束】内的收尾剧情。
+2. 正文结束后再输出【今日总结开始】…【今日总结结束】，两段不可混写。
+3. 不要改变或重新计算前端已结算的数值。
+- 请写一段 600 字以内的 NSFW 亲密收尾正文。${dailySummarySection}`
+      : `${outputContract("请写一段 600 字以内的 NSFW 亲密收尾正文。")}`;
+
+    return `[初星育成系统：NSFW 亲密 · 收尾]
+
+担当偶像：${state.idol}
+${getAffinityStageLine(state.idol, state.trust)}
+绑定角色卡：${state.boundCharacter?.name || "未绑定，按担当偶像写"}
+当前日程：第 ${state.day} 天，${roundLabel()}
+行动：NSFW 亲密（玩家选择结束）
+
+角色设定前提：
+- 制作人刚刚选择结束本次 NSFW 亲密互动。
+
+已发生剧情与互动：
+${formatNsfwIntimacyHistory()}
+
+前端已结算：体力 +38，压力 -10，不增加信赖值。
+
+请写出 ${state.idol} 在亲密结束时的反应，以及本次 NSFW 互动的余韵收尾。
+- 不要再提供新的选项。
+- 让场景自然收束，可写亲密后的安抚、余韵与告别。
+- 不要退回到普通亲密 / 清水互动的语气。
+- 限制在 600 字以内。
 
 ${renderContract}`;
   }
@@ -3173,7 +3399,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       ? [
           ["外出", "outing", null, "#20dfad", "体力+38"],
           ["交流", "companion", null, "#ff4f9a", "信赖+15"],
-          ["亲密", "intimacy", null, "#f58ab5", state.trust >= 100 ? "压-10" : "信赖100解锁"],
+          ["亲密", "intimacy", null, "#f58ab5", isIntimacyUnlocked() ? "压-10" : "信赖60解锁"],
           ["闲聊", "freechat", null, "#8c73ff", "行动0"],
           ["互动", "interaction", null, "#ff783f", "行动0"]
         ]
@@ -3190,9 +3416,9 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         ];
     actions.forEach(([label, action, attribute, color, cost]) => {
       const button = createActionButton(label, action, attribute, color, cost);
-      if (action === "intimacy" && state.trust < 100) {
-        button.title = "信赖值达到100后解锁亲密行动";
-        button.setAttribute("aria-label", "亲密，信赖值100解锁");
+      if (action === "intimacy" && !isIntimacyUnlocked()) {
+        button.title = `信赖值达到 ${INTIMACY_UNLOCK_TRUST} 后解锁亲密行动`;
+        button.setAttribute("aria-label", `亲密，信赖值${INTIMACY_UNLOCK_TRUST}解锁`);
       }
       container.appendChild(button);
     });
@@ -4318,6 +4544,49 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     setElementHidden("outingOverlay", true);
   }
 
+  function openIntimacyOverlay() {
+    if (!isIntimacyUnlocked()) {
+      showToast("尚未解锁", `信赖值达到 ${INTIMACY_UNLOCK_TRUST} 后解锁亲密行动。`, "warn");
+      return;
+    }
+    document.getElementById("intimacyPhaseBadge").textContent = getPhase();
+    const note = document.getElementById("intimacyModeNote");
+    if (note) {
+      note.textContent = `当前信赖 ${state.trust}。普通亲密已解锁；NSFW 亲密需信赖 ${INTIMACY_NSFW_UNLOCK_TRUST}。`;
+    }
+    const nsfwButton = document.getElementById("intimacyNsfwBtn");
+    const nsfwBadge = document.getElementById("intimacyNsfwBadge");
+    const nsfwReady = isIntimacyNsfwUnlocked();
+    if (nsfwButton) {
+      nsfwButton.disabled = !nsfwReady;
+      nsfwButton.title = nsfwReady ? "NSFW 亲密占位入口" : `信赖值达到 ${INTIMACY_NSFW_UNLOCK_TRUST} 后解锁`;
+    }
+    if (nsfwBadge) {
+      nsfwBadge.textContent = nsfwReady ? "VN多轮" : "信赖100解锁";
+      nsfwBadge.classList.toggle("is-ready", nsfwReady);
+      nsfwBadge.classList.toggle("is-locked", !nsfwReady);
+    }
+    setElementHidden("intimacyOverlay", false);
+  }
+
+  function closeIntimacyOverlay() {
+    setElementHidden("intimacyOverlay", true);
+  }
+
+  function confirmIntimacyMode(mode) {
+    if (mode === "nsfw") {
+      if (!isIntimacyNsfwUnlocked()) {
+        showToast("尚未解锁", `信赖值达到 ${INTIMACY_NSFW_UNLOCK_TRUST} 后解锁 NSFW 亲密。`, "warn");
+        return;
+      }
+      closeIntimacyOverlay();
+      settleAction("intimacy", null, { intimacyMode: "nsfw" });
+      return;
+    }
+    closeIntimacyOverlay();
+    settleAction("intimacy", null, { intimacyMode: "normal" });
+  }
+
   function confirmOutingDestination(destination) {
     const location = String(destination || "").trim();
     if (!location) {
@@ -4929,24 +5198,192 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     }
   }
 
+  function closeVnChoicesOverlay() {
+    const overlay = document.getElementById("vnChoicesOverlay");
+    if (overlay) overlay.style.display = "none";
+    hideVnCustomChoicePanel();
+  }
+
+  function hideVnCustomChoicePanel() {
+    const panel = document.getElementById("vnCustomChoicePanel");
+    const container = document.getElementById("vnChoicesContainer");
+    const title = document.getElementById("vnChoicesTitle");
+    const input = document.getElementById("vnCustomChoiceInput");
+    if (panel) panel.hidden = true;
+    if (container) container.hidden = false;
+    if (title) title.hidden = false;
+    if (input) input.value = "";
+  }
+
+  function showVnCustomChoicePanel() {
+    const panel = document.getElementById("vnCustomChoicePanel");
+    const container = document.getElementById("vnChoicesContainer");
+    const title = document.getElementById("vnChoicesTitle");
+    const input = document.getElementById("vnCustomChoiceInput");
+    if (panel) panel.hidden = false;
+    if (container) container.hidden = true;
+    if (title) title.hidden = true;
+    if (input) {
+      input.value = "";
+      input.focus();
+    }
+  }
+
+  function settleNsfwIntimacyStats() {
+    const delta = { stamina: 38, stress: -10 };
+    Object.entries(delta).forEach(([key, value]) => {
+      const max = 100;
+      state[key] = clamp((state[key] || 0) + value, 0, max);
+    });
+    refreshAffinityUnlocks();
+    advanceRound();
+    rollSpCandidates();
+    const actionName = nsfwIntimacyActionTitle();
+    const resultSummary = `${formatDelta(delta)}，【NSFW亲密·结束】`;
+    state.log.unshift({
+      day: state.day,
+      round: state.round,
+      phase: getPhase(),
+      action: actionName,
+      result: resultSummary
+    });
+    state.log = state.log.slice(0, 24);
+    return delta;
+  }
+
+  function requestNsfwIntimacyAiRound(producerAction, prompt, debugLine) {
+    if (!state.pendingActionContext) return;
+    appendNsfwIntimacyHistory("producer", producerAction);
+    const chosenLine = `<narration>▶ 制作人：${producerAction}</narration>`;
+    state.pendingOptionTexts = [];
+    state.eventMode = "choice_prompt";
+    state.choiceStep = 1;
+    const requestId = createRequestId();
+    pendingAiRequestId = requestId;
+    state.lastPrompt = prompt;
+    state.lastDebug = debugLine;
+    state.lastStory = state.lastStory ? `${state.lastStory}\n\n${chosenLine}` : chosenLine;
+    saveState();
+    render();
+    closeVnChoicesOverlay();
+    setElementHidden("eventChoices", true);
+    const actionsEl = document.getElementById("eventActions");
+    if (actionsEl) actionsEl.style.display = "grid";
+    const confirm = document.getElementById("eventConfirmBtn");
+    if (confirm) {
+      confirm.disabled = true;
+      confirm.textContent = "正在生成中...";
+    }
+    const pendingStory = buildChoicePendingDisplayStory(state.lastStory, chosenLine);
+    openEventOverlay(nsfwIntimacyActionTitle(), "正在等待 SillyTavern 角色回复", pendingStory);
+    if (!requestHostPromptSend(prompt, requestId)) {
+      openAiPromptOverlay("当前页面未连接 SillyTavern。请复制提示词发送获取后续。");
+    }
+  }
+
+  function handleNsfwIntimacyPresetChoice(index) {
+    const chosenOptionText = state.pendingOptionTexts[index] || "选择该选项";
+    requestNsfwIntimacyAiRound(
+      chosenOptionText,
+      buildNsfwIntimacyContinuePrompt(chosenOptionText),
+      `NSFW 亲密继续：已选择“${chosenOptionText}”，等待 AI 生成下一段剧情与 4 个选项。`
+    );
+  }
+
+  function handleNsfwIntimacyCustomChoice(rawText) {
+    const producerAction = String(rawText || "").trim();
+    if (!producerAction) {
+      showToast("还没有内容", "请输入自定义行动或台词。", "warn");
+      return;
+    }
+    requestNsfwIntimacyAiRound(
+      producerAction,
+      buildNsfwIntimacyContinuePrompt(producerAction),
+      `NSFW 亲密继续：已发送自定义行动“${producerAction}”，等待 AI 生成下一段剧情与 4 个选项。`
+    );
+  }
+
+  function handleNsfwIntimacyEndChoice() {
+    if (!state.pendingActionContext) return;
+    closeVnChoicesOverlay();
+    settleNsfwIntimacyStats();
+    const producerAction = "（结束本次亲密互动）";
+    appendNsfwIntimacyHistory("producer", producerAction);
+    const chosenLine = `<narration>▶ 制作人选择结束本次 NSFW 亲密互动</narration>`;
+    state.selectedChoiceText = "结束亲密";
+    state.selectedChoiceRating = "【NSFW亲密·结束】";
+    state.eventMode = "choice_resolution";
+    state.choiceStep = 2;
+    state.pendingOptionTexts = [];
+    const requestId = createRequestId();
+    pendingAiRequestId = requestId;
+    const prompt = buildNsfwIntimacyClosingPrompt();
+    state.lastPrompt = prompt;
+    state.lastDebug = "NSFW 亲密收尾：玩家已选择结束，等待 AI 生成收尾剧情。";
+    state.lastStory = state.lastStory ? `${state.lastStory}\n\n${chosenLine}` : chosenLine;
+    saveState();
+    render();
+    setElementHidden("eventChoices", true);
+    const actionsEl = document.getElementById("eventActions");
+    if (actionsEl) actionsEl.style.display = "grid";
+    const confirm = document.getElementById("eventConfirmBtn");
+    if (confirm) {
+      confirm.disabled = true;
+      confirm.textContent = "正在生成收尾...";
+    }
+    const pendingStory = buildChoicePendingDisplayStory(state.lastStory, chosenLine);
+    openEventOverlay(nsfwIntimacyActionTitle(), "正在生成收尾剧情...", pendingStory);
+    if (!requestHostPromptSend(prompt, requestId)) {
+      openAiPromptOverlay("当前页面未连接 SillyTavern。请复制提示词发送获取收尾。");
+    }
+  }
+
   function showVnChoicesOverlay() {
     const overlay = document.getElementById("vnChoicesOverlay");
     const container = document.getElementById("vnChoicesContainer");
     if (!overlay || !container) return;
-    
+
+    hideVnCustomChoicePanel();
     container.innerHTML = "";
-    
+    const nsfwMode = isNsfwIntimacyActive();
+    const titleEl = document.getElementById("vnChoicesTitle");
+    if (titleEl) {
+      titleEl.textContent = nsfwMode ? "选择下一步（可自定义或结束）" : "请做出你的选择";
+      titleEl.hidden = false;
+    }
+
     state.pendingOptionTexts.forEach((optText, index) => {
       const btn = document.createElement("button");
       btn.className = "vn-choice-btn";
+      btn.type = "button";
       btn.textContent = optText;
       btn.onclick = () => {
-        overlay.style.display = "none";
+        if (nsfwMode) {
+          handleNsfwIntimacyPresetChoice(index);
+          return;
+        }
+        closeVnChoicesOverlay();
         handleChoiceSelection(index);
       };
       container.appendChild(btn);
     });
-    
+
+    if (nsfwMode) {
+      const customBtn = document.createElement("button");
+      customBtn.className = "vn-choice-btn vn-choice-btn-custom";
+      customBtn.type = "button";
+      customBtn.textContent = "自定义输入";
+      customBtn.onclick = () => showVnCustomChoicePanel();
+      container.appendChild(customBtn);
+
+      const endBtn = document.createElement("button");
+      endBtn.className = "vn-choice-btn vn-choice-btn-end";
+      endBtn.type = "button";
+      endBtn.textContent = "结束";
+      endBtn.onclick = () => handleNsfwIntimacyEndChoice();
+      container.appendChild(endBtn);
+    }
+
     overlay.style.display = "flex";
   }
 
@@ -5440,6 +5877,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     state.pendingOptionTexts = [];
     state.selectedChoiceText = "";
     state.selectedChoiceRating = "";
+    clearIntimacyRoute();
     if (state.pendingActionContext?.actionContext?.isDailyFinalAction) {
       const parsedSummary = extractDailySummary(reply);
       state.dailySummary = {
@@ -5472,7 +5910,11 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
 
   function handleChoiceSelection(index) {
     if (!state.pendingActionContext) return;
-    
+    if (isNsfwIntimacyActive()) {
+      handleNsfwIntimacyPresetChoice(index);
+      return;
+    }
+
     const buttons = document.querySelectorAll("#eventChoices .choice-button");
     buttons.forEach(btn => btn.disabled = true);
     
@@ -5515,7 +5957,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     const trustGain = state.pendingChoiceRewards[index] ?? (action === "intimacy" ? 0 : 5);
     const chosenOptionText = state.pendingOptionTexts[index] || "选择该选项";
     const ratingName = action === "intimacy"
-      ? "【清水亲密】"
+      ? "【普通亲密】"
       : (action === "outing" && trustGain === 10) || (action === "companion" && trustGain === 20)
       ? "【完美】"
       : (action === "outing" && trustGain === 8) || (action === "companion" && trustGain === 15)
@@ -5672,11 +6114,13 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
 
       if (story && opt1 && opt2 && opt3 && opt4) {
         state.pendingOptionTexts = [opt1, opt2, opt3, opt4];
+        const nsfwMode = isNsfwIntimacyActive();
+        const segmentStory = story;
         
         if (!isFinal) {
           const storyEl = document.getElementById("eventStory");
           if (storyEl) {
-            storyEl.innerHTML = formatStoryText(story);
+            storyEl.innerHTML = formatStoryText(segmentStory);
           }
           setEventActionsEnabled(false, true);
           sendAiReplyAck(requestId, true, false, false);
@@ -5686,31 +6130,38 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         pendingAiRequestId = "";
         state.eventMode = "choice_prompt";
         state.choiceStep = 1;
-        if (state.pendingActionContext?.action === "bond" && state.bondChoiceRound === 2) {
-          state.lastStory = `${state.lastStory}\n\n${story}`;
+        if (nsfwMode) {
+          appendNsfwIntimacyHistory("scene", segmentStory);
+          state.lastStory = state.lastStory
+            ? `${state.lastStory}\n\n${segmentStory}`
+            : segmentStory;
+        } else if (state.pendingActionContext?.action === "bond" && state.bondChoiceRound === 2) {
+          state.lastStory = `${state.lastStory}\n\n${segmentStory}`;
         } else {
-          state.lastStory = story;
+          state.lastStory = segmentStory;
         }
         saveState();
 
         const actionName = currentChoiceActionTitle();
-        openEventOverlay(actionName, "请做出你的选择", story);
+        openEventOverlay(actionName, "请做出你的选择", segmentStory);
 
-        // 渲染 4 个选项按钮
-        const choicesEl = document.getElementById("eventChoices");
-        if (choicesEl) {
-          choicesEl.innerHTML = "";
-          [opt1, opt2, opt3, opt4].forEach((optText, index) => {
-            const btn = document.createElement("button");
-            btn.className = "choice-button";
-            btn.textContent = optText;
-            btn.onclick = () => handleChoiceSelection(index);
-            choicesEl.appendChild(btn);
-          });
-          setElementHidden("eventChoices", false);
+        if (!nsfwMode) {
+          const choicesEl = document.getElementById("eventChoices");
+          if (choicesEl) {
+            choicesEl.innerHTML = "";
+            [opt1, opt2, opt3, opt4].forEach((optText, index) => {
+              const btn = document.createElement("button");
+              btn.className = "choice-button";
+              btn.textContent = optText;
+              btn.onclick = () => handleChoiceSelection(index);
+              choicesEl.appendChild(btn);
+            });
+            setElementHidden("eventChoices", false);
+          }
+        } else {
+          setElementHidden("eventChoices", true);
         }
 
-        // 禁用确定按钮，但保持 footer 按钮区可见，以便可以重新生成或编辑重发
         const confirmBtn = document.getElementById("eventConfirmBtn");
         if (confirmBtn) {
           confirmBtn.disabled = true;
@@ -5792,6 +6243,10 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         state.bondChoiceRound = 0;
         state.bondFirstChoiceText = "";
       }
+      if (isNsfwIntimacyActive()) {
+        resetNsfwIntimacyHistory();
+      }
+      clearIntimacyRoute();
       if (state.log[0]) {
         state.log[0].aiReply = reply;
       }
@@ -5967,7 +6422,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         "规则": [
           ["日程", "22 天育成，每天 3 次普通行动、1 次额外行动与 1 次总结轮次；20/40/60/80 羁绊事件会占用专属剧情日。"],
           ["普通行动", "上课、训练、休息。休息回复 30 体力。"],
-          ["额外行动", "外出回复较多体力并增加信赖，交流增加更多信赖并回复少量体力。"],
+          ["额外行动", "外出回复较多体力并增加信赖，交流增加更多信赖并回复少量体力；信赖 60 后可选择普通亲密，信赖 100 后解锁 NSFW 亲密。"],
           ["总结轮次", "完成四轮行动后进入。可查看今日总结，或通过左下角手机入口打开小手机，或进入下一天。"]
         ],
         "制作人设定": [],
@@ -5987,7 +6442,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         ],
         "轮次": [
           ["普通轮次", "每天第 1、2、3 轮，只显示上课、训练和休息。"],
-          ["额外轮次", "每天第 4 轮，只显示外出和交流。"],
+          ["额外轮次", "每天第 4 轮，显示外出、交流与亲密；亲密需信赖 60，进入后可选择普通或 NSFW 模式。"],
           ["总结轮次", "每天第 5 轮，提供今日总结与进入下一天；小手机从左下角入口随时打开。"],
           ["防误操作", "体力危险时仍可选择休息，避免路线被单次失误锁死。"]
         ],
@@ -6363,6 +6818,10 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       openOutingOverlay();
       return;
     }
+    if (button.dataset.action === "intimacy") {
+      openIntimacyOverlay();
+      return;
+    }
     if (button.dataset.action === "bond") {
       const threshold = pendingAffinityActionThreshold();
       if (threshold) triggerAffinityStory(threshold);
@@ -6603,6 +7062,16 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   document.getElementById("outingCustomConfirmBtn").addEventListener("click", submitCustomOutingDestination);
   document.getElementById("outingOverlay").addEventListener("click", (event) => {
     if (event.target.id === "outingOverlay") closeOutingOverlay();
+  });
+  document.getElementById("intimacyCancelBtn").addEventListener("click", closeIntimacyOverlay);
+  document.getElementById("intimacyNormalBtn").addEventListener("click", () => confirmIntimacyMode("normal"));
+  document.getElementById("intimacyNsfwBtn").addEventListener("click", () => confirmIntimacyMode("nsfw"));
+  document.getElementById("intimacyOverlay").addEventListener("click", (event) => {
+    if (event.target.id === "intimacyOverlay") closeIntimacyOverlay();
+  });
+  document.getElementById("vnCustomChoiceCancelBtn").addEventListener("click", hideVnCustomChoicePanel);
+  document.getElementById("vnCustomChoiceConfirmBtn").addEventListener("click", () => {
+    handleNsfwIntimacyCustomChoice(document.getElementById("vnCustomChoiceInput")?.value || "");
   });
   window.addEventListener("message", (event) => {
     const data = event.data || {};
