@@ -268,6 +268,21 @@
     "有村麻央": "MAO",
     "姬崎莉波": "RINAMI"
   };
+  const idolSchoolClasses = {
+    "紫云清夏": "1年1班",
+    "葛城莉莉娅": "1年1班",
+    "藤田琴音": "1年1班",
+    "月村手毬": "1年1班",
+    "花海咲季": "1年1班",
+    "篠泽广": "1年2班",
+    "花海祐芽": "1年2班",
+    "秦谷美铃": "1年2班",
+    "仓本千奈": "1年2班",
+    "十王星南": "3年1班",
+    "雨夜燕": "3年1班",
+    "有村麻央": "3年1班",
+    "姬崎莉波": "3年1班"
+  };
   const interactionCharacters = ["藤田琴音", "月村手毬", "花海咲季", "秦谷美铃", "篠泽广", "十王星南", "花海祐芽", "仓本千奈", "紫云清夏", "葛城莉莉娅", "有村麻央", "姬崎莉波"];
   const actionEventPools = {
     lesson: {
@@ -294,6 +309,18 @@
     { name: "琴音打工的快餐店", description: "打工、收入、家庭压力，以及努力被看见的地方。" }
   ];
   const FINAL_LIVE_DAY = 22;
+  const SUMMARY_ROUND = 5;
+  const PHONE_CHAT_LINE_DELAY_MS = 2800;
+  const phoneAppRegistry = [
+    {
+      id: "line",
+      name: "LINE",
+      subtitle: "聊天",
+      theme: "#06c755",
+      iconText: "L",
+      installed: true
+    }
+  ];
   const REQUIRED_BOND_THRESHOLDS = [20, 40, 60, 80];
   const affinityThresholds = [20, 40, 60, 80, 100];
 
@@ -740,14 +767,32 @@
     selectedChoiceText: "",
     selectedChoiceRating: "",
     bondChoiceRound: 0,
-    bondFirstChoiceText: ""
+    bondFirstChoiceText: "",
+    dailySummary: {
+      day: 0,
+      intro: "",
+      status: "",
+      producer: "",
+      raw: "",
+      complete: false
+    },
+    phoneChat: {
+      activeView: "home",
+      activeThreadId: "",
+      threads: [],
+      messages: {},
+      friends: [],
+      isAwaitingReply: false,
+      pendingRequestId: "",
+      retryAvailable: false
+    }
   };
 
   const statLabels = { Vo: "Vocal", Da: "Dance", Vi: "Visual", stamina: "体力", stress: "压力", trust: "信赖" };
   const statShort = { Vo: "Vo.", Da: "Da.", Vi: "Vi." };
   const statIcons = { Vo: "mic", Da: "dance", Vi: "visual" };
   const statColors = { Vo: "#ff4f9a", Da: "#26a9f4", Vi: "#ffca35" };
-  const actionIcons = { lesson: "book", training: "dance", rest: "rest", outing: "map", companion: "chat", intimacy: "heart", freechat: "chat", interaction: "star", bond: "heart" };
+  const actionIcons = { lesson: "book", training: "dance", rest: "rest", outing: "map", companion: "chat", intimacy: "heart", freechat: "chat", interaction: "star", bond: "heart", day_summary: "file", phone: "phone", next_day: "calendar" };
   const promptPanels = { prompt: "tabPrompt", log: "tabLog", debug: "tabDebug" };
   const idolBackgroundStatus = new Map();
   let activePromptTab = "prompt";
@@ -1019,6 +1064,8 @@
   }
   let pendingAiRequestId = "";
   let aiReplyRetryCount = 0;
+  let phoneChatTypingVisible = false;
+  let phoneChatDeliveryTimer = null;
   let deferredLivePostReply = null;
   let interactionMode = "specified";
   let selectedInteractionCharacters = new Set();
@@ -1118,6 +1165,37 @@
     state.selectedChoiceRating = state.selectedChoiceRating || "";
     state.bondChoiceRound = Number.isInteger(state.bondChoiceRound) ? state.bondChoiceRound : 0;
     state.bondFirstChoiceText = state.bondFirstChoiceText || "";
+    state.dailySummary = {
+      day: 0,
+      intro: "",
+      status: "",
+      producer: "",
+      raw: "",
+      complete: false,
+      ...(state.dailySummary || {})
+    };
+    state.phoneChat = {
+      activeView: "home",
+      activeThreadId: "",
+      threads: [],
+      messages: {},
+      friends: [],
+      isAwaitingReply: false,
+      pendingRequestId: "",
+      retryAvailable: false,
+      ...(state.phoneChat || {})
+    };
+    state.phoneChat.friends = Array.from(new Set((state.phoneChat.friends || [])
+      .map((name) => canonicalIdolName(name))
+      .filter((name) => name && idols[name] && name !== state.idol)));
+    if (!state.phoneChat.messages || typeof state.phoneChat.messages !== "object") {
+      state.phoneChat.messages = {};
+    }
+    if (!Array.isArray(state.phoneChat.threads)) {
+      state.phoneChat.threads = [];
+    }
+    if (!Number.isInteger(state.round) || state.round < 1) state.round = 1;
+    if (state.round > SUMMARY_ROUND) state.round = SUMMARY_ROUND;
   }
 
   function clamp(value, min, max) {
@@ -1354,11 +1432,65 @@
   }
 
   function roundLabel() {
-    return state.round === 4 ? "每日额外轮次" : `第 ${state.round || 1} / 3 轮行动`;
+    if (state.round === SUMMARY_ROUND) return "每日总结轮次";
+    if (state.round === 4) return "每日额外轮次";
+    return `第 ${state.round || 1} / 3 轮行动`;
   }
 
   function isExtraRound() {
     return state.round === 4;
+  }
+
+  function isSummaryRound() {
+    return state.round === SUMMARY_ROUND;
+  }
+
+  function advanceDay() {
+    if (!isSummaryRound()) return false;
+    state.round = 1;
+    if (state.day >= FINAL_LIVE_DAY - 1) {
+      state.day = FINAL_LIVE_DAY;
+      state.liveReady = true;
+    } else {
+      state.day += 1;
+    }
+    state.dailySummary = {
+      day: state.day,
+      intro: "",
+      status: "",
+      producer: "",
+      raw: "",
+      complete: false
+    };
+    return true;
+  }
+
+  function enterNextDay() {
+    if (!state.idol) {
+      showToast("需要担当偶像", "请先选择本次育成的担当。", "warn");
+      return;
+    }
+    if (!isSummaryRound()) {
+      showToast("尚未到总结轮次", "完成四轮行动后，才能进入下一天。", "warn");
+      return;
+    }
+    if (state.liveReady) {
+      showToast("日程已锁定", "当前已进入最终日程，无法继续推进天数。", "warn");
+      return;
+    }
+    if (!advanceDay()) return;
+    rollSpCandidates();
+    saveState();
+    render();
+    if (state.liveReady) {
+      showToast("最终日程", "First Live 已解锁，请开始最终演出。", "gold");
+      return;
+    }
+    showToast("进入新一天", `第 ${state.day} 天开始了。`, "info");
+    if (isBondEventDay()) {
+      const threshold = pendingRequiredBondThreshold();
+      showToast("羁绊事件日", threshold ? `今天需要先完成好感度 ${threshold} 的羁绊事件。` : "今天需要先完成羁绊事件。", "warn");
+    }
   }
 
   function hasEnoughStaminaForAction(action) {
@@ -1383,13 +1515,9 @@
       state.round = 4;
       return;
     }
-    state.round = 1;
-    if (state.day >= FINAL_LIVE_DAY - 1) {
-      state.day = FINAL_LIVE_DAY;
-      state.liveReady = true;
-      return;
+    if (state.round === 4) {
+      state.round = SUMMARY_ROUND;
     }
-    state.day += 1;
   }
 
   function settleAction(action, attribute, actionContext = {}) {
@@ -1411,13 +1539,25 @@
       return;
     }
     if (!isActionAvailable(action)) {
-      showToast("当前轮次不可用", "前三轮只开放上课、训练和休息；额外轮次开放外出、交流和好感100后的亲密。", "warn");
+      if (isSummaryRound()) {
+        showToast("总结轮次", "请选择今日总结或进入下一天。", "warn");
+      } else {
+        showToast("当前轮次不可用", "前三轮只开放上课、训练和休息；额外轮次开放外出、交流和好感100后的亲密。", "warn");
+      }
       return;
     }
 
-    state.pendingActionContext = { action, attribute, actionContext };
+    state.pendingActionContext = {
+      action,
+      attribute,
+      actionContext: {
+        ...actionContext,
+        isDailyFinalAction: isExtraRound() && ["outing", "companion", "intimacy"].includes(action)
+      }
+    };
 
     if (action === "outing" || action === "companion" || action === "intimacy") {
+      const choiceContext = state.pendingActionContext.actionContext;
       state.eventMode = "choice_prompt";
       state.choiceStep = 1;
       
@@ -1433,7 +1573,7 @@
       const requestId = createRequestId();
       pendingAiRequestId = requestId;
       
-      const prompt = buildChoicePhase1Prompt(action, attribute, shuffled, actionContext);
+      const prompt = buildChoicePhase1Prompt(action, attribute, shuffled, choiceContext);
       
       const resultSummary = action === "outing" 
         ? `准备前往：${actionContext.destination || "散步"}` 
@@ -1787,6 +1927,39 @@ ${optionsPrompt}
 【初星正文结束】`;
   }
 
+  function buildTodayActionRecapForSummary() {
+    const entries = (state.log || []).filter((item) => Number(item.day) === Number(state.day));
+    if (!entries.length) {
+      return "今日尚无已记录行动。";
+    }
+    return entries
+      .slice()
+      .reverse()
+      .map((item, index) => `${index + 1}. ${item.action}：${item.result}`)
+      .join("\n");
+  }
+
+  function buildDailySummaryContract() {
+    const profile = idols[state.idol] || {};
+    return `
+==================================================
+【今日育成总结 · 必须在正文之后追加】
+
+你是初星学园育成系统的记录员。第四轮额外行动已经由前端结算完毕，请在【初星正文结束】之后，另起一段输出今日总结。
+
+【今日总结开始】
+<summary_intro>角色介绍：以学园档案口吻介绍 ${state.idol} 的核心性格、矛盾与育成定位，结合今日四轮行动后的整体印象，80-120字。</summary_intro>
+<summary_status>当前状态评估：结合下方“今日行动回顾”和当前数值，评估体力、压力、信赖、Vo/Da/Vi 与羁绊阶段，说明今日育成进展与风险，120-180字。</summary_status>
+<summary_producer>制作人视角：以制作人第一人称（使用 {{user}} 或当前制作人设定称呼）写接下来要优先解决的问题、明日关注与推进方向，80-120字。</summary_producer>
+【今日总结结束】
+
+硬规则：
+1. 三段必须分别写在对应标签内，不要列表，不要 Markdown，不要 emoji。
+2. 当前状态评估必须承认前端已结算数值，不得修改或追加数值。
+3. 制作人视角是制作人的判断与计划，不是偶像台词。
+4. 角色介绍可参考担当核心：${profile.core || "按担当偶像设定发挥"}`;
+  }
+
   function buildChoicePhase2Prompt(action, attribute, chosenOptionText, trustGain, actionContext = {}) {
     const actionName = actionLabel(action, attribute);
     const outcomeName = action === "intimacy"
@@ -1809,6 +1982,27 @@ ${optionsPrompt}
     const intimacyRule = action === "intimacy"
       ? "\n- 本次为亲密路线，只写温柔、安心、信任、撒娇、拥抱、牵手、摸头、靠肩等内容。"
       : "";
+    const dailySummarySection = actionContext.isDailyFinalAction
+      ? `
+
+今日行动回顾（供总结使用，不要原样复述成列表）：
+${buildTodayActionRecapForSummary()}
+
+当前状态：Vo ${state.Vo} / Da ${state.Da} / Vi ${state.Vi} / 体力 ${state.stamina} / 压力 ${state.stress} / 信赖 ${state.trust}
+${getAffinityStageLine(state.idol, state.trust)}
+
+${buildDailySummaryContract()}`
+      : "";
+
+    const renderContract = actionContext.isDailyFinalAction
+      ? `${galgameRenderContract("normal")}
+
+输出格式要求：
+1. 先完成【初星正文开始】…【初星正文结束】内的反应与事件收尾剧情。
+2. 正文结束后再输出【今日总结开始】…【今日总结结束】，两段不可混写。
+3. 不要改变或重新计算前端已结算的数值。
+- 请写一段 600 字以内的反应与事件收尾剧情正文。${dailySummarySection}`
+      : `${outputContract("请写一段 600 字以内的反应与事件收尾剧情正文。")}`;
 
     return `[初星育成系统：互动分支结算与收尾]
 
@@ -1832,7 +2026,7 @@ ${outcomeLine}
 - 限制在 600 字以内。
 ${intimacyRule}
 
-${outputContract("请写一段 600 字以内的反应与事件收尾剧情正文。")}`;
+${renderContract}`;
   }
 
   function buildOpeningPrompt() {
@@ -2082,6 +2276,111 @@ ${buildProducerPromptSection()}
 - 不要擅自把闲聊升级为重大剧情突破或解决尚未到阶段的角色矛盾。
 
 ${outputContract("请写一段 800 字以内的完整闲聊场景，在本次回复内自然收束话题，不要停在待续。")}`;
+  }
+
+  function buildPhoneChatScheduleLine() {
+    if (isSummaryRound()) {
+      return `当前日程：第 ${state.day} 天，${roundLabel()}（总结轮次，当日行动已结束）`;
+    }
+    return `当前日程：第 ${state.day} 天，${roundLabel()}`;
+  }
+
+  function buildPhoneChatScenarioRules() {
+    return [
+      "- 这是小手机 LINE 私聊，不是育成行动。",
+      "- 不消耗行动次数，不推进轮次、日期或 First Live 日程。",
+      "- 不增加或减少任何数值，不触发随机奖励。"
+    ].join("\n");
+  }
+
+  function buildPhoneChatPrompt(userMessage, threadId = "idol") {
+    const contactName = getPhoneThreadContactName(threadId);
+    const profile = idols[contactName] || {};
+    const history = getPhoneThreadMessages(threadId)
+      .slice(-14)
+      .map((message) => {
+        if (message.sender === "producer") return `制作人：${message.text}`;
+        if (message.sender === "idol") return `${contactName}：${message.text}`;
+        return null;
+      })
+      .filter(Boolean)
+      .join("\n");
+
+    return `[初星育成系统：小手机私聊]
+
+当前聊天对象：${contactName}
+担当偶像：${state.idol}
+${contactName === state.idol ? getAffinityStageLine(state.idol, state.trust) : "关系：学院内其他偶像"}
+绑定角色卡：${state.boundCharacter?.name || "未绑定，按当前聊天对象写"}
+当前阶段：${getPhase()}
+${buildPhoneChatScheduleLine()}
+当前状态：Vo ${state.Vo} / Da ${state.Da} / Vi ${state.Vi} / 体力 ${state.stamina} / 压力 ${state.stress} / 信赖 ${state.trust}
+
+最近聊天记录：
+${history || "（尚无历史）"}
+
+制作人刚才发来的消息：
+${userMessage}
+
+角色核心：
+${profile.core || "按初星学园偶像设定自然发挥。"}
+${buildProducerPromptSection()}
+
+私聊规则：
+${buildPhoneChatScenarioRules()}
+- 用${contactName}的口吻回复制作人刚才的消息，可以分多条短消息发送。
+- 每条消息保持口语化，像真实聊天，不要写成完整小说段落。
+
+输出格式（必须严格遵守）：
+<初星私聊 from="${contactName}">
+第一行对应第一条消息气泡
+第二行对应第二条消息气泡
+如有更多回复继续逐行写
+</初星私聊>
+
+输出硬规则：
+1. 只能输出一个 <初星私聊> 标签块，不要在标签外写任何内容、说明或 Markdown。
+2. from 属性必须是 "${contactName}"。
+3. 标签内每行一条消息，一行一个气泡，不要空行，不要把多条消息写在同一行。
+4. 不要写制作人台词，不要写选项、数值或系统说明。`;
+  }
+
+  function buildPhoneAddFriendGreetingPrompt(friendName) {
+    const profile = idols[friendName] || {};
+    const scenarioLine = isSummaryRound()
+      ? `- 制作人在总结轮次的小手机里，刚刚把 ${friendName} 加为好友。`
+      : `- 制作人在小手机里，刚刚把 ${friendName} 加为好友。`;
+    return `[初星育成系统：小手机添加好友问候]
+
+制作人：${getPhoneProducerLabel()}
+担当偶像：${state.idol}
+刚添加的好友：${friendName}
+当前阶段：${getPhase()}
+${buildPhoneChatScheduleLine()}
+
+场景：
+${scenarioLine}
+- 请让 ${friendName} 主动发来添加好友后的第一条问候私聊。
+- 问候应自然、简短，像 LINE 上刚加好友后的第一句话。
+- 可以分 1 到 3 条短消息，不要写成长段落。
+
+角色核心：
+${profile.core || "按初星学园偶像设定自然发挥。"}
+
+私聊规则：
+- 不是育成行动，不改变任何数值，不推进日程。
+- 只写 ${friendName} 的问候，不要替制作人发言。
+
+输出格式（必须严格遵守）：
+<初星私聊 from="${friendName}">
+第一行对应第一条问候气泡
+第二行对应第二条问候气泡
+</初星私聊>
+
+输出硬规则：
+1. 只能输出一个 <初星私聊> 标签块，不要在标签外写任何内容、说明或 Markdown。
+2. from 属性必须是 "${friendName}"。
+3. 标签内每行一条消息，一行一个气泡，不要空行。`;
   }
 
   function buildIdolInteractionPrompt(selectedCharacters, plot, aiDecides) {
@@ -2863,6 +3162,13 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       renderActionHighlights();
       return;
     }
+    if (isSummaryRound()) {
+      container.appendChild(createActionButton("今日总结", "day_summary", null, "#8c73ff", "占位"));
+      container.appendChild(createActionButton("进入下一天", "next_day", null, "#ff4f9a", "推进日程"));
+      document.getElementById("actionModeLabel").textContent = `第 ${state.day} 天总结轮次：整理今日进度，或进入下一天`;
+      renderActionHighlights();
+      return;
+    }
     const actions = isExtraRound()
       ? [
           ["外出", "outing", null, "#20dfad", "体力+38"],
@@ -2893,12 +3199,18 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     document.getElementById("actionModeLabel").textContent = isExtraRound()
       ? "请选择额外行动"
       : "请选择行动";
+    const actionZone = document.getElementById("actionZone");
+    if (actionZone) actionZone.classList.remove("is-summary-round");
     renderActionHighlights();
   }
 
   function renderActionHighlights() {
+    const actionZone = document.getElementById("actionZone");
+    if (actionZone) actionZone.classList.toggle("is-summary-round", isSummaryRound());
     document.querySelectorAll(".action-button").forEach((button) => {
-      if (["freechat", "interaction"].includes(button.dataset.action)) {
+      if (["day_summary", "next_day"].includes(button.dataset.action)) {
+        button.disabled = !isSummaryRound();
+      } else if (["freechat", "interaction"].includes(button.dataset.action)) {
         button.disabled = false;
       } else if (button.dataset.action === "bond") {
         button.disabled = !pendingAffinityActionThreshold();
@@ -3082,6 +3394,855 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     setElementHidden("freeChatOverlay", true);
   }
 
+  function closeFreeChatOverlay() {
+    setElementHidden("freeChatOverlay", true);
+  }
+
+  const daySummaryRadarAxes = [
+    { key: "Vo", label: "歌唱技巧" },
+    { key: "Vi", label: "表现技巧" },
+    { key: "trust", label: "自信" },
+    { key: "stamina", label: "体力" },
+    { key: "Da", label: "舞蹈技巧" }
+  ];
+
+  function formatIdolDisplayName(name) {
+    const text = String(name || "").trim();
+    if (text.length <= 2) return text;
+    return `${text.slice(0, 2)} ${text.slice(2)}`;
+  }
+
+  function getIdolSchoolClass(idolName) {
+    const canonical = canonicalIdolName(idolName);
+    return idolSchoolClasses[canonical] || "—";
+  }
+
+  function statToRadarPercent(key) {
+    if (key === "stamina" || key === "trust") {
+      return clamp(Number(state[key] || 0), 0, 100);
+    }
+    const cap = Number(state.cap?.[key] || 1);
+    return clamp((Number(state[key] || 0) / cap) * 100, 0, 100);
+  }
+
+  function radarVertex(cx, cy, radius, index, total = 5) {
+    const angle = ((Math.PI * 2 * index) / total) - (Math.PI / 2);
+    return {
+      x: cx + radius * Math.cos(angle),
+      y: cy + radius * Math.sin(angle)
+    };
+  }
+
+  function radarPolygonPoints(values, cx, cy, maxRadius) {
+    return values.map((value, index) => {
+      const point = radarVertex(cx, cy, maxRadius * (clamp(value, 0, 100) / 100), index, values.length);
+      return `${point.x.toFixed(1)},${point.y.toFixed(1)}`;
+    }).join(" ");
+  }
+
+  function renderDaySummaryRadar() {
+    const grid = document.getElementById("daySummaryRadarGrid");
+    const labels = document.getElementById("daySummaryRadarLabels");
+    const shape = document.getElementById("daySummaryRadarShape");
+    if (!grid || !labels || !shape) return;
+
+    const cx = 160;
+    const cy = 150;
+    const maxRadius = 88;
+    const values = daySummaryRadarAxes.map((axis) => statToRadarPercent(axis.key));
+
+    grid.innerHTML = [0.25, 0.5, 0.75, 1].map((level) => {
+      const points = radarPolygonPoints(daySummaryRadarAxes.map(() => level * 100), cx, cy, maxRadius);
+      return `<polygon class="day-summary-radar-grid" points="${points}"></polygon>`;
+    }).join("");
+
+    shape.setAttribute("points", radarPolygonPoints(values, cx, cy, maxRadius));
+
+    labels.innerHTML = daySummaryRadarAxes.map((axis, index) => {
+      const anchor = radarVertex(cx, cy, maxRadius + 22, index, daySummaryRadarAxes.length);
+      const align = index === 0 ? "middle" : index === 1 || index === 2 ? "start" : index === 4 ? "end" : "middle";
+      const dx = index === 1 ? 6 : index === 2 ? 8 : index === 4 ? -8 : index === 3 ? -8 : 0;
+      const dy = index === 0 ? -6 : index === 3 || index === 4 ? 10 : 4;
+      return `<text x="${(anchor.x + dx).toFixed(1)}" y="${(anchor.y + dy).toFixed(1)}" text-anchor="${align}">${axis.label}</text>`;
+    }).join("");
+  }
+
+  function getDaySummaryDisplayLines() {
+    const summary = state.dailySummary || {};
+    const sameDay = Number(summary.day) === Number(state.day);
+    const lines = [summary.intro, summary.status, summary.producer].filter(Boolean);
+    if (sameDay && summary.complete) {
+      return lines;
+    }
+    if (sameDay && lines.length) {
+      return [
+        ...lines,
+        "今日总结尚未完整，缺少必要段落。可在第四轮额外行动的事件面板重新生成该次回复。"
+      ];
+    }
+    return [
+      "今日总结尚未生成。",
+      "请先完成第四轮额外行动，并等待 AI 在行动收尾回复中写入【今日总结开始】…【今日总结结束】。",
+      "总结应包含：角色介绍、当前状态评估、制作人视角的下一步问题。"
+    ];
+  }
+
+  function renderDaySummaryNotes(lines) {
+    const container = document.getElementById("daySummaryNotes");
+    if (!container) return;
+    const displayLines = Array.isArray(lines) ? lines : getDaySummaryDisplayLines();
+    container.innerHTML = displayLines.map((line) => `<p class="day-summary-line">${line}</p>`).join("");
+  }
+
+  function renderDaySummary() {
+    const profile = idols[state.idol] || {};
+    const avatar = document.getElementById("daySummaryAvatar");
+    const schedule = document.getElementById("daySummarySchedule");
+    const name = document.getElementById("daySummaryName");
+
+    if (avatar) {
+      avatar.src = profile.avatar || "";
+      avatar.alt = state.idol ? `${state.idol}头像` : "担当头像";
+    }
+    if (schedule) {
+      schedule.textContent = getIdolSchoolClass(state.idol);
+    }
+    const dayValue = document.getElementById("daySummaryDayValue");
+    if (dayValue) {
+      dayValue.textContent = String(state.day || 1);
+    }
+    if (name) {
+      name.textContent = formatIdolDisplayName(state.idol || "未选择");
+    }
+
+    renderDaySummaryRadar();
+    renderDaySummaryNotes();
+  }
+
+  function openDaySummaryOverlay() {
+    renderDaySummary();
+    setElementHidden("daySummaryOverlay", false);
+  }
+
+  function closeDaySummaryOverlay() {
+    setElementHidden("daySummaryOverlay", true);
+  }
+
+  function escapePhoneText(value) {
+    return String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function formatPhoneClock(date = new Date()) {
+    const hours = date.getHours();
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${hours}:${minutes}`;
+  }
+
+  function phoneChatMessageId() {
+    return `msg-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  }
+
+  function getPhoneProducerLabel() {
+    const name = String(state.producer?.name || "").trim();
+    if (!name || name === "{{user}}") return "制作人";
+    return name;
+  }
+
+  function formatPhoneHomeDate(date = new Date()) {
+    const weekdays = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
+    return `${date.getMonth() + 1}月${date.getDate()}日 ${weekdays[date.getDay()]}`;
+  }
+
+  function setPhoneStatusBarMode(mode) {
+    const bar = document.getElementById("phoneStatusBar");
+    if (!bar) return;
+    bar.classList.toggle("is-home", mode === "home");
+    bar.classList.toggle("is-line", mode === "line");
+  }
+
+  function setPhoneHomeIndicatorVisible(visible) {
+    const indicator = document.getElementById("phoneHomeIndicator");
+    if (indicator) indicator.hidden = !visible;
+  }
+
+  function renderPhoneHomeAppIcon(app) {
+    return `
+      <button type="button" class="phone-app-icon" data-phone-app="${app.id}" role="listitem">
+        <span class="phone-app-icon-badge" style="--app-color: ${app.theme}">${escapePhoneText(app.iconText)}</span>
+        <span class="phone-app-icon-label">${escapePhoneText(app.name)}</span>
+      </button>
+    `;
+  }
+
+  function renderPhoneHome() {
+    const grid = document.getElementById("phoneAppGrid");
+    const dock = document.getElementById("phoneDockApps");
+    const date = document.getElementById("phoneHomeDate");
+    if (date) date.textContent = formatPhoneHomeDate();
+    renderPhoneStatusBar();
+
+    const installedApps = phoneAppRegistry.filter((app) => app.installed);
+    const appIcons = installedApps.map(renderPhoneHomeAppIcon).join("");
+    const emptySlot = `
+      <div class="phone-app-slot phone-app-slot-empty" aria-hidden="true">
+        <span class="phone-app-slot-badge">+</span>
+        <span class="phone-app-icon-label">添加应用</span>
+      </div>
+    `;
+    if (grid) grid.innerHTML = `${appIcons}${emptySlot}`;
+    if (dock) dock.innerHTML = installedApps.slice(0, 4).map(renderPhoneHomeAppIcon).join("");
+  }
+
+  function showPhoneLineAppShell() {
+    setElementHidden("phoneHomeView", true);
+    setElementHidden("phoneLineApp", false);
+    setPhoneStatusBarMode("line");
+    setPhoneHomeIndicatorVisible(true);
+  }
+
+  function showPhoneHomeView() {
+    ensureStateShape();
+    state.phoneChat.activeView = "home";
+    state.phoneChat.activeThreadId = "";
+    setElementHidden("phoneLineApp", true);
+    setElementHidden("phoneHomeView", false);
+    setPhoneStatusBarMode("home");
+    setPhoneHomeIndicatorVisible(false);
+    renderPhoneHome();
+  }
+
+  function openPhoneLineApp() {
+    showPhoneLineAppShell();
+    showPhoneListView();
+  }
+
+  function launchPhoneApp(appId) {
+    const app = phoneAppRegistry.find((entry) => entry.id === appId && entry.installed);
+    if (!app) return;
+    if (appId === "line") {
+      openPhoneLineApp();
+    }
+  }
+
+  function phoneFriendThreadId(friendName) {
+    return `friend:${canonicalIdolName(friendName)}`;
+  }
+
+  function isPhoneFriendThreadId(threadId) {
+    return String(threadId || "").startsWith("friend:");
+  }
+
+  function getPhoneFriendNameFromThreadId(threadId) {
+    return canonicalIdolName(String(threadId || "").replace(/^friend:/, ""));
+  }
+
+  function getPhoneThreadContactName(threadId) {
+    if (threadId === "idol") return state.idol || "";
+    if (isPhoneFriendThreadId(threadId)) return getPhoneFriendNameFromThreadId(threadId);
+    return "";
+  }
+
+  function resolvePhoneFriendName(rawInput) {
+    const trimmed = String(rawInput || "").trim();
+    if (!trimmed) return "";
+    const canonical = canonicalIdolName(trimmed);
+    if (idols[canonical]) return canonical;
+    const exact = Object.keys(idols).find((name) => name === trimmed);
+    if (exact) return exact;
+    const partial = Object.keys(idols).find((name) => name.includes(trimmed) || trimmed.includes(name));
+    return partial || "";
+  }
+
+  function getPhoneAddFriendCandidates() {
+    ensureStateShape();
+    const taken = new Set([state.idol, ...(state.phoneChat.friends || [])]);
+    return interactionCharacters.filter((name) => !taken.has(name) && idols[name]);
+  }
+
+  function buildPhoneThreadDefinitions() {
+    const idolName = state.idol;
+    const profile = idols[idolName] || {};
+    const friendThreads = (state.phoneChat?.friends || []).map((friendName) => {
+      const friendProfile = idols[friendName] || {};
+      return {
+        id: phoneFriendThreadId(friendName),
+        name: friendName,
+        contactName: friendName,
+        avatar: friendProfile.avatar || "",
+        type: "direct",
+        pinned: false,
+        writable: true,
+        subtitle: "好友"
+      };
+    });
+    return [
+      {
+        id: "idol",
+        name: idolName || "担当偶像",
+        contactName: idolName || "",
+        avatar: profile.avatar || "",
+        type: "direct",
+        pinned: true,
+        writable: true,
+        subtitle: "在线"
+      },
+      ...friendThreads
+    ];
+  }
+
+  function getPhoneThreadDefinition(threadId) {
+    return buildPhoneThreadDefinitions().find((thread) => thread.id === threadId) || null;
+  }
+
+  function getPhoneThreadMessages(threadId) {
+    ensureStateShape();
+    return Array.isArray(state.phoneChat.messages[threadId]) ? state.phoneChat.messages[threadId] : [];
+  }
+
+  function getPhoneThreadPreview(threadId) {
+    const messages = getPhoneThreadMessages(threadId);
+    const last = messages[messages.length - 1];
+    return last ? String(last.text || "") : "暂无消息";
+  }
+
+  function getPhoneThreadTime(threadId) {
+    const messages = getPhoneThreadMessages(threadId);
+    const last = messages[messages.length - 1];
+    return last ? String(last.time || "") : "";
+  }
+
+  function getPhoneUnreadCount(threadId) {
+    const thread = getPhoneThreadDefinition(threadId);
+    if (!thread || thread.type !== "direct") return 0;
+    return getPhoneThreadMessages(threadId).filter((message) => message.sender === "idol" && !message.read).length;
+  }
+
+  function renderPhoneStatusBar() {
+    const clock = document.getElementById("phoneStatusTime");
+    if (clock) clock.textContent = formatPhoneClock();
+  }
+
+  function renderPhoneChatList() {
+    const list = document.getElementById("phoneChatList");
+    if (!list) return;
+
+    const threads = buildPhoneThreadDefinitions();
+    const pinned = threads.filter((thread) => thread.pinned);
+    const regular = threads.filter((thread) => !thread.pinned);
+    const ordered = [...pinned, ...regular];
+
+    list.innerHTML = ordered.map((thread) => {
+      const unread = getPhoneUnreadCount(thread.id);
+      const preview = getPhoneThreadPreview(thread.id);
+      const time = getPhoneThreadTime(thread.id);
+      const avatarMarkup = thread.avatar
+        ? `<img class="line-thread-avatar" src="${thread.avatar}" alt="${thread.name}头像" draggable="false">`
+        : `<div class="line-thread-avatar ${thread.type === "official" ? "is-official" : "is-group"}" aria-hidden="true">${thread.type === "official" ? "校" : "群"}</div>`;
+      return `
+        <button class="line-thread" type="button" data-thread-id="${thread.id}" role="listitem">
+          ${avatarMarkup}
+          <span class="line-thread-body">
+            <span class="line-thread-head">
+              <span class="line-thread-name">${escapePhoneText(thread.name)}</span>
+              <span class="line-thread-time">${escapePhoneText(time)}</span>
+            </span>
+            <span class="line-thread-preview">
+              <span class="line-thread-text">${escapePhoneText(preview)}</span>
+              ${unread ? `<span class="line-thread-badge">${unread}</span>` : ""}
+            </span>
+          </span>
+        </button>
+      `;
+    }).join("");
+  }
+
+  function renderPhoneChatMessages(threadId, options = {}) {
+    const container = document.getElementById("phoneChatMessages");
+    if (!container) return;
+
+    const thread = getPhoneThreadDefinition(threadId);
+    const messages = getPhoneThreadMessages(threadId);
+    const contactName = getPhoneThreadContactName(threadId);
+    const contactAvatar = idols[contactName]?.avatar || "";
+    const showTyping = options.showTyping ?? isPhoneChatTyping();
+    const showTypingRetry = showTyping && state.activeStoryNode?.type === "phonechat";
+
+    container.innerHTML = `
+      <div class="line-date-chip">今天</div>
+      ${messages.map((message) => {
+        if (message.sender === "producer") {
+          return `
+            <div class="line-msg line-msg-out">
+              <span class="line-msg-read">${message.read ? "已读" : ""}</span>
+              <div class="line-msg-bubble">${escapePhoneText(message.text)}</div>
+              <span class="line-msg-time">${escapePhoneText(message.time)}</span>
+            </div>
+          `;
+        }
+        const isSystem = message.sender === "system";
+        return `
+          <div class="line-msg line-msg-in">
+            ${isSystem
+              ? `<div class="line-thread-avatar is-official" aria-hidden="true">通</div>`
+              : `<img class="line-msg-avatar" src="${contactAvatar}" alt="${escapePhoneText(contactName || "偶像")}头像" draggable="false">`}
+            <div class="line-msg-bubble">${escapePhoneText(message.text)}</div>
+            <span class="line-msg-time">${escapePhoneText(message.time)}</span>
+          </div>
+        `;
+      }).join("")}
+      ${showTyping ? `
+        <div class="line-msg line-msg-in line-msg-typing" aria-live="polite">
+          <img class="line-msg-avatar" src="${contactAvatar}" alt="" draggable="false">
+          <div class="line-msg-bubble line-typing-bubble">
+            <span class="line-typing-label">正在输入中</span>
+            <span class="line-typing-dots" aria-hidden="true"><span></span><span></span><span></span></span>
+            ${showTypingRetry ? `<button type="button" class="line-typing-retry" data-phone-retry>未收到？重试</button>` : ""}
+          </div>
+        </div>
+      ` : ""}
+    `;
+
+    container.scrollTop = container.scrollHeight;
+    if (thread?.writable && !showTyping) {
+      let changed = false;
+      messages.forEach((message) => {
+        if (message.sender === "idol" && !message.read) {
+          message.read = true;
+          changed = true;
+        }
+      });
+      if (changed) saveState();
+    }
+    updatePhoneChatRetryUi();
+  }
+
+  function isPhoneChatTyping() {
+    return phoneChatTypingVisible || Boolean(state.phoneChat?.isAwaitingReply);
+  }
+
+  function isPhoneChatBusy() {
+    return isPhoneChatTyping() || Boolean(phoneChatDeliveryTimer);
+  }
+
+  function shouldShowPhoneChatRetryHint() {
+    if (state.phoneChat?.activeView !== "chat") return false;
+    const thread = getPhoneThreadDefinition(state.phoneChat?.activeThreadId);
+    if (!thread?.writable) return false;
+    return Boolean(state.phoneChat?.retryAvailable && !isPhoneChatTyping());
+  }
+
+  function canRetryPhoneChatNow() {
+    if (state.activeStoryNode?.type !== "phonechat") return false;
+    const thread = getPhoneThreadDefinition(state.phoneChat?.activeThreadId);
+    if (!thread?.writable) return false;
+    return Boolean(state.phoneChat?.isAwaitingReply || state.phoneChat?.retryAvailable || phoneChatDeliveryTimer);
+  }
+
+  function updatePhoneChatRetryUi() {
+    const hint = document.getElementById("phoneChatRetryHint");
+    if (hint) hint.hidden = !shouldShowPhoneChatRetryHint();
+  }
+
+  function triggerPhoneChatRegeneration() {
+    if (!canRetryPhoneChatNow()) {
+      showToast("暂无法重试", "当前没有等待中的私聊回复。", "warn");
+      return;
+    }
+
+    clearPhoneChatDelivery();
+    aiReplyRetryCount = 0;
+    const requestId = state.phoneChat.pendingRequestId || state.lastRequestId || createRequestId();
+    pendingAiRequestId = requestId;
+    state.lastRequestId = requestId;
+    state.phoneChat.pendingRequestId = requestId;
+    state.phoneChat.isAwaitingReply = true;
+    state.phoneChat.retryAvailable = false;
+    setPhoneChatTyping(true);
+    setPhoneChatComposerEnabled(false);
+    updatePhoneChatRetryUi();
+    saveState();
+
+    const prompt = state.lastPrompt || "";
+    if (isSillyTavernHost()) {
+      window.parent.postMessage({
+        source: "hatsuboshi-produce",
+        type: "regenerate",
+        requestId
+      }, "*");
+      showToast("正在重新生成", "已向 SillyTavern 请求重新生成私聊回复。", "info");
+      return;
+    }
+    if (prompt && requestHostPromptSend(prompt, requestId)) {
+      showToast("正在重新生成", "已重新发送私聊提示词。", "info");
+      return;
+    }
+    state.phoneChat.isAwaitingReply = false;
+    state.phoneChat.retryAvailable = true;
+    pendingAiRequestId = "";
+    setPhoneChatTyping(false);
+    setPhoneChatComposerEnabled(true);
+    updatePhoneChatRetryUi();
+    saveState();
+    openAiPromptOverlay("当前页面未连接 SillyTavern。请复制私聊提示词后手动发送。");
+  }
+
+  function setPhoneChatTyping(visible) {
+    phoneChatTypingVisible = visible;
+    const threadId = state.phoneChat?.activeThreadId;
+    if (threadId && state.phoneChat?.activeView === "chat") {
+      renderPhoneChatMessages(threadId, { showTyping: visible });
+    }
+    updatePhoneChatRetryUi();
+  }
+
+  function setPhoneChatComposerEnabled(enabled) {
+    const thread = getPhoneThreadDefinition(state.phoneChat?.activeThreadId);
+    if (!thread?.writable) return;
+    const input = document.getElementById("phoneChatInput");
+    const sendBtn = document.querySelector("#phoneChatForm .line-send-btn");
+    if (input) input.disabled = !enabled;
+    if (sendBtn) sendBtn.disabled = !enabled;
+  }
+
+  function clearPhoneChatDelivery() {
+    if (phoneChatDeliveryTimer) {
+      clearTimeout(phoneChatDeliveryTimer);
+      phoneChatDeliveryTimer = null;
+    }
+  }
+
+  function startPhoneChatLineDelivery(threadId, lines) {
+    clearPhoneChatDelivery();
+    const queue = lines.map((line) => String(line || "").trim()).filter(Boolean);
+    if (!queue.length) {
+      setPhoneChatTyping(false);
+      setPhoneChatComposerEnabled(true);
+      return;
+    }
+
+    const deliverNext = () => {
+      setPhoneChatTyping(true);
+      phoneChatDeliveryTimer = window.setTimeout(() => {
+        const line = queue.shift();
+        appendPhoneChatMessage(threadId, "idol", line);
+        saveState();
+        if (state.phoneChat?.activeView === "chat" && state.phoneChat.activeThreadId === threadId) {
+          renderPhoneChatMessages(threadId, { showTyping: queue.length > 0 });
+        }
+        renderPhoneChatList();
+
+        if (queue.length) {
+          deliverNext();
+          return;
+        }
+
+        phoneChatDeliveryTimer = null;
+        setPhoneChatTyping(false);
+        setPhoneChatComposerEnabled(true);
+      }, PHONE_CHAT_LINE_DELAY_MS);
+    };
+
+    deliverNext();
+  }
+
+  function sendPhoneChatToHost(userMessage, threadId = "idol") {
+    const prompt = buildPhoneChatPrompt(userMessage, threadId);
+    const requestId = createRequestId();
+    state.activeStoryNode = { type: "phonechat", threadId, mode: "chat", ready: false };
+    state.lastPrompt = prompt;
+    state.phoneChat.isAwaitingReply = true;
+    state.phoneChat.pendingRequestId = requestId;
+    state.phoneChat.retryAvailable = false;
+    setPhoneChatTyping(true);
+    setPhoneChatComposerEnabled(false);
+    saveState();
+
+    pendingAiRequestId = requestId;
+    if (!requestHostPromptSend(prompt, requestId)) {
+      state.phoneChat.isAwaitingReply = false;
+      state.phoneChat.pendingRequestId = "";
+      state.phoneChat.retryAvailable = true;
+      pendingAiRequestId = "";
+      setPhoneChatTyping(false);
+      setPhoneChatComposerEnabled(true);
+      updatePhoneChatRetryUi();
+      openAiPromptOverlay("当前页面未连接 SillyTavern。请复制私聊提示词后手动发送。");
+    }
+  }
+
+  function sendPhoneAddFriendGreeting(friendName, threadId) {
+    const prompt = buildPhoneAddFriendGreetingPrompt(friendName);
+    const requestId = createRequestId();
+    state.activeStoryNode = { type: "phonechat", threadId, mode: "greeting", contactName: friendName, ready: false };
+    state.lastPrompt = prompt;
+    state.phoneChat.isAwaitingReply = true;
+    state.phoneChat.pendingRequestId = requestId;
+    state.phoneChat.retryAvailable = false;
+    setPhoneChatTyping(true);
+    setPhoneChatComposerEnabled(false);
+    saveState();
+
+    pendingAiRequestId = requestId;
+    if (!requestHostPromptSend(prompt, requestId)) {
+      state.phoneChat.isAwaitingReply = false;
+      state.phoneChat.pendingRequestId = "";
+      state.phoneChat.retryAvailable = true;
+      pendingAiRequestId = "";
+      setPhoneChatTyping(false);
+      setPhoneChatComposerEnabled(true);
+      updatePhoneChatRetryUi();
+      openAiPromptOverlay("当前页面未连接 SillyTavern。请复制添加好友问候提示词后手动发送。");
+    }
+  }
+
+  function handlePhoneChatAiReply(source, requestId, isFinal) {
+    if (!isFinal) {
+      state.phoneChat.isAwaitingReply = true;
+      setPhoneChatTyping(true);
+      setPhoneChatComposerEnabled(false);
+      sendAiReplyAck(requestId, true, false, false);
+      return;
+    }
+
+    const parsed = extractPhoneChatReply(source);
+    if (!parsed.complete) {
+      if (aiReplyRetryCount < 2) {
+        aiReplyRetryCount += 1;
+        state.phoneChat.isAwaitingReply = true;
+        setPhoneChatTyping(true);
+        sendAiReplyAck(requestId, false, true);
+        return;
+      }
+      aiReplyRetryCount = 0;
+      pendingAiRequestId = "";
+      state.phoneChat.isAwaitingReply = false;
+      state.phoneChat.pendingRequestId = "";
+      state.phoneChat.retryAvailable = true;
+      if (state.activeStoryNode?.type === "phonechat") state.activeStoryNode.ready = true;
+      setPhoneChatTyping(false);
+      setPhoneChatComposerEnabled(true);
+      updatePhoneChatRetryUi();
+      saveState();
+      showToast("私聊回复异常", "未找到有效的 <初星私聊> 回复，可点重试重新生成。", "warn");
+      sendAiReplyAck(requestId, false, false);
+      return;
+    }
+
+    aiReplyRetryCount = 0;
+    pendingAiRequestId = "";
+    state.phoneChat.isAwaitingReply = false;
+    state.phoneChat.pendingRequestId = "";
+    state.phoneChat.retryAvailable = false;
+    if (state.activeStoryNode?.type === "phonechat") state.activeStoryNode.ready = true;
+    const threadId = state.activeStoryNode?.threadId || "idol";
+    startPhoneChatLineDelivery(threadId, parsed.lines);
+    sendAiReplyAck(requestId, true, false);
+    saveState();
+    updatePhoneChatRetryUi();
+  }
+
+  function showPhoneListView() {
+    ensureStateShape();
+    showPhoneLineAppShell();
+    state.phoneChat.activeView = "list";
+    state.phoneChat.activeThreadId = "";
+    setElementHidden("phoneLineChatView", true);
+    setElementHidden("phoneLineAddFriendView", true);
+    setElementHidden("phoneLineListView", false);
+    renderPhoneChatList();
+  }
+
+  function renderPhoneAddFriendSuggestions() {
+    const container = document.getElementById("phoneAddFriendSuggestions");
+    if (!container) return;
+    const candidates = getPhoneAddFriendCandidates();
+    if (!candidates.length) {
+      container.innerHTML = `<p class="line-add-friend-note">暂无可添加的学院偶像。</p>`;
+      return;
+    }
+    container.innerHTML = candidates.map((name) => (
+      `<button type="button" class="line-add-friend-chip" data-friend-name="${escapePhoneText(name)}">${escapePhoneText(name)}</button>`
+    )).join("");
+  }
+
+  function openPhoneAddFriendView() {
+    if (isPhoneChatBusy()) {
+      showToast("请稍候", "请等待当前私聊回复完成。", "warn");
+      return;
+    }
+    ensureStateShape();
+    state.phoneChat.activeView = "add_friend";
+    showPhoneLineAppShell();
+    const input = document.getElementById("phoneAddFriendInput");
+    const submitBtn = document.getElementById("phoneAddFriendSubmitBtn");
+    if (input) input.value = "";
+    if (submitBtn) submitBtn.disabled = false;
+    renderPhoneAddFriendSuggestions();
+    setElementHidden("phoneLineChatView", true);
+    setElementHidden("phoneLineListView", true);
+    setElementHidden("phoneLineAddFriendView", false);
+    input?.focus();
+  }
+
+  function closePhoneAddFriendView() {
+    setElementHidden("phoneLineAddFriendView", true);
+    showPhoneListView();
+  }
+
+  function confirmPhoneAddFriend(rawName) {
+    if (isPhoneChatBusy()) {
+      showToast("请稍候", "请等待当前私聊回复完成。", "warn");
+      return;
+    }
+    const friendName = resolvePhoneFriendName(rawName);
+    if (!friendName) {
+      showToast("未找到偶像", "请输入初星学园偶像的姓名。", "warn");
+      return;
+    }
+    if (friendName === state.idol) {
+      showToast("已是担当", "担当偶像已在聊天列表中。", "warn");
+      return;
+    }
+
+    ensureStateShape();
+    const threadId = phoneFriendThreadId(friendName);
+    if ((state.phoneChat.friends || []).includes(friendName)) {
+      closePhoneAddFriendView();
+      openPhoneThread(threadId);
+      showToast("已是好友", "已打开与该偶像的聊天。", "info");
+      return;
+    }
+
+    state.phoneChat.friends.push(friendName);
+    state.phoneChat.messages[threadId] = [];
+    saveState();
+    closePhoneAddFriendView();
+    openPhoneThread(threadId);
+    sendPhoneAddFriendGreeting(friendName, threadId);
+  }
+
+  function submitPhoneAddFriend(event) {
+    event.preventDefault();
+    const input = document.getElementById("phoneAddFriendInput");
+    confirmPhoneAddFriend(input?.value || "");
+  }
+
+  function openPhoneThread(threadId) {
+    const thread = getPhoneThreadDefinition(threadId);
+    if (!thread) return;
+
+    ensureStateShape();
+    state.phoneChat.activeView = "chat";
+    state.phoneChat.activeThreadId = threadId;
+    showPhoneLineAppShell();
+
+    const title = document.getElementById("phoneChatTitle");
+    const subtitle = document.getElementById("phoneChatSubtitle");
+    const form = document.getElementById("phoneChatForm");
+    const readonlyNote = document.getElementById("phoneChatReadonlyNote");
+    const input = document.getElementById("phoneChatInput");
+
+    if (title) title.textContent = thread.name;
+    if (subtitle) subtitle.textContent = thread.subtitle || "";
+    if (form) form.hidden = !thread.writable;
+    if (readonlyNote) readonlyNote.hidden = Boolean(thread.writable);
+    if (input) {
+      input.value = "";
+      input.disabled = !thread.writable || isPhoneChatBusy();
+    }
+
+    setElementHidden("phoneLineListView", true);
+    setElementHidden("phoneLineAddFriendView", true);
+    setElementHidden("phoneLineChatView", false);
+    renderPhoneChatMessages(threadId);
+    renderPhoneChatList();
+    setPhoneChatComposerEnabled(thread.writable && !isPhoneChatBusy());
+    if (state.activeStoryNode?.type === "phonechat" && pendingAiRequestId) {
+      state.phoneChat.isAwaitingReply = true;
+      setPhoneChatTyping(true);
+      setPhoneChatComposerEnabled(false);
+    }
+    if (thread.writable && !isPhoneChatBusy()) input?.focus();
+  }
+
+  function appendPhoneChatMessage(threadId, sender, text) {
+    const trimmed = String(text || "").trim();
+    if (!trimmed) return false;
+
+    ensureStateShape();
+    if (!Array.isArray(state.phoneChat.messages[threadId])) {
+      state.phoneChat.messages[threadId] = [];
+    }
+
+    state.phoneChat.messages[threadId].push({
+      id: phoneChatMessageId(),
+      sender,
+      text: trimmed,
+      time: formatPhoneClock(),
+      read: sender === "producer"
+    });
+    return true;
+  }
+
+  function submitPhoneChatMessage(event) {
+    event.preventDefault();
+    const threadId = state.phoneChat?.activeThreadId;
+    const thread = getPhoneThreadDefinition(threadId);
+    if (!thread?.writable) return;
+
+    if (isPhoneChatBusy()) {
+      showToast("请稍候", "上一条消息还在回复中。", "warn");
+      return;
+    }
+
+    const input = document.getElementById("phoneChatInput");
+    const text = input?.value || "";
+    if (!appendPhoneChatMessage(threadId, "producer", text)) return;
+
+    if (input) input.value = "";
+    renderPhoneChatMessages(threadId);
+    renderPhoneChatList();
+    saveState();
+    sendPhoneChatToHost(text, threadId);
+  }
+
+  function renderPhoneApp() {
+    renderPhoneStatusBar();
+    if (state.phoneChat.activeView === "home") {
+      showPhoneHomeView();
+      return;
+    }
+    showPhoneLineAppShell();
+    if (state.phoneChat.activeView === "add_friend") {
+      openPhoneAddFriendView();
+      return;
+    }
+    if (state.phoneChat.activeView === "chat" && state.phoneChat.activeThreadId) {
+      openPhoneThread(state.phoneChat.activeThreadId);
+      return;
+    }
+    showPhoneListView();
+  }
+
+  function openPhoneOverlay() {
+    if (!state.idol) {
+      showToast("尚未选择担当", "请先选择担当偶像后再打开手机。", "warn");
+      return;
+    }
+    ensureStateShape();
+    renderPhoneApp();
+    setElementHidden("phoneOverlay", false);
+  }
+
+  function closePhoneOverlay() {
+    showPhoneHomeView();
+    setElementHidden("phoneOverlay", true);
+  }
+
   function setInteractionMode(mode) {
     interactionMode = mode === "ai" ? "ai" : "specified";
     const aiDecides = interactionMode === "ai";
@@ -3231,6 +4392,21 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     closeAiPromptOverlay();
     const requestId = createRequestId();
     pendingAiRequestId = requestId;
+    if (state.activeStoryNode?.type === "phonechat") {
+      state.phoneChat.isAwaitingReply = true;
+      state.phoneChat.pendingRequestId = requestId;
+      setPhoneChatTyping(true);
+      setPhoneChatComposerEnabled(false);
+      saveState();
+      if (requestHostPromptSend(prompt, requestId)) return;
+      state.phoneChat.isAwaitingReply = false;
+      state.phoneChat.pendingRequestId = "";
+      pendingAiRequestId = "";
+      setPhoneChatTyping(false);
+      setPhoneChatComposerEnabled(true);
+      openAiPromptOverlay("当前页面未连接 SillyTavern。请复制私聊提示词后手动发送。");
+      return;
+    }
     openEventOverlay("AI 生成请求", "已重新发送提示词，等待角色卡回复。", "正在等待角色卡 AI 生成本次小剧情...");
     if (requestHostPromptSend(prompt, requestId)) return;
     openNotebook("prompt");
@@ -3986,28 +5162,28 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       .sort((a, b) => b.text.length - a.text.length)[0]?.text || "";
   }
 
+  function stripAiThinkingBlocks(value) {
+    const thinkTags = "thinking|think|details|summary|sum|vars|analysis|planning|plan|konatan_planning|bginfo|bginfor|draft_notes|bginfor";
+    const closedRegex = new RegExp("<(" + thinkTags + ")\\b[^>]*>[\\s\\S]*?<\\/\\1>", "gi");
+    const unclosedRegex = new RegExp("<(" + thinkTags + ")\\b[^>]*>[\\s\\S]*$", "gi");
+
+    return String(value || "")
+      .replace(/^[\s\S]*?<!--\s*end_of_Subtext_think\s*-->/gi, "")
+      .replace(/<!--[\s\S]*?-->/g, "")
+      .replace(closedRegex, "")
+      .replace(unclosedRegex, "");
+  }
+
   function extractReplyCandidate(value) {
     const raw = String(value || "")
       .replace(/&lt;/g, "<")
       .replace(/&gt;/g, ">")
       .replace(/&amp;/g, "&")
       .replace(/\u200b/g, "");
-    
-    // 1. 过滤掉无前缀但带结束注释的思考段 (从开头到 <!-- end_of_Subtext_think --> 或者是草稿说明)
-    let withoutThinking = raw
-      .replace(/^[\s\S]*?<!--\s*end_of_Subtext_think\s*-->/gi, "")
-      .replace(/<!--[\s\S]*?-->/g, "");
 
-    // 2. 过滤掉所有已闭合和未闭合的思考块/思维链/草稿标签，防止匹配到里面的设定或样例分隔符
-    const thinkTags = "thinking|think|details|summary|sum|vars|analysis|planning|plan|konatan_planning|bginfo|bginfor|draft_notes|bginfor";
-    const closedRegex = new RegExp("<(" + thinkTags + ")\\b[^>]*>[\\s\\S]*?<\\/\\1>", "gi");
-    const unclosedRegex = new RegExp("<(" + thinkTags + ")\\b[^>]*>[\\s\\S]*$", "gi");
-    
-    withoutThinking = withoutThinking
-      .replace(closedRegex, "")
-      .replace(unclosedRegex, "");
+    const withoutThinking = stripAiThinkingBlocks(raw);
 
-    // 3. 使用【倒数匹配】查找最末尾的“初星正文开始”作为故事正文起点，彻底避开前置的样例与检查表干扰
+    // 使用【倒数匹配】查找最末尾的“初星正文开始”作为故事正文起点，彻底避开前置的样例与检查表干扰
     const startMatches = [...withoutThinking.matchAll(/[【\[]\s*初星正文开始\s*[】\]]/g)];
     if (startMatches.length > 0) {
       const lastStartMatch = startMatches[startMatches.length - 1];
@@ -4044,6 +5220,66 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       .replace(/\s*\*{1,2}\s*$/gm, "")
       .replace(/\n{3,}/g, "\n\n")
       .trim();
+  }
+
+  function extractTaggedSummarySection(source, tagName) {
+    const regex = new RegExp(`<${tagName}>([\\s\\S]*?)<\\/${tagName}>`, "i");
+    const match = String(source || "").match(regex);
+    return match ? cleanReplyText(match[1]) : "";
+  }
+
+  function extractDailySummary(source) {
+    const raw = String(source || "")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&amp;/g, "&")
+      .replace(/\u200b/g, "");
+    const blockMatch = raw.match(/[【\[]\s*今日总结开始\s*[】\]]([\s\S]*?)[【\[]\s*今日总结结束\s*[】\]]/u);
+    const block = blockMatch ? blockMatch[1] : raw;
+    const intro = extractTaggedSummarySection(block, "summary_intro");
+    const status = extractTaggedSummarySection(block, "summary_status");
+    const producer = extractTaggedSummarySection(block, "summary_producer");
+    const complete = Boolean(intro && status && producer);
+    return {
+      intro,
+      status,
+      producer,
+      raw: block.trim(),
+      complete
+    };
+  }
+
+  function extractPhoneChatReply(source) {
+    const raw = stripAiThinkingBlocks(String(source || "")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&amp;/g, "&")
+      .replace(/\u200b/g, ""));
+
+    const strictMatches = [...raw.matchAll(/<初星私聊\s+from=["']([^"']+)["']\s*>([\s\S]*?)<\/初星私聊>/gi)];
+    const looseMatches = [...raw.matchAll(/<初星私聊\s*>([\s\S]*?)<\/初星私聊>/gi)];
+
+    let from = state.idol || "";
+    let body = "";
+    if (strictMatches.length) {
+      const last = strictMatches[strictMatches.length - 1];
+      from = canonicalIdolName(last[1].trim());
+      body = last[2];
+    } else if (looseMatches.length) {
+      body = looseMatches[looseMatches.length - 1][1];
+    } else {
+      return { from, lines: [], complete: false };
+    }
+
+    const lines = String(body || "")
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+    return {
+      from,
+      lines,
+      complete: lines.length > 0
+    };
   }
 
   function extractChoicePayload(value) {
@@ -4204,6 +5440,17 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     state.pendingOptionTexts = [];
     state.selectedChoiceText = "";
     state.selectedChoiceRating = "";
+    if (state.pendingActionContext?.actionContext?.isDailyFinalAction) {
+      const parsedSummary = extractDailySummary(reply);
+      state.dailySummary = {
+        day: state.day,
+        intro: parsedSummary.intro,
+        status: parsedSummary.status,
+        producer: parsedSummary.producer,
+        raw: parsedSummary.raw,
+        complete: parsedSummary.complete
+      };
+    }
     if (state.log[0]) {
       state.log[0].aiReply = reply;
     }
@@ -4366,6 +5613,11 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       .replace(/&amp;/g, "&")
       .replace(/\u200b/g, "");
 
+    if (state.activeStoryNode?.type === "phonechat" && shouldAcceptAiReply(requestId, pendingAiRequestId)) {
+      handlePhoneChatAiReply(source, requestId, isFinal);
+      return;
+    }
+
     const choiceFallbackPayload = (() => {
       if (state.eventMode !== "choice_prompt" || isChoicePromptMode()) return null;
       const pendingAction = state.pendingActionContext?.action;
@@ -4518,6 +5770,19 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         setEventActionsEnabled(false, true);
         sendAiReplyAck(requestId, true, false, false);
         return;
+      }
+
+      const isDailyFinalAction = Boolean(state.pendingActionContext?.actionContext?.isDailyFinalAction);
+      if (isDailyFinalAction) {
+        const parsedSummary = extractDailySummary(source);
+        state.dailySummary = {
+          day: state.day,
+          intro: parsedSummary.intro,
+          status: parsedSummary.status,
+          producer: parsedSummary.producer,
+          raw: parsedSummary.raw,
+          complete: parsedSummary.complete
+        };
       }
 
       pendingAiRequestId = "";
@@ -4700,9 +5965,10 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
           ["当前担当", state.idol || "未选择"]
         ],
         "规则": [
-          ["日程", "22 天育成，每天 3 次普通行动与 1 次额外行动；20/40/60/80 羁绊事件会占用专属剧情日。"],
+          ["日程", "22 天育成，每天 3 次普通行动、1 次额外行动与 1 次总结轮次；20/40/60/80 羁绊事件会占用专属剧情日。"],
           ["普通行动", "上课、训练、休息。休息回复 30 体力。"],
-          ["额外行动", "外出回复较多体力并增加信赖，交流增加更多信赖并回复少量体力。"]
+          ["额外行动", "外出回复较多体力并增加信赖，交流增加更多信赖并回复少量体力。"],
+          ["总结轮次", "完成四轮行动后进入。可查看今日总结，或通过左下角手机入口打开小手机，或进入下一天。"]
         ],
         "制作人设定": [],
         "音频设置": [],
@@ -4722,6 +5988,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         "轮次": [
           ["普通轮次", "每天第 1、2、3 轮，只显示上课、训练和休息。"],
           ["额外轮次", "每天第 4 轮，只显示外出和交流。"],
+          ["总结轮次", "每天第 5 轮，提供今日总结与进入下一天；小手机从左下角入口随时打开。"],
           ["防误操作", "体力危险时仍可选择休息，避免路线被单次失误锁死。"]
         ],
         "考核": [
@@ -4987,7 +6254,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
           <label>育成天数</label>
           <input type="number" id="devInputDay" min="1" max="${FINAL_LIVE_DAY}" value="${state.day}">
           <label>日程轮次</label>
-          <input type="number" id="devInputRound" min="1" max="4" value="${state.round}">
+          <input type="number" id="devInputRound" min="1" max="${SUMMARY_ROUND}" value="${state.round}">
         </div>
         <div class="dev-form-row">
           <label>Vocal</label>
@@ -5021,7 +6288,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       
       document.getElementById("devApplyBtn").addEventListener("click", () => {
         state.day = clamp(parseInt(document.getElementById("devInputDay").value) || 1, 1, FINAL_LIVE_DAY);
-        state.round = clamp(parseInt(document.getElementById("devInputRound").value) || 1, 1, 4);
+        state.round = clamp(parseInt(document.getElementById("devInputRound").value) || 1, 1, SUMMARY_ROUND);
         state.Vo = Math.max(0, parseInt(document.getElementById("devInputVo").value) || 0);
         state.Da = Math.max(0, parseInt(document.getElementById("devInputDa").value) || 0);
         state.Vi = Math.max(0, parseInt(document.getElementById("devInputVi").value) || 0);
@@ -5082,6 +6349,14 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     }
     if (button.dataset.action === "interaction") {
       openInteractionOverlay();
+      return;
+    }
+    if (button.dataset.action === "day_summary") {
+      openDaySummaryOverlay();
+      return;
+    }
+    if (button.dataset.action === "next_day") {
+      enterNextDay();
       return;
     }
     if (button.dataset.action === "outing") {
@@ -5266,6 +6541,57 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   document.getElementById("freeChatOverlay").addEventListener("click", (event) => {
     if (event.target.id === "freeChatOverlay") closeFreeChatOverlay();
   });
+  document.getElementById("daySummaryCloseBtn").addEventListener("click", closeDaySummaryOverlay);
+  document.querySelector(".day-summary-tablet")?.addEventListener("click", (event) => {
+    event.stopPropagation();
+  });
+  document.getElementById("daySummaryOverlay").addEventListener("click", (event) => {
+    if (event.target.id === "daySummaryOverlay") closeDaySummaryOverlay();
+  });
+  document.getElementById("phoneLaunchBtn").addEventListener("click", openPhoneOverlay);
+  document.getElementById("phoneCloseBtn").addEventListener("click", closePhoneOverlay);
+  document.querySelector(".mini-phone-bezel")?.addEventListener("click", (event) => {
+    event.stopPropagation();
+  });
+  document.getElementById("phoneOverlay").addEventListener("click", (event) => {
+    if (event.target.id === "phoneOverlay") closePhoneOverlay();
+  });
+  document.getElementById("phoneChatBackBtn").addEventListener("click", showPhoneListView);
+  document.getElementById("phoneLineTabHomeBtn").addEventListener("click", showPhoneHomeView);
+  document.getElementById("phoneHomeIndicator").addEventListener("click", showPhoneHomeView);
+  document.getElementById("phoneHomeView").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-phone-app]");
+    if (!button) return;
+    launchPhoneApp(button.dataset.phoneApp);
+  });
+  document.getElementById("phoneDockApps").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-phone-app]");
+    if (!button) return;
+    launchPhoneApp(button.dataset.phoneApp);
+  });
+  document.getElementById("phoneAddFriendOpenBtn").addEventListener("click", openPhoneAddFriendView);
+  document.getElementById("phoneAddFriendBackBtn").addEventListener("click", closePhoneAddFriendView);
+  document.getElementById("phoneAddFriendForm").addEventListener("submit", submitPhoneAddFriend);
+  document.getElementById("phoneAddFriendSuggestions").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-friend-name]");
+    if (!button) return;
+    const input = document.getElementById("phoneAddFriendInput");
+    if (input) input.value = button.dataset.friendName || "";
+    confirmPhoneAddFriend(button.dataset.friendName || "");
+  });
+  document.getElementById("phoneChatRetryBtn").addEventListener("click", triggerPhoneChatRegeneration);
+  document.getElementById("phoneChatMessages").addEventListener("click", (event) => {
+    if (event.target.closest("[data-phone-retry]")) {
+      event.preventDefault();
+      triggerPhoneChatRegeneration();
+    }
+  });
+  document.getElementById("phoneChatList").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-thread-id]");
+    if (!button) return;
+    openPhoneThread(button.dataset.threadId);
+  });
+  document.getElementById("phoneChatForm").addEventListener("submit", submitPhoneChatMessage);
   document.getElementById("interactionModeSpecified").addEventListener("click", () => setInteractionMode("specified"));
   document.getElementById("interactionModeAi").addEventListener("click", () => setInteractionMode("ai"));
   document.getElementById("interactionCancelBtn").addEventListener("click", closeInteractionOverlay);
@@ -5362,14 +6688,14 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   }
 
   if (!state.round) state.round = 1;
-  if (state.round > 4) state.round = 4;
+  if (state.round > SUMMARY_ROUND) state.round = SUMMARY_ROUND;
   if ("fatigue" in state) delete state.fatigue;
   if (typeof state.liveReady !== "boolean") state.liveReady = false;
   if (state.idol && (!state.growth || !state.cap || !state.sp)) applyIdolPreset(state.idol);
   // Expose developer commands globally
   window.produceDev = {
     setDay: (d) => { state.day = clamp(d, 1, FINAL_LIVE_DAY); saveState(); render(); return `Day set to ${state.day}`; },
-    setRound: (r) => { state.round = clamp(r, 1, 4); saveState(); render(); return `Round set to ${state.round}`; },
+    setRound: (r) => { state.round = clamp(r, 1, SUMMARY_ROUND); saveState(); render(); return `Round set to ${state.round}`; },
     setStamina: (s) => { state.stamina = clamp(s, 0, 100); saveState(); render(); return `Stamina set to ${state.stamina}`; },
     setStress: (s) => { state.stress = clamp(s, 0, 100); saveState(); render(); return `Stress set to ${state.stress}`; },
     setTrust: (t) => { state.trust = Math.max(0, t); saveState(); render(); return `Trust set to ${state.trust}`; },

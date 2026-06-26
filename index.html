@@ -25,6 +25,11 @@
     <symbol id="icon-menu" viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/></symbol>
     <symbol id="icon-settings" viewBox="0 0 24 24"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1A2 2 0 1 1 4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1A2 2 0 1 1 7.1 4.2l.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1A2 2 0 1 1 19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.1a2 2 0 1 1 0 4H21a1.7 1.7 0 0 0-1.6 1Z"/></symbol>
     <symbol id="icon-close" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+    <symbol id="icon-phone" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></symbol>
+    <symbol id="icon-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></symbol>
+    <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+    <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></symbol>
+    <symbol id="icon-chevron-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
   </svg>
 
   <div id="toastStack" class="toast-stack" aria-live="polite" aria-atomic="false"></div>
@@ -59,6 +64,7 @@
         <div class="select-rules" aria-label="育成规则" id="selectRules">
           <span>3 次普通行动</span>
           <span>1 次额外行动</span>
+          <span>1 次总结轮次</span>
           <span>随机互动事件</span>
         </div>
         <div id="selectConfirmContainer" class="select-confirm-container" style="display: none;">
@@ -162,9 +168,13 @@
             <div class="stamina-fill" id="staminaFill"></div>
             <span><svg><use href="#icon-heart"></use></svg><b id="staminaValue">35</b>/100</span>
           </div>
-          <div class="point-pill">
+          <div class="point-pill trust-pill">
             <svg><use href="#icon-heart"></use></svg>
             <strong id="trustValue">0</strong>
+          </div>
+          <div class="point-pill stress-pill" aria-label="压力">
+            <span class="stress-pill-emoji" aria-hidden="true">💢</span>
+            <strong id="stressValue">0</strong>
           </div>
         </section>
 
@@ -203,10 +213,10 @@
       </section>
 
       <section class="score-band" aria-label="能力值">
-        <article class="rank-pyramid">
-          <div class="pyramid-bars"><i></i><i></i><i></i><i></i><i></i></div>
-          <strong id="stressValue">0</strong>
-        </article>
+        <button id="phoneLaunchBtn" class="phone-launch-btn" type="button" aria-label="打开小手机">
+          <span class="phone-launch-icon"><svg aria-hidden="true"><use href="#icon-phone"></use></svg></span>
+          <span class="phone-launch-label">手机</span>
+        </button>
         <div id="statMeters" class="stat-meters"></div>
         <button id="notebookButton" class="notebook-button" type="button" data-panel="prompt" aria-label="打开 P 手账">
           <svg><use href="#icon-book"></use></svg>
@@ -214,7 +224,7 @@
         </button>
       </section>
 
-      <section class="action-zone" aria-label="行动选择">
+      <section class="action-zone" id="actionZone" aria-label="行动选择">
         <p id="actionModeLabel">请选择行动</p>
         <div id="actionButtons" class="action-buttons"></div>
       </section>
@@ -393,6 +403,158 @@
         <div class="tab-panel" id="tabLog"><div id="logList" class="log-list"></div></div>
         <div class="tab-panel" id="tabDebug"><div id="debugPanel" class="debug-panel"></div></div>
       </div>
+    </div>
+  </section>
+
+  <section id="daySummaryOverlay" class="event-overlay day-summary-overlay" hidden aria-label="今日育成进度总结">
+    <article class="day-summary-tablet" role="dialog" aria-modal="true" aria-labelledby="daySummaryTitle">
+      <div class="day-summary-statusbar" aria-hidden="true"></div>
+
+      <div class="day-summary-scroll">
+        <header class="day-summary-head">
+          <img id="daySummaryAvatar" class="day-summary-avatar" src="" alt="" draggable="false">
+          <div class="day-summary-meta">
+            <div class="day-summary-field">
+              <span class="day-summary-label">学年</span>
+              <strong id="daySummarySchedule" class="day-summary-value">1年1班</strong>
+            </div>
+            <div class="day-summary-field">
+              <span class="day-summary-label">姓名</span>
+              <strong id="daySummaryName" class="day-summary-value">藤田 琴音</strong>
+            </div>
+            <p class="day-summary-day-chip">育成第 <span id="daySummaryDayValue">1</span> 日</p>
+          </div>
+          <div class="day-summary-logo-wrap">
+            <img class="day-summary-logo" src="./assets/select-bg/bg_logo.png" alt="初星学园" draggable="false">
+          </div>
+        </header>
+
+        <section class="day-summary-chart" aria-label="今日能力分布">
+          <svg id="daySummaryRadar" class="day-summary-radar" viewBox="0 0 320 300" role="img" aria-labelledby="daySummaryTitle">
+            <defs>
+              <linearGradient id="daySummaryRadarFill" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#8fd3ff" stop-opacity="0.78"></stop>
+                <stop offset="100%" stop-color="#4fa7ef" stop-opacity="0.42"></stop>
+              </linearGradient>
+            </defs>
+            <g id="daySummaryRadarGrid"></g>
+            <polygon id="daySummaryRadarShape" class="day-summary-radar-shape"></polygon>
+            <g id="daySummaryRadarLabels" class="day-summary-radar-labels"></g>
+          </svg>
+        </section>
+
+        <section class="day-summary-notes-wrap" aria-label="今日总结正文">
+          <h2 id="daySummaryTitle" class="visually-hidden">今日育成进度总结</h2>
+          <div id="daySummaryNotes" class="day-summary-notes"></div>
+        </section>
+      </div>
+
+      <footer class="day-summary-footer">
+        <button id="daySummaryCloseBtn" class="day-summary-back-btn" type="button">返回总结轮次</button>
+      </footer>
+    </article>
+  </section>
+
+  <section id="phoneOverlay" class="event-overlay phone-overlay" hidden aria-label="小手机">
+    <div class="mini-phone-frame">
+      <div class="mini-phone-bezel" role="dialog" aria-modal="true" aria-labelledby="phoneHomeTitle">
+        <div class="mini-phone-notch" aria-hidden="true"></div>
+        <div class="mini-phone-screen">
+          <div id="phoneStatusBar" class="mini-phone-statusbar is-home" aria-hidden="true">
+            <span id="phoneStatusTime" class="mini-phone-clock">22:40</span>
+            <span class="mini-phone-status-icons">
+              <span class="mini-phone-signal"></span>
+              <span class="mini-phone-wifi"></span>
+              <span class="mini-phone-battery"></span>
+            </span>
+          </div>
+
+          <div id="phoneHomeView" class="phone-home-view">
+            <div class="phone-home-wallpaper" aria-hidden="true"></div>
+            <div class="phone-home-content">
+              <header class="phone-home-head">
+                <h1 id="phoneHomeTitle" class="visually-hidden">小手机主屏幕</h1>
+                <p id="phoneHomeDate" class="phone-home-date">6月26日 星期五</p>
+                <p class="phone-home-greeting">初星通讯</p>
+              </header>
+              <div id="phoneAppGrid" class="phone-app-grid" role="list" aria-label="应用"></div>
+            </div>
+            <div class="phone-home-dock" aria-label="Dock">
+              <div id="phoneDockApps" class="phone-dock-apps"></div>
+            </div>
+          </div>
+
+          <div id="phoneLineApp" class="line-app" hidden>
+            <div id="phoneLineListView" class="line-view line-view-list">
+              <header class="line-topbar line-topbar-main">
+                <h1 id="phoneLineListTitle" class="line-topbar-title">聊天</h1>
+                <div class="line-topbar-actions">
+                  <button type="button" class="line-icon-btn" aria-label="搜索"><svg aria-hidden="true"><use href="#icon-search"></use></svg></button>
+                  <button id="phoneAddFriendOpenBtn" type="button" class="line-icon-btn" aria-label="添加好友"><svg aria-hidden="true"><use href="#icon-plus"></use></svg></button>
+                  <button type="button" class="line-icon-btn" aria-label="菜单"><svg aria-hidden="true"><use href="#icon-menu"></use></svg></button>
+                </div>
+              </header>
+              <div class="line-list-search" aria-hidden="true">
+                <span class="line-list-search-icon"><svg aria-hidden="true"><use href="#icon-search"></use></svg></span>
+                <span class="line-list-search-text">搜索</span>
+              </div>
+              <div id="phoneChatList" class="line-chat-list" role="list"></div>
+              <nav class="line-tabbar" aria-label="底部导航">
+                <button id="phoneLineTabHomeBtn" type="button" class="line-tab"><span class="line-tab-icon line-tab-icon-home"></span><span class="line-tab-label">主页</span></button>
+                <button type="button" class="line-tab line-tab-active"><span class="line-tab-icon line-tab-icon-chat"></span><span class="line-tab-label">聊天</span></button>
+                <button type="button" class="line-tab"><span class="line-tab-icon line-tab-icon-call"></span><span class="line-tab-label">通话</span></button>
+                <button type="button" class="line-tab"><span class="line-tab-icon line-tab-icon-wallet"></span><span class="line-tab-label">钱包</span></button>
+                <button type="button" class="line-tab"><span class="line-tab-icon line-tab-icon-more"></span><span class="line-tab-label">更多</span></button>
+              </nav>
+            </div>
+
+            <div id="phoneLineChatView" class="line-view line-view-chat" hidden>
+              <header class="line-topbar line-topbar-chat">
+                <button id="phoneChatBackBtn" type="button" class="line-back-btn" aria-label="返回聊天列表">
+                  <svg aria-hidden="true"><use href="#icon-chevron-left"></use></svg>
+                </button>
+                <div class="line-topbar-chat-meta">
+                  <h1 id="phoneChatTitle" class="line-topbar-title">聊天</h1>
+                  <p id="phoneChatSubtitle" class="line-topbar-subtitle"></p>
+                </div>
+                <div class="line-topbar-actions">
+                  <button type="button" class="line-icon-btn" aria-label="搜索"><svg aria-hidden="true"><use href="#icon-search"></use></svg></button>
+                  <button type="button" class="line-icon-btn" aria-label="菜单"><svg aria-hidden="true"><use href="#icon-menu"></use></svg></button>
+                </div>
+              </header>
+              <div id="phoneChatMessages" class="line-message-scroll"></div>
+              <div id="phoneChatRetryHint" class="line-chat-retry-hint" hidden>
+                <button id="phoneChatRetryBtn" type="button" class="line-chat-retry-btn">未收到回复，重新生成</button>
+              </div>
+              <form id="phoneChatForm" class="line-composer">
+                <button type="button" class="line-composer-addon" aria-label="更多功能" tabindex="-1"><svg aria-hidden="true"><use href="#icon-plus"></use></svg></button>
+                <input id="phoneChatInput" class="line-composer-input" type="text" placeholder="输入消息" maxlength="500" autocomplete="off" enterkeyhint="send">
+                <button type="submit" class="line-send-btn">发送</button>
+              </form>
+              <p id="phoneChatReadonlyNote" class="line-readonly-note" hidden>此对话暂不支持回复</p>
+            </div>
+
+            <div id="phoneLineAddFriendView" class="line-view line-view-add-friend" hidden>
+              <header class="line-topbar line-topbar-main">
+                <button id="phoneAddFriendBackBtn" type="button" class="line-back-btn" aria-label="返回聊天列表">
+                  <svg aria-hidden="true"><use href="#icon-chevron-left"></use></svg>
+                </button>
+                <h1 class="line-topbar-title">添加好友</h1>
+              </header>
+              <form id="phoneAddFriendForm" class="line-add-friend-form">
+                <label class="line-add-friend-label" for="phoneAddFriendInput">偶像姓名</label>
+                <input id="phoneAddFriendInput" class="line-add-friend-input" type="text" maxlength="32" autocomplete="off" placeholder="输入要添加的偶像姓名">
+                <p class="line-add-friend-note">添加后会收到对方的问候消息，之后即可私聊。不会消耗行动次数，也不会改变数值。</p>
+                <div id="phoneAddFriendSuggestions" class="line-add-friend-suggestions" aria-label="可添加的偶像"></div>
+                <button type="submit" class="line-add-friend-submit" id="phoneAddFriendSubmitBtn">添加并发送问候</button>
+              </form>
+            </div>
+          </div>
+
+          <button id="phoneHomeIndicator" type="button" class="phone-home-indicator" hidden aria-label="返回主屏幕"></button>
+        </div>
+      </div>
+      <button id="phoneCloseBtn" class="mini-phone-exit-btn" type="button">返回</button>
     </div>
   </section>
 

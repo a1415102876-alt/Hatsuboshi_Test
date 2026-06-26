@@ -46,7 +46,8 @@ function makeContext(overrides = {}) {
     saveState() {},
     render() {},
     REQUIRED_BOND_THRESHOLDS: [20, 40, 60, 80],
-    FINAL_LIVE_DAY: 22
+    FINAL_LIVE_DAY: 22,
+    SUMMARY_ROUND: 5
   };
   vm.runInNewContext(
     [
@@ -55,12 +56,16 @@ function makeContext(overrides = {}) {
       readFunction("markAffinityUnlocked"),
       readFunction("markAffinityViewed"),
       readFunction("advanceRound"),
+      readFunction("advanceDay"),
+      readFunction("isSummaryRound"),
       readFunction("completeBondEventDay")
     ].join("\n")
       + "\nthis.pendingRequiredBondThreshold = pendingRequiredBondThreshold;"
       + "\nthis.isBondEventDay = isBondEventDay;"
       + "\nthis.markAffinityUnlocked = markAffinityUnlocked;"
       + "\nthis.advanceRound = advanceRound;"
+      + "\nthis.advanceDay = advanceDay;"
+      + "\nthis.isSummaryRound = isSummaryRound;"
       + "\nthis.completeBondEventDay = completeBondEventDay;",
     context
   );
@@ -70,6 +75,9 @@ function makeContext(overrides = {}) {
 test("First Live final day moves to day 22 after four required bond event days", () => {
   const context = makeContext({ day: 21, round: 4 });
   context.advanceRound();
+  assert.equal(context.state.round, 5);
+  assert.equal(context.state.day, 21);
+  context.advanceDay();
   assert.equal(context.state.day, 22);
   assert.equal(context.state.liveReady, true);
 });
@@ -82,6 +90,8 @@ test("pending 20 to 80 affinity nodes force the next day into a bond event day",
   });
 
   context.advanceRound();
+  assert.equal(context.state.round, 5);
+  context.advanceDay();
 
   assert.equal(context.state.day, 7);
   assert.equal(context.isBondEventDay(), true);
@@ -101,6 +111,9 @@ test("newly unlocked bond nodes do not interrupt the same day", () => {
   assert.equal(context.state.day, 6);
   assert.equal(context.isBondEventDay(), false);
   context.advanceRound();
+  assert.equal(context.state.day, 6);
+  assert.equal(context.state.round, 5);
+  context.advanceDay();
   assert.equal(context.state.day, 7);
   assert.equal(context.isBondEventDay(), true);
 });
