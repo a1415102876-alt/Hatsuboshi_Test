@@ -312,6 +312,7 @@
   const SUMMARY_ROUND = 5;
   const INTIMACY_UNLOCK_TRUST = 60;
   const INTIMACY_NSFW_UNLOCK_TRUST = 100;
+  const INTIMACY_NORMAL_TRUST_GAIN = 20;
   const PHONE_CHAT_LINE_DELAY_MS = 2800;
   const phoneAppRegistry = [
     {
@@ -1650,7 +1651,7 @@
       state.lastDebug = action === "intimacy"
         ? isNsfwIntimacyActive()
           ? "NSFW 亲密开场：等待 AI 生成 VN 剧情与 4 个选项（含自定义/结束入口）。"
-          : "普通亲密：等待 AI 设计 4 个选项。本行动固定结算体力 +38、压力 -10，不增加信赖。"
+          : "普通亲密：等待 AI 设计 4 个选项。本行动固定结算体力 +38、压力 -10、信赖 +20。"
         : `第一阶段剧情生成：等待 AI 设计 4 个选项。加成映射：\n` + shuffled.map((r, i) => `选项 ${i + 1} 对应加成 +${r}`).join("\n");
       
       saveState();
@@ -1712,6 +1713,7 @@
     } else if (action === "intimacy") {
       delta.stamina = 38;
       delta.stress = -10;
+      delta.trust = INTIMACY_NORMAL_TRUST_GAIN;
     }
 
     if (randomEvent) {
@@ -2040,7 +2042,7 @@ ${optionsPrompt}
           ? "【普通互动】"
           : "【笨拙互动】";
     const outcomeLine = action === "intimacy"
-      ? `本次选择的判定结果为：${outcomeName}（前端已结算：体力 +38，压力 -10，不增加信赖值）`
+      ? `本次选择的判定结果为：${outcomeName}（前端已结算：体力 +38，压力 -10，信赖 +${INTIMACY_NORMAL_TRUST_GAIN}）`
       : `本次选择的判定结果为：${outcomeName}（给玩家增加了 +${trustGain} 信赖值）`;
     const closureTarget = action === "intimacy"
       ? "亲密互动的收尾/当天的安抚总结"
@@ -3384,7 +3386,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       ? [
           ["外出", "outing", null, "#20dfad", "体力+38"],
           ["交流", "companion", null, "#ff4f9a", "信赖+15"],
-          ["亲密", "intimacy", null, "#f58ab5", isIntimacyUnlocked() ? "压-10" : "信赖60解锁"],
+          ["亲密", "intimacy", null, "#f58ab5", isIntimacyUnlocked() ? "信赖+20" : "信赖60解锁"],
           ["闲聊", "freechat", null, "#8c73ff", "行动0"],
           ["互动", "interaction", null, "#ff783f", "行动0"]
         ]
@@ -5837,6 +5839,9 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     } else if (action === "intimacy") {
       delta.stamina = 38;
       delta.stress = -10;
+      if (!isNsfwIntimacyActive()) {
+        delta.trust = INTIMACY_NORMAL_TRUST_GAIN;
+      }
     }
     
     Object.entries(delta).forEach(([key, value]) => {
@@ -5937,7 +5942,9 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       return;
     }
 
-    const trustGain = state.pendingChoiceRewards[index] ?? (action === "intimacy" ? 0 : 5);
+    const trustGain = action === "intimacy"
+      ? INTIMACY_NORMAL_TRUST_GAIN
+      : (state.pendingChoiceRewards[index] ?? 5);
     const chosenOptionText = state.pendingOptionTexts[index] || "选择该选项";
     const ratingName = action === "intimacy"
       ? "【普通亲密】"
@@ -5962,6 +5969,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     } else if (action === "intimacy") {
       delta.stamina = 38;
       delta.stress = -10;
+      delta.trust = INTIMACY_NORMAL_TRUST_GAIN;
     }
     
     Object.entries(delta).forEach(([key, value]) => {
@@ -5993,7 +6001,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     const prompt = buildChoicePhase2Prompt(action, attribute, chosenOptionText, trustGain, actionContext);
     state.lastPrompt = prompt;
     state.lastDebug = action === "intimacy"
-      ? `第二阶段剧情生成：已选择“${chosenOptionText}”，亲密行动固定结算体力 +38、压力 -10（${ratingName}）。等待 AI 生成偶像反应。`
+      ? `第二阶段剧情生成：已选择“${chosenOptionText}”，普通亲密固定结算体力 +38、压力 -10、信赖 +${INTIMACY_NORMAL_TRUST_GAIN}（${ratingName}）。等待 AI 生成偶像反应。`
       : `第二阶段剧情生成：已选择“${chosenOptionText}”，获得信赖度 +${trustGain}（${ratingName}）。等待 AI 生成偶像反应。`;
     
     saveState();

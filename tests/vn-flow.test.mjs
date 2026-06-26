@@ -172,7 +172,7 @@ test("intimacy action is visible but locked until trust reaches 60", () => {
 
   assert.match(source, /function isIntimacyUnlocked\(/);
   assert.match(availability, /isIntimacyUnlocked\(\)/);
-  assert.match(rendering, /\["亲密",\s*"intimacy",\s*null,\s*"#f58ab5",\s*isIntimacyUnlocked\(\) \? "压-10" : "信赖60解锁"\]/);
+  assert.match(rendering, /\["亲密",\s*"intimacy",\s*null,\s*"#f58ab5",\s*isIntimacyUnlocked\(\) \? "信赖\+20" : "信赖60解锁"\]/);
   assert.match(rendering, /信赖值达到 \$\{INTIMACY_UNLOCK_TRUST\} 后解锁亲密行动/);
   assert.match(html, /id="intimacyOverlay"/);
   assert.match(source, /function openIntimacyOverlay\(/);
@@ -193,9 +193,12 @@ test("NSFW intimacy uses multi-turn VN choices with custom input and end", () =>
   assert.match(html, /id="vnCustomChoiceInput"/);
   assert.match(source, /自定义输入/);
   assert.match(source, /handleNsfwIntimacyEndChoice/);
+  assert.match(readFunction("settleNsfwIntimacyStats"), /delta = \{ stamina: 38, stress: -10 \}/);
+  assert.doesNotMatch(readFunction("settleNsfwIntimacyStats"), /trust/);
+  assert.match(readFunction("fallbackChoiceSettlement"), /isNsfwIntimacyActive\(\)/);
 });
 
-test("intimacy choice settlement restores stamina and stress without adding trust", () => {
+test("intimacy choice settlement restores stamina and stress with fixed trust for normal intimacy", () => {
   const phase1Start = source.indexOf("function buildChoicePhase1Prompt(");
   const phase2Start = source.indexOf("function buildChoicePhase2Prompt(");
   const openingStart = source.indexOf("function buildOpeningPrompt(", phase2Start);
@@ -205,9 +208,9 @@ test("intimacy choice settlement restores stamina and stress without adding trus
   const phase2 = source.slice(phase2Start, openingStart);
   const selection = readFunction("handleChoiceSelection");
 
-  assert.match(phase2, /体力 \+38，压力 -10，不增加信赖值/);
-  assert.match(selection, /action === "intimacy"[\s\S]*delta\.stamina = 38[\s\S]*delta\.stress = -10/);
-  assert.doesNotMatch(selection, /action === "intimacy"[\s\S]{0,160}delta\.trust/);
+  assert.match(phase2, /体力 \+38，压力 -10，信赖 \+\$\{INTIMACY_NORMAL_TRUST_GAIN\}/);
+  assert.match(selection, /action === "intimacy"[\s\S]*delta\.stamina = 38[\s\S]*delta\.stress = -10[\s\S]*delta\.trust = INTIMACY_NORMAL_TRUST_GAIN/);
+  assert.match(source, /INTIMACY_NORMAL_TRUST_GAIN = 20/);
 });
 
 test("choice resolution mode is separate from choice prompt parsing", () => {
