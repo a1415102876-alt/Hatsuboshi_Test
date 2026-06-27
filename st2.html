@@ -284,40 +284,17 @@
         }
         if (data.type === 'sendPrompt') {
           const reqId = String(data.requestId || '');
-          if (useTransactionalBridge) {
-            queuePromptTask(() => runTransactionalPrompt(data.prompt, reqId));
-          } else {
-            clearReplyCandidateState();
-            pendingRequestId = reqId;
-            sendPromptToSillyTavern(data.prompt);
-          }
+          queuePromptTask(() => runTransactionalPrompt(data.prompt, reqId));
         }
         if (data.type === 'regenerate') {
           const reqId = String(data.requestId || '');
-          if (useTransactionalBridge) {
-            const cachedPrompt = requestPromptCache.get(reqId);
-            if (cachedPrompt) {
-              queuePromptTask(() => runTransactionalPrompt(cachedPrompt, reqId));
-            }
-          } else {
-            clearReplyCandidateState();
-            pendingRequestId = reqId;
-            const mainDoc = window.parent?.document || document;
-            const regenBtn = mainDoc.getElementById('option_regenerate');
-            if (regenBtn) {
-              const jQuery = window.parent?.jQuery || window.jQuery;
-              if (jQuery) {
-                jQuery(regenBtn).trigger('click');
-              } else {
-                regenBtn.click();
-              }
-            }
+          const cachedPrompt = requestPromptCache.get(reqId);
+          if (cachedPrompt) {
+            queuePromptTask(() => runTransactionalPrompt(cachedPrompt, reqId));
           }
         }
         if (data.type === 'aiReplyAck') {
-          if (!useTransactionalBridge) {
-            handleReplyAck(data);
-          }
+          // 固定事务流：不依赖 host->app ACK 回传
         }
         if (data.type === 'saveState') {
           saveChatState(data.state);
@@ -354,10 +331,7 @@
 
         const context = getContext();
 
-        // 旧事件桥接仅在非事务模式启用
-        if (!useTransactionalBridge) {
-          bindSillyTavernReplyBridge();
-        }
+        // 固定事务流：不绑定旧事件桥接
 
         // 立即发送一次角色数据（以防 app.js 已经在那等着了）
         postCharacterToFrame();
@@ -387,8 +361,8 @@
     // ── 桥接辅助函数 ──
     const CHAT_STATE_METADATA_KEY = 'hatsuboshi_produce_state_v1';
     const HATSU_COMMIT_EVENT_NAME = 'hatsuAssistantCommitted';
-    const useCommittedReplyEvent = window.HatsuBridgeUseCommittedReplyEvent === true;
-    const useTransactionalBridge = window.HatsuBridgeTransactional === true;
+    const useCommittedReplyEvent = true;
+    const useTransactionalBridge = true;
     let pendingRequestId = '';
     let pendingPromptSentAt = 0;
     let pendingPromptChatLength = 0;
@@ -500,11 +474,10 @@
       return promptTaskQueue;
     }
 
-    async function createSilentChatMessage(role, text, requestId) {
+    function buildTransactionalMessage(role, text, requestId) {
       const context = getContext();
-      if (!context || !Array.isArray(context.chat)) throw new Error('chat context unavailable');
-      const message = {
-        name: role === 'user' ? String(context.name1 || 'User') : String(context.name2 || 'Assistant'),
+      return {
+        name: role === 'user' ? String(context?.name1 || 'User') : String(context?.name2 || 'Assistant'),
         is_user: role === 'user',
         is_system: false,
         send_date: Date.now(),
@@ -515,29 +488,66 @@
           hatsuTxnAt: Date.now()
         }
       };
-      context.chat.push(message);
+    }
+
+    function resolveCreateChatMessagesFn(context) {
+      const globalST = getSillyTavernGlobal();
+      const candidates = [
+        context?.createChatMessages,
+        globalST?.createChatMessages,
+        window.parent?.createChatMessages,
+        window.createChatMessages
+      ];
+      return candidates.find((fn) => typeof fn === 'function') || null;
+    }
+
+    async function tryCreateByHostApi(createChatMessages, role, message) {
+      const hostOptions = {
+        triggerGenerate: false,
+        doGenerate: false,
+        generate: false,
+        shouldGenerate: false,
+        refresh: false,
+        shouldRefresh: false,
+        refreshUi: false,
+        redraw: false,
+        scroll: false,
+        silent: true,
+        source: 'hatsu-transaction'
+      };
+      const calls = [
+        () => createChatMessages([message], hostOptions),
+        () => createChatMessages(message, hostOptions),
+        () => createChatMessages(role, message.mes, hostOptions),
+        () => createChatMessages(role, message.mes, false, false),
+        () => createChatMessages(role, message.mes)
+      ];
+      for (const invoke of calls) {
+        try {
+          await invoke();
+          return true;
+        } catch (error) {
+          // 向下兼容不同宿主签名，单次失败不终止。
+        }
+      }
+      return false;
+    }
+
+    async function createSilentChatMessage(role, text, requestId) {
+      const context = getContext();
+      if (!context || !Array.isArray(context.chat)) throw new Error('chat context unavailable');
+      const message = buildTransactionalMessage(role, text, requestId);
+      const beforeLength = context.chat.length;
+      const createChatMessages = resolveCreateChatMessagesFn(context);
+      let createdByHostApi = false;
+      if (createChatMessages) {
+        createdByHostApi = await tryCreateByHostApi(createChatMessages, role, message);
+      }
+      if (!createdByHostApi || context.chat.length === beforeLength) {
+        context.chat.push(message);
+      }
       const messageId = context.chat.length - 1;
       context.chatMetadata && (context.chatMetadata.tainted = true);
-      try {
-        context.addOneMessage?.(message, { forceId: messageId, scroll: true });
-      } catch (error) {
-        console.warn('[st.html] addOneMessage failed:', error);
-      }
-      try {
-        const eventSource = context.eventSource;
-        const eventTypes = context.eventTypes;
-        if (eventSource && eventTypes) {
-          if (role === 'user') {
-            await eventSource.emit(eventTypes.MESSAGE_SENT, messageId);
-            await eventSource.emit(eventTypes.USER_MESSAGE_RENDERED, messageId);
-          } else {
-            await eventSource.emit(eventTypes.MESSAGE_RECEIVED, messageId, 'normal');
-            await eventSource.emit(eventTypes.CHARACTER_MESSAGE_RENDERED, messageId, 'normal');
-          }
-        }
-      } catch (error) {
-        console.warn('[st.html] message render events failed:', error);
-      }
       return messageId;
     }
 
