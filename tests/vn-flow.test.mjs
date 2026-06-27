@@ -134,6 +134,31 @@ test("VN log button opens the dark in-event dialogue history overlay", () => {
   assert.match(eventBody, /closeVnLogView\(\)/);
 });
 
+test("VN debug button opens an in-event bridge state overlay", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const css = readFileSync(new URL("../style.css", import.meta.url), "utf8");
+  const applyBody = source.slice(source.indexOf("function applyAiReply("), source.indexOf("function sendAiReplyAck", source.indexOf("function applyAiReply(")));
+
+  assert.match(html, /id="vnBtnDebug"/);
+  assert.match(html, /id="vnDebugOverlay"/);
+  assert.match(html, /id="vnDebugContent"/);
+  const debugOverlayStart = html.indexOf('id="vnDebugOverlay"');
+  const logOverlayStart = html.indexOf('id="vnLogOverlay"', debugOverlayStart);
+  const debugOverlayHtml = html.slice(debugOverlayStart, logOverlayStart);
+  assert.match(debugOverlayHtml, /class="vn-debug-head"/);
+  assert.doesNotMatch(debugOverlayHtml, /class="vn-log-head"/);
+  assert.match(css, /\.vn-debug-overlay/);
+  assert.match(css, /\.vn-debug-head/);
+  assert.equal((css.match(/^\.vn-debug-overlay \{/gm) || []).length, 1);
+  assert.match(source, /const aiBridgeDebug = \{/);
+  assert.match(source, /function openVnDebugView\(/);
+  assert.match(source, /function buildVnDebugHtml\(/);
+  assert.match(source, /function recordAiReplyDebug\(/);
+  assert.match(source, /function recordAiAckDebug\(/);
+  assert.match(readFunction("requestHostPromptSend"), /aiBridgeDebug\.lastPromptRequest/);
+  assert.match(applyBody, /recordAiReplyDebug\(/);
+  assert.match(readFunction("sendAiReplyAck"), /recordAiAckDebug\(/);
+});
 test("choice UI is gated by explicit event mode and action whitelist", () => {
   const context = {
     state: {
@@ -309,6 +334,7 @@ test("opening a non-choice event clears stale choice UI", () => {
 
   const context = {
     state: { choiceStep: 0, selectedChoiceText: "", lastStory: "", pendingOptionTexts: ["A", "B", "C", "D"] },
+    aiBridgeDebug: {},
     pendingAiRequestId: "",
     document: { getElementById: (id) => elements.get(id) || null },
     saveState() {},
@@ -321,7 +347,10 @@ test("opening a non-choice event clears stale choice UI", () => {
       if (element) element.hidden = hidden;
     },
     triggerWipeTransition(callback) { callback(); },
+    isFreeModeActive: () => false,
     parseNovelSlides: () => [],
+    buildVnSlidesFromStory: () => [],
+    refreshVnDebugView() {},
     initVisualNovelPlayer() {}
   };
   vm.runInNewContext(
@@ -365,6 +394,7 @@ test("ended non-choice VN dialogue hides stale choice overlay", () => {
     state: { choiceStep: 0, pendingOptionTexts: ["A", "B", "C", "D"] },
     document: { getElementById: (id) => elements.get(id) || null },
     stopVnAuto() {},
+    isMapLocationExploreActive: () => false,
     showVnChoicesOverlay() {
       elements.get("vnChoicesOverlay").style.display = "flex";
     },

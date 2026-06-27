@@ -135,6 +135,41 @@ ${readFunction("extractChoicePayload")}
   assert.equal(sandbox.resolveMapOptionMinutes(30), 30);
 });
 
+
+test("choice reply source prefers a complete option payload over stale raw text", () => {
+  const sandbox = {
+    FREE_MODE_MAP_CHOICE_MINUTES: 15,
+    FREE_MODE_MAP_MINUTES_MAX: 120,
+    clamp: (value, min, max) => Math.min(max, Math.max(min, value)),
+    cleanReplyText: (value) => String(value || "").replace(/<[^>]+>/g, "").trim(),
+    state: {
+      eventMode: "choice_prompt",
+      pendingActionContext: { action: "map_location" }
+    }
+  };
+  vm.runInNewContext(`
+${readFunction("isChoicePromptAction")}
+${readFunction("isChoicePromptMode")}
+${readFunction("parseMapOptionMinutes")}
+${readFunction("extractChoicePayload")}
+${readFunction("selectAiReplySource")}
+`, sandbox);
+  const staleRawText = "正在等待角色卡 AI 生成本次小剧情...";
+  const completeReply = `【初星正文开始】
+<story><narration>食堂里传来餐盘轻碰的声音。</narration></story>
+<option1>看看今日菜单</option1>
+<time1>15</time1>
+<option2>坐到窗边</option2>
+<time2>20</time2>
+<option3>向琴音推荐甜点</option3>
+<time3>25</time3>
+<option4>返回大厅</option4>
+<time4>10</time4>
+【初星正文结束】`;
+
+  assert.equal(sandbox.selectAiReplySource(completeReply, staleRawText, ""), completeReply);
+  assert.equal(sandbox.selectAiReplySource("", staleRawText, completeReply), completeReply);
+});
 test("world map image switches by free mode clock", () => {
   const sandbox = {
     FREE_MODE_DAY_START_MINUTES: 8 * 60,

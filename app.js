@@ -1152,6 +1152,13 @@
   let activeStorageKey = STORAGE_KEY;
   let activeHostSaveScope = "";
   let hostStateReady = false;
+  const aiBridgeDebug = {
+    lastPromptRequest: null,
+    lastReply: null,
+    lastAck: null,
+    lastOverlay: null,
+    lastMessage: "尚未记录 AI 桥接事件"
+  };
   let state = loadState();
 
   ensureStateShape();
@@ -4881,12 +4888,47 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     return true;
   }
 
+  let hostPromptSendSource = "general";
+
+  function resetPhoneChatPendingState() {
+    state.phoneChat.isAwaitingReply = false;
+    state.phoneChat.pendingRequestId = "";
+    state.phoneChat.retryAvailable = false;
+    setPhoneChatTyping(false);
+    setPhoneChatComposerEnabled(true);
+    updatePhoneChatRetryUi();
+  }
+
+  function sendPhoneChatPromptToHost(promptText, requestId = pendingAiRequestId || createRequestId()) {
+    const prevSource = hostPromptSendSource;
+    hostPromptSendSource = "phonechat";
+    const sent = requestHostPromptSend(promptText, requestId);
+    hostPromptSendSource = prevSource;
+    return sent;
+  }
+
   function requestHostPromptSend(promptText, requestId = pendingAiRequestId || createRequestId()) {
     if (!isSillyTavernHost()) return false;
     const prompt = promptText || state.lastPrompt || document.getElementById("promptText").value || "";
     if (!prompt.trim()) return false;
+    const source = hostPromptSendSource === "phonechat" ? "phonechat" : "general";
+    if (source !== "phonechat" && state.activeStoryNode?.type === "phonechat") {
+      state.activeStoryNode = null;
+      resetPhoneChatPendingState();
+    }
     pendingAiRequestId = requestId;
     aiReplyRetryCount = 0;
+    aiBridgeDebug.lastPromptRequest = {
+      at: Date.now(),
+      requestId,
+      promptLength: prompt.length,
+      eventMode: state.eventMode,
+      choiceStep: state.choiceStep,
+      action: state.pendingActionContext?.action || "",
+      activeStoryNode: state.activeStoryNode?.type || ""
+    };
+    aiBridgeDebug.lastMessage = "已向 SillyTavern 发送提示词";
+    refreshVnDebugView();
     saveState();
     window.parent.postMessage({
       source: "hatsuboshi-produce",
@@ -5462,7 +5504,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       showToast("正在重新生成", "已向 SillyTavern 请求重新生成私聊回复。", "info");
       return;
     }
-    if (prompt && requestHostPromptSend(prompt, requestId)) {
+    if (prompt && sendPhoneChatPromptToHost(prompt, requestId)) {
       showToast("正在重新生成", "已重新发送私聊提示词。", "info");
       return;
     }
@@ -5548,7 +5590,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     saveState();
 
     pendingAiRequestId = requestId;
-    if (!requestHostPromptSend(prompt, requestId)) {
+    if (!sendPhoneChatPromptToHost(prompt, requestId)) {
       state.phoneChat.isAwaitingReply = false;
       state.phoneChat.pendingRequestId = "";
       state.phoneChat.retryAvailable = true;
@@ -5573,7 +5615,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     saveState();
 
     pendingAiRequestId = requestId;
-    if (!requestHostPromptSend(prompt, requestId)) {
+    if (!sendPhoneChatPromptToHost(prompt, requestId)) {
       state.phoneChat.isAwaitingReply = false;
       state.phoneChat.pendingRequestId = "";
       state.phoneChat.retryAvailable = true;
@@ -6068,7 +6110,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       setPhoneChatTyping(true);
       setPhoneChatComposerEnabled(false);
       saveState();
-      if (requestHostPromptSend(prompt, requestId)) return;
+      if (sendPhoneChatPromptToHost(prompt, requestId)) return;
       state.phoneChat.isAwaitingReply = false;
       state.phoneChat.pendingRequestId = "";
       pendingAiRequestId = "";
@@ -6182,6 +6224,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
 
   function openEventOverlay(title, result, story) {
     if (typeof closeVnLogView === "function") closeVnLogView();
+    if (typeof closeVnDebugView === "function") closeVnDebugView();
     state.lastEventTitle = title || "行动事件";
     state.lastEventResult = result || "本次行动已经完成结算。";
     state.lastEventStory = story || state.lastStory || "本次行动已经完成。";
@@ -6225,6 +6268,17 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       
       // 2. 判断当前是否为加载状态
       const isLoading = pendingAiRequestId || story.includes("等待角色卡") || story.includes("等待 AI") || story.includes("等待 SillyTavern") || story.includes("正在重新生成");
+      aiBridgeDebug.lastOverlay = {
+        at: Date.now(),
+        title: title || "行动事件",
+        result: result || "",
+        storyLength: String(story || "").length,
+        isLoading: Boolean(isLoading),
+        pendingAiRequestId,
+        eventMode: state.eventMode,
+        choiceStep: state.choiceStep
+      };
+      refreshVnDebugView();
       
       if (isLoading) {
         // 如果正在加载，直接显示一行静态文本，并禁用 VN 对话框点击动作
@@ -6882,6 +6936,184 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     }
   }
 
+  function escapeDebugHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function formatDebugTime(value) {
+    if (!value) return "--";
+    try {
+      return new Date(value).toLocaleTimeString("zh-CN", { hour12: false });
+    } catch {
+      return "--";
+    }
+  }
+
+  function summarizeDebugText(value, maxLength = 360) {
+    const text = String(value || "").replace(/\s+/g, " ").trim();
+    if (!text) return "";
+    return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
+  }
+
+  function detectSelectedReplySource(text, rawText, renderedText, source) {
+    const decode = (value) => String(value || "")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&amp;/g, "&")
+      .replace(/\u200b/g, "")
+      .trim();
+    const selected = String(source || "").trim();
+    if (selected && selected === decode(rawText)) return "rawText";
+    if (selected && selected === decode(text)) return "text";
+    if (selected && selected === decode(renderedText)) return "renderedText";
+    return selected ? "mixed/unknown" : "none";
+  }
+
+  function recordAiReplyDebug({ text = "", rawText = "", renderedText = "", requestId = "", isFinal = true, source = "", accepted = true } = {}) {
+    const payload = source ? extractChoicePayload(source) : { story: "", options: [], optionMinutes: [] };
+    aiBridgeDebug.lastReply = {
+      at: Date.now(),
+      requestId,
+      pendingAiRequestId,
+      accepted,
+      isFinal: Boolean(isFinal),
+      eventMode: state.eventMode,
+      choiceStep: state.choiceStep,
+      action: state.pendingActionContext?.action || "",
+      textLength: String(text || "").length,
+      rawTextLength: String(rawText || "").length,
+      renderedTextLength: String(renderedText || "").length,
+      selectedSource: detectSelectedReplySource(text, rawText, renderedText, source),
+      selectedLength: String(source || "").length,
+      hasStartMarker: /[【\[]\s*初星正文开始\s*[】\]]/.test(source),
+      hasEndMarker: /[【\[]\s*初星正文结束\s*[】\]]/.test(source),
+      hasStoryTag: /<story[\s>]/i.test(source),
+      storyLength: payload.story.length,
+      optionCount: payload.options.length,
+      options: payload.options.slice(0, 4),
+      optionMinutes: payload.optionMinutes,
+      sample: summarizeDebugText(source)
+    };
+    aiBridgeDebug.lastMessage = accepted ? "已收到匹配当前 requestId 的 AI 回复" : "收到 AI 回复，但 requestId 不匹配，已拒收";
+    refreshVnDebugView();
+  }
+
+  function recordAiAckDebug(requestId, accepted, retry, isFinal = true) {
+    aiBridgeDebug.lastAck = {
+      at: Date.now(),
+      requestId,
+      accepted: Boolean(accepted),
+      retry: Boolean(retry),
+      isFinal: Boolean(isFinal),
+      pendingAiRequestId,
+      eventMode: state.eventMode,
+      choiceStep: state.choiceStep
+    };
+    aiBridgeDebug.lastMessage = `ACK ${accepted ? "accepted" : "rejected"}${retry ? " / retry" : ""}${isFinal ? " / final" : " / partial"}`;
+    refreshVnDebugView();
+  }
+
+  function buildDebugRows(rows) {
+    return rows.map(([key, value]) => `<dt>${escapeDebugHtml(key)}</dt><dd>${escapeDebugHtml(value)}</dd>`).join("");
+  }
+
+  function buildVnDebugHtml() {
+    const prompt = aiBridgeDebug.lastPromptRequest || {};
+    const reply = aiBridgeDebug.lastReply || {};
+    const ack = aiBridgeDebug.lastAck || {};
+    const overlay = aiBridgeDebug.lastOverlay || {};
+    const liveStory = String(state.lastEventStory || "");
+    const liveLoading = Boolean(pendingAiRequestId)
+      || liveStory.includes("等待角色卡")
+      || liveStory.includes("等待 AI")
+      || liveStory.includes("等待 SillyTavern")
+      || liveStory.includes("正在重新生成");
+    return `
+      <div class="vn-debug-grid">
+        <section class="vn-debug-card">
+          <h3>当前状态</h3>
+          <dl>${buildDebugRows([
+            ["最后消息", aiBridgeDebug.lastMessage],
+            ["pending", pendingAiRequestId || "无"],
+            ["state.pending", state.pendingAiRequestId || "无"],
+            ["eventMode", state.eventMode || "none"],
+            ["choiceStep", state.choiceStep ?? ""],
+            ["action", state.pendingActionContext?.action || "无"],
+            ["activeNode", state.activeStoryNode?.type || "无"],
+            ["VN loading", liveLoading ? "是" : "否"]
+          ])}</dl>
+        </section>
+        <section class="vn-debug-card">
+          <h3>最近发送</h3>
+          <dl>${buildDebugRows([
+            ["时间", formatDebugTime(prompt.at)],
+            ["requestId", prompt.requestId || "--"],
+            ["prompt长度", prompt.promptLength ?? "--"],
+            ["发送时模式", prompt.eventMode || "--"],
+            ["发送时行动", prompt.action || "--"]
+          ])}</dl>
+        </section>
+        <section class="vn-debug-card">
+          <h3>最近回复</h3>
+          <dl>${buildDebugRows([
+            ["时间", formatDebugTime(reply.at)],
+            ["requestId", reply.requestId || "--"],
+            ["是否接收", reply.accepted === undefined ? "--" : reply.accepted ? "是" : "否"],
+            ["isFinal", reply.isFinal === undefined ? "--" : reply.isFinal ? "是" : "否"],
+            ["选择来源", reply.selectedSource || "--"],
+            ["text/raw/rendered", `${reply.textLength ?? "--"}/${reply.rawTextLength ?? "--"}/${reply.renderedTextLength ?? "--"}`],
+            ["正文标记", reply.hasStartMarker ? "有开始" : "无开始"],
+            ["结束标记", reply.hasEndMarker ? "有结束" : "无结束"],
+            ["story标签", reply.hasStoryTag ? "有" : "无"],
+            ["story长度", reply.storyLength ?? "--"],
+            ["option数量", reply.optionCount ?? "--"],
+            ["time标签", Array.isArray(reply.optionMinutes) ? reply.optionMinutes.map(v => v ?? "-").join(" / ") : "--"]
+          ])}</dl>
+          <pre class="vn-debug-pre">${escapeDebugHtml((reply.options || []).map((option, index) => `${index + 1}. ${option}`).join("\n") || "暂无 option")}</pre>
+        </section>
+        <section class="vn-debug-card">
+          <h3>ACK / VN</h3>
+          <dl>${buildDebugRows([
+            ["ACK时间", formatDebugTime(ack.at)],
+            ["ACK requestId", ack.requestId || "--"],
+            ["accepted", ack.accepted === undefined ? "--" : ack.accepted ? "是" : "否"],
+            ["retry", ack.retry === undefined ? "--" : ack.retry ? "是" : "否"],
+            ["final", ack.isFinal === undefined ? "--" : ack.isFinal ? "是" : "否"],
+            ["Overlay时间", formatDebugTime(overlay.at)],
+            ["标题", overlay.title || state.lastEventTitle || "--"],
+            ["结果", overlay.result || state.lastEventResult || "--"],
+            ["Overlay loading", overlay.isLoading === undefined ? "--" : overlay.isLoading ? "是" : "否"],
+            ["story长度", overlay.storyLength ?? liveStory.length]
+          ])}</dl>
+          <pre class="vn-debug-pre">${escapeDebugHtml(reply.sample || "暂无已选回复样本")}</pre>
+        </section>
+      </div>
+    `;
+  }
+
+  function refreshVnDebugView() {
+    const overlay = document.getElementById("vnDebugOverlay");
+    const content = document.getElementById("vnDebugContent");
+    if (!overlay || overlay.hidden || !content) return;
+    content.innerHTML = buildVnDebugHtml();
+  }
+
+  function openVnDebugView() {
+    const overlay = document.getElementById("vnDebugOverlay");
+    const content = document.getElementById("vnDebugContent");
+    if (!overlay || !content) return;
+    content.innerHTML = buildVnDebugHtml();
+    overlay.hidden = false;
+  }
+
+  function closeVnDebugView() {
+    const overlay = document.getElementById("vnDebugOverlay");
+    if (overlay) overlay.hidden = true;
+  }
   function buildVnLogHtml() {
     const entries = [];
     if (vnSlides.length) {
@@ -7244,6 +7476,30 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     };
   }
 
+  function selectAiReplySource(text, rawText = "", renderedText = "") {
+    const decodeSource = (value) => String(value || "")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&amp;/g, "&")
+      .replace(/\u200b/g, "")
+      .trim();
+    const candidates = [rawText, text, renderedText]
+      .map(decodeSource)
+      .filter(Boolean);
+    const pendingAction = state.pendingActionContext?.action;
+    const expectsChoicePayload = isChoicePromptMode()
+      || (state.eventMode === "choice_prompt" && ["outing", "companion", "intimacy", "bond", "map_location"].includes(pendingAction));
+
+    if (expectsChoicePayload) {
+      const completeChoiceSource = candidates.find((candidate) => {
+        const payload = extractChoicePayload(candidate);
+        return payload.story && payload.options.length === 4;
+      });
+      if (completeChoiceSource) return completeChoiceSource;
+    }
+
+    return candidates[0] || "";
+  }
   function formatStoryText(text) {
     if (!text) return "";
     
@@ -7544,20 +7800,22 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   }
 
   function applyAiReply(text, requestId = "", rawText = "", renderedText = "", isFinal = true) {
-    if (!shouldAcceptAiReply(requestId, pendingAiRequestId)) {
+    const acceptedRequest = shouldAcceptAiReply(requestId, pendingAiRequestId);
+    if (!acceptedRequest) {
+      recordAiReplyDebug({ text, rawText, renderedText, requestId, isFinal, source: "", accepted: false });
       sendAiReplyAck(requestId, false, false);
       return;
     }
-    // For all event story texts, we prioritize the raw markdown text (rawText or text) over the browser's renderedText (innerText)
-    // to prevent DOM-injected CSS styling blocks or translation plugins from corrupting the display.
-    const rawSource = rawText || text || renderedText;
-    const source = rawSource
-      .replace(/&lt;/g, "<")
-      .replace(/&gt;/g, ">")
-      .replace(/&amp;/g, "&")
-      .replace(/\u200b/g, "");
+    // 普通剧情仍优先使用 rawText；选项剧情会优先使用能解析出完整 story + 四个 option 的候选文本。
+    const source = selectAiReplySource(text, rawText, renderedText);
+    recordAiReplyDebug({ text, rawText, renderedText, requestId, isFinal, source, accepted: true });
 
-    if (state.activeStoryNode?.type === "phonechat" && shouldAcceptAiReply(requestId, pendingAiRequestId)) {
+    const phonePendingRequestId = String(state.phoneChat?.pendingRequestId || "");
+    const shouldRouteToPhoneChat = state.activeStoryNode?.type === "phonechat"
+      && state.phoneChat?.isAwaitingReply
+      && Boolean(phonePendingRequestId)
+      && requestId === phonePendingRequestId;
+    if (shouldRouteToPhoneChat) {
       handlePhoneChatAiReply(source, requestId, isFinal);
       return;
     }
@@ -7891,6 +8149,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   }
 
   function sendAiReplyAck(requestId, accepted, retry, isFinal = true) {
+    recordAiAckDebug(requestId, accepted, retry, isFinal);
     if (!isSillyTavernHost() || !requestId) return;
     window.parent.postMessage({
       source: "hatsuboshi-produce",
@@ -8524,6 +8783,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   // Galgame 播放器控制按钮事件绑定
   document.getElementById("vnBtnSkip").addEventListener("click", skipAllVnDialogue);
   document.getElementById("vnBtnLog").addEventListener("click", openVnLogView);
+  document.getElementById("vnBtnDebug").addEventListener("click", openVnDebugView);
   document.getElementById("vnBtnAuto").addEventListener("click", toggleVnAuto);
   document.getElementById("vnBtnRegen").addEventListener("click", () => {
     stopVnAuto();
@@ -8532,6 +8792,10 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   document.getElementById("vnBtnEdit").addEventListener("click", triggerVnEditPrompt);
   document.getElementById("closeClassicPanelBtn").addEventListener("click", closeVnLogView);
   document.getElementById("vnLogCloseBtn").addEventListener("click", closeVnLogView);
+  document.getElementById("vnDebugCloseBtn").addEventListener("click", closeVnDebugView);
+  document.getElementById("vnDebugOverlay").addEventListener("click", (event) => {
+    if (event.target.id === "vnDebugOverlay") closeVnDebugView();
+  });
   document.getElementById("vnLogOverlay").addEventListener("click", (event) => {
     if (event.target.id === "vnLogOverlay") closeVnLogView();
   });

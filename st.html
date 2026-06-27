@@ -362,7 +362,7 @@
         let globalST = null;
         while (attempts < 50) {
           try {
-            globalST = window.parent?.SillyTavern || window.SillyTavern;
+            globalST = getSillyTavernGlobal();
           } catch (e) {}
           if (globalST && typeof globalST.getContext === 'function') {
             break;
@@ -374,7 +374,7 @@
           throw new Error('SillyTavern global API (window.SillyTavern.getContext) not found.');
         }
 
-        const context = globalST.getContext();
+        const context = getContext();
 
         // 绑定回复桥接
         bindSillyTavernReplyBridge();
@@ -409,16 +409,28 @@
     const CHAT_STATE_METADATA_KEY = 'hatsuboshi_produce_state_v1';
     let pendingRequestId = '';
     let pendingPromptSentAt = 0;
+    let pendingPromptChatLength = 0;
     let pendingCandidateInFlight = false;
     let pendingCandidateMessageId = -1;
     let pendingReplyRetryTimer = 0;
 
+    function getSillyTavernGlobal() {
+      const candidates = [];
+      try {
+        if (window.parent && window.parent !== window) candidates.push(window.parent.SillyTavern);
+      } catch (e) {}
+      try {
+        candidates.push(window.SillyTavern);
+      } catch (e) {}
+      return candidates.find(api => api && typeof api.getContext === 'function') || null;
+    }
+
     function getContext() {
       try {
-        const globalST = window.parent?.SillyTavern || window.SillyTavern;
-        return globalST?.getContext?.();
+        return getSillyTavernGlobal()?.getContext?.() || null;
       } catch (e) {
-        return window.SillyTavern?.getContext?.();
+        console.warn('[st.html] getContext failed:', e);
+        return null;
       }
     }
 
@@ -539,6 +551,8 @@
         textarea.dispatchEvent(new Event('input', { bubbles: true }));
         textarea.dispatchEvent(new Event('change', { bubbles: true }));
         pendingPromptSentAt = Date.now();
+        const context = getContext();
+        pendingPromptChatLength = Array.isArray(context?.chat) ? context.chat.length : 0;
         sendButton.click();
       }
     }
@@ -598,14 +612,8 @@
       collectAndSendAiReply(messageId, isFinal);
     }
 
-    function collectAndSendAiReply(messageId, isFinal = true) {
-      if (Number(messageId) === 0) return;
-      if (isFinal && pendingCandidateInFlight) return;
-      
-      const context = getContext();
-      const message = context?.chat?.[messageId];
-      if (!message || message.is_user) return;
-
+    function getMessageRawText(message) {
+      if (!message || message.is_user) return '';
       const swipeIndex = Number.isInteger(message.swipe_id) ? message.swipe_id : 0;
       let rawText = '';
       if (Array.isArray(message.swipes) && message.swipes.length > 0) {
@@ -614,9 +622,40 @@
       if (!rawText) {
         rawText = typeof message.mes === 'string' ? message.mes : '';
       }
+      return rawText;
+    }
 
+    function findLatestUsableAiReplyId(preferredId) {
+      const context = getContext();
+      const chat = context?.chat;
+      if (!Array.isArray(chat)) return Number(preferredId);
+      const startIndex = Math.max(1, pendingPromptChatLength);
+      const preferredIndex = Number(preferredId);
+      if (Number.isInteger(preferredIndex) && preferredIndex >= startIndex) {
+        const preferredMessage = chat[preferredIndex];
+        if (preferredMessage && !preferredMessage.is_user && getMessageRawText(preferredMessage).trim()) {
+          return preferredIndex;
+        }
+      }
+      for (let index = chat.length - 1; index >= startIndex; index -= 1) {
+        const message = chat[index];
+        if (message && !message.is_user && getMessageRawText(message).trim()) return index;
+      }
+      return preferredIndex;
+    }
+
+    function collectAndSendAiReply(messageId, isFinal = true) {
+      if (Number(messageId) === 0) return;
+      if (isFinal && pendingCandidateInFlight) return;
+      
+      const context = getContext();
+      const replyMessageId = findLatestUsableAiReplyId(messageId);
+      const message = context?.chat?.[replyMessageId];
+      if (!message || message.is_user) return;
+
+      const rawText = getMessageRawText(message);
       const mainDoc = window.parent?.document || document;
-      const renderedText = mainDoc.querySelector(`.mes[mesid="${messageId}"] .mes_text`)?.innerText || '';
+      const renderedText = mainDoc.querySelector(`.mes[mesid="${replyMessageId}"] .mes_text`)?.innerText || '';
       const text = rawText.length > renderedText.length ? rawText : renderedText;
 
       if (text.trim().length > 0 || isFinal) {
@@ -632,8 +671,8 @@
         
         if (isFinal) {
           pendingCandidateInFlight = true;
-          pendingCandidateMessageId = Number(messageId);
-          scheduleReplyRetry(messageId, 2500);
+          pendingCandidateMessageId = Number(replyMessageId);
+          scheduleReplyRetry(replyMessageId, 2500);
         }
       }
     }
@@ -724,6 +763,7 @@
     function clearPendingReplyRequest() {
       clearReplyCandidateState();
       pendingPromptSentAt = 0;
+      pendingPromptChatLength = 0;
       pendingRequestId = '';
     }
   } catch (err) {

@@ -17,6 +17,14 @@ test("st.html in-page bridge listens to regenerated or swiped final messages", (
   assert.match(stSource, /sendLatestAiReplyToFrame\(messageId, true\)/);
 });
 
+test("st.html reply bridge safely reads context and falls back to latest post-prompt AI message", () => {
+  assert.match(stSource, /function getSillyTavernGlobal\(/);
+  assert.match(stSource, /let pendingPromptChatLength = 0/);
+  assert.match(stSource, /function findLatestUsableAiReplyId\(/);
+  assert.match(stSource, /rawText = typeof message\.mes === '.*?' \? message\.mes : '.*?';/);
+  assert.match(stSource, /Math\.max\(1, pendingPromptChatLength\)/);
+  assert.match(stSource, /const replyMessageId = findLatestUsableAiReplyId\(messageId\)/);
+});
 test("st.html loader uses a responsive mobile viewport instead of a fixed desktop canvas", () => {
   assert.doesNotMatch(stSource, /#hatsu-st-page\s*\{[\s\S]*?width:\s*1180px\s*!important/);
   assert.match(stSource, /--hatsu-viewport-height/);

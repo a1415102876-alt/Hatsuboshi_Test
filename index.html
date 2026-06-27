@@ -290,6 +290,7 @@
         <div class="vn-controls">
           <button id="vnBtnSkip" class="vn-btn">跳过 (SKIP)</button>
           <button id="vnBtnLog" class="vn-btn">日志 (LOG)</button>
+          <button id="vnBtnDebug" class="vn-btn">调试 (DEBUG)</button>
           <button id="vnBtnAuto" class="vn-btn">自动 (AUTO)</button>
           <button id="vnBtnRegen" class="vn-btn">重新生成</button>
           <button id="vnBtnEdit" class="vn-btn">编辑重发</button>
@@ -306,6 +307,18 @@
             <button id="vnCustomChoiceConfirmBtn" class="vn-choice-btn vn-choice-btn-accent" type="button">发送</button>
           </div>
         </div>
+      </div>
+      <div id="vnDebugOverlay" class="vn-debug-overlay" hidden>
+        <section class="vn-debug-panel" role="dialog" aria-modal="true" aria-labelledby="vnDebugTitle">
+          <header class="vn-debug-head">
+            <div>
+              <p class="vn-debug-kicker">Bridge Debug</p>
+              <h2 id="vnDebugTitle">前端调试状态</h2>
+            </div>
+            <button id="vnDebugCloseBtn" class="vn-debug-close" type="button" aria-label="关闭调试状态">×</button>
+          </header>
+          <div id="vnDebugContent" class="vn-debug-content"></div>
+        </section>
       </div>
       <div id="vnLogOverlay" class="vn-log-overlay" hidden>
         <section class="vn-log-panel" role="dialog" aria-modal="true" aria-labelledby="vnLogTitle">
