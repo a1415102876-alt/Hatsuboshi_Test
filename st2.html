@@ -639,6 +639,11 @@
     function extractReplyTextFromGenerated(generated) {
       if (typeof generated === 'string') return generated.trim();
       if (!generated || typeof generated !== 'object') return '';
+      // 酒馆 Generate 常返回 `new String(text)` 包装对象 (typeof 为 'object')，
+      // 直接 String() 取回原文，否则会被当成空字符串漏掉。
+      if (generated instanceof String) return String(generated).trim();
+      const wrapped = (generated.valueOf && typeof generated.valueOf() === 'string') ? String(generated.valueOf()).trim() : '';
+      if (wrapped) return wrapped;
       const candidates = [
         generated.text,
         generated.mes,
@@ -843,20 +848,58 @@
     async function runTransactionalViaTavernHelper(tavernHelper, promptText, reqId) {
       // 酒馆助手路径：先生成（此时聊天历史里还没有这条输入，避免提示词重复），
       // 拿到文本后再依次建 user / assistant 楼层。生成失败则不留任何孤儿楼层。
+      //
+      // generate() 的返回值偶尔不可靠/为空，但酒馆助手会在生成结束时发出
+      // GENERATION_ENDED ('js_generation_ended') 事件并带上最终文本。仿 index2 的做法，
+      // 用 [事件, generate 返回值, 超时] 做 race，谁先给出非空文本就用谁。
+      const eventSource = getContext()?.eventSource;
+      const GEN_ENDED = 'js_generation_ended';
+      let endedResolve = null;
+      const endedPromise = new Promise((resolve) => { endedResolve = resolve; });
+      const endedHandler = (finalText) => { try { endedResolve(finalText); } catch (e) {} };
+      let listening = false;
+      if (eventSource && typeof eventSource.on === 'function') {
+        try { eventSource.on(GEN_ENDED, endedHandler); listening = true; } catch (e) {}
+      }
+      const removeEndedListener = () => {
+        if (!listening) return;
+        try {
+          if (typeof eventSource.removeListener === 'function') eventSource.removeListener(GEN_ENDED, endedHandler);
+          else if (typeof eventSource.off === 'function') eventSource.off(GEN_ENDED, endedHandler);
+        } catch (e) {}
+        listening = false;
+      };
+
       let generatedText = '';
       try {
-        const generated = await tavernHelper.generate({
+        const generatePromise = Promise.resolve(tavernHelper.generate({
           user_input: promptText,
           should_stream: false,
           // 不静默：与 index2 一致，让酒馆底部显示生成/停止标志。
           should_silence: false,
           generation_id: reqId
-        });
-        generatedText = extractReplyTextFromGenerated(generated);
+        }));
+        const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve(''), 120000));
+        const raced = await Promise.race([endedPromise, generatePromise, timeoutPromise]);
+        generatedText = extractReplyTextFromGenerated(raced);
+        if (!generatedText) {
+          // race 先返回的是空：再等 generate 自身的返回值兜底。
+          try { generatedText = extractReplyTextFromGenerated(await generatePromise); } catch (e) {}
+        }
+        if (!generatedText && listening) {
+          // generate 返回也空：最后再给事件一点时间。
+          const lateText = await Promise.race([
+            endedPromise,
+            new Promise((resolve) => setTimeout(() => resolve(''), 1500))
+          ]);
+          generatedText = extractReplyTextFromGenerated(lateText);
+        }
       } catch (error) {
+        removeEndedListener();
         postCommittedReply(reqId, '', { isFinal: true });
         throw error;
       }
+      removeEndedListener();
       if (!generatedText) {
         postCommittedReply(reqId, '', { isFinal: true });
         return;
