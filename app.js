@@ -1172,9 +1172,11 @@
     try {
       const saved = localStorage.getItem(activeStorageKey);
       const loaded = saved ? { ...clone(baseState), ...JSON.parse(saved) } : clone(baseState);
-      if (loaded.pendingAiRequestId) {
-        pendingAiRequestId = loaded.pendingAiRequestId;
-      }
+      // 不恢复在途请求：pendingAiRequestId 是“本页正在等待某次生成回复”的会话级状态。
+      // 页面重载（退出后重进前端）后，之前那次生成不会再向新页面投递回复，若把它恢复为真值，
+      // openEventOverlay 会一直走 isLoading 分支——把整段剧情塞进单个对话框且禁用点击，导致卡死。
+      loaded.pendingAiRequestId = "";
+      pendingAiRequestId = "";
       return loaded;
     } catch {
       return clone(baseState);
