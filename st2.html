@@ -771,11 +771,12 @@
               message: String(text || ''),
               extra: { hatsuRequestId: reqId, hatsuTxnRole: role, hatsuTxnAt: Date.now() }
             }],
-            { refresh: 'affected' }
+            // refresh:'none' 与 index2 一致：只写入聊天数据、不触碰 DOM，
+            // 因此不会把前端所在的楼层顶下去导致前端被重渲染（"顿一下"）。
+            { refresh: 'none' }
           );
           const messageId = context.chat.length - 1;
           stampTransactionalExtra(messageId, role, reqId);
-          if (useVisualHideFloors) adjustMessageVisibility();
           return messageId;
         } catch (error) {
           console.warn('[st.html] TavernHelper.createChatMessages 失败，回退原生:', error);
@@ -847,7 +848,8 @@
         const generated = await tavernHelper.generate({
           user_input: promptText,
           should_stream: false,
-          should_silence: true,
+          // 不静默：与 index2 一致，让酒馆底部显示生成/停止标志。
+          should_silence: false,
           generation_id: reqId
         });
         generatedText = extractReplyTextFromGenerated(generated);
