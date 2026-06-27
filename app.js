@@ -9014,6 +9014,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       applyHostCharacter(data.character, data.saveScope, data.savedState, data.hasSavedState);
     }
     if (data.type === "aiReply") applyAiReply(data.text, data.requestId, data.rawText, data.renderedText, data.isFinal);
+    if (data.type === "aiReplyCommitted") applyAiReply(data.text, data.requestId, data.rawText, data.renderedText, data.isFinal);
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
