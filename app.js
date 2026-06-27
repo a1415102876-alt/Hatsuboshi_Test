@@ -3889,6 +3889,48 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     requestNextMapLocationOptions();
   }
 
+  function handleMapLocationCustomChoice(rawText) {
+    const producerAction = String(rawText || "").trim();
+    if (!producerAction) {
+      showToast("还没有内容", "请输入本次自定义行动。", "warn");
+      return;
+    }
+    const actionContext = state.pendingActionContext?.actionContext || {};
+    const locationId = actionContext.locationId;
+    const location = resolveMapExploreLocation(locationId, actionContext);
+    const chosenMinutes = FREE_MODE_MAP_CHOICE_MINUTES;
+    const timeResult = advanceFreeModeTime(chosenMinutes);
+    const chosenLine = `<narration>▶ 制作人的选择：${producerAction}</narration>`;
+    state.lastStory = state.lastStory ? `${state.lastStory}\n\n${chosenLine}` : chosenLine;
+    state.selectedChoiceText = "";
+    state.selectedChoiceRating = "";
+    state.pendingOptionTexts = [];
+    state.pendingOptionMinutes = [];
+    state.eventMode = "choice_prompt";
+    state.choiceStep = 1;
+    state.lastDebug = `自由模式：${location?.name || "地点探索"} 已发送自定义行动“${producerAction}”，时间 +${chosenMinutes} 分钟，准备下一组选项。`;
+    state.log.unshift({
+      day: state.freeMode?.postLiveDay || 1,
+      round: formatFreeModeClock(),
+      phase: "自由模式",
+      action: `${location?.name || "地图探索"}`,
+      result: `自定义：${producerAction} · +${chosenMinutes}分 · ${formatFreeModeClock()}`
+    });
+    state.log = state.log.slice(0, 24);
+    saveState();
+    render();
+    renderFreeModeStage();
+    closeVnChoicesOverlay();
+    if (timeResult.hitDayEnd) {
+      showToast("今日活动结束", "时间已到 22:00，地图地点已关闭。", "info");
+    }
+    if (!isFreeModeTravelAllowed()) {
+      showVnChoicesOverlay();
+      return;
+    }
+    requestNextMapLocationOptions();
+  }
+
   function mergeWorldMapLayoutEnvelope(data) {
     if (!data || typeof data !== "object") return;
     if (data.mapFit === "cover" || data.mapFit === "contain") {
@@ -6779,6 +6821,19 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     );
   }
 
+  function handleVnCustomChoiceSubmit() {
+    const customText = document.getElementById("vnCustomChoiceInput")?.value || "";
+    if (isNsfwIntimacyActive()) {
+      handleNsfwIntimacyCustomChoice(customText);
+      return;
+    }
+    if (isMapLocationExploreActive() && isChoicePromptMode()) {
+      handleMapLocationCustomChoice(customText);
+      return;
+    }
+    showToast("当前不可用", "此处暂不支持自定义输入。", "warn");
+  }
+
   function handleNsfwIntimacyEndChoice() {
     if (!state.pendingActionContext) return;
     closeVnChoicesOverlay();
@@ -6871,14 +6926,16 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       appendMapLocationControlButtons(container);
     }
 
-    if (nsfwMode) {
+    if (nsfwMode || (isMapLocationExploreActive() && hasOptionChoices)) {
       const customBtn = document.createElement("button");
       customBtn.className = "vn-choice-btn vn-choice-btn-custom";
       customBtn.type = "button";
       customBtn.textContent = "自定义输入";
       customBtn.onclick = () => showVnCustomChoicePanel();
       container.appendChild(customBtn);
+    }
 
+    if (nsfwMode) {
       const endBtn = document.createElement("button");
       endBtn.className = "vn-choice-btn vn-choice-btn-end";
       endBtn.type = "button";
@@ -8931,9 +8988,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     if (event.target.id === "mapLocationOverlay") closeMapLocationOverlay();
   });
   document.getElementById("vnCustomChoiceCancelBtn").addEventListener("click", hideVnCustomChoicePanel);
-  document.getElementById("vnCustomChoiceConfirmBtn").addEventListener("click", () => {
-    handleNsfwIntimacyCustomChoice(document.getElementById("vnCustomChoiceInput")?.value || "");
-  });
+  document.getElementById("vnCustomChoiceConfirmBtn").addEventListener("click", handleVnCustomChoiceSubmit);
   window.addEventListener("message", (event) => {
     const data = event.data || {};
     
