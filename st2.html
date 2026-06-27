@@ -678,27 +678,24 @@
       return fallback;
     }
 
-    function ensureAssistantMessageText(message, text) {
-      if (!message) return false;
-      const resolvedText = String(text || '').trim();
-      if (!resolvedText) return false;
-      let changed = false;
-      if (!String(message.mes || '').trim()) {
-        message.mes = resolvedText;
-        changed = true;
+    function removeGeneratedAssistantMessagesAfter(startIndex, requestId = '') {
+      const context = getContext();
+      const chat = context?.chat;
+      if (!Array.isArray(chat)) return 0;
+      const reqId = String(requestId || '');
+      let removed = 0;
+      for (let index = chat.length - 1; index >= Math.max(0, Number(startIndex) || 0); index -= 1) {
+        const message = chat[index];
+        if (!message || message.is_user) continue;
+        const messageReqId = String(message?.extra?.hatsuRequestId || '');
+        if (messageReqId && reqId && messageReqId === reqId) continue;
+        chat.splice(index, 1);
+        removed += 1;
       }
-      if (!Array.isArray(message.swipes) || message.swipes.length === 0) {
-        message.swipes = [resolvedText];
-        message.swipe_id = 0;
-        changed = true;
-      } else {
-        const activeSwipe = Number.isInteger(message.swipe_id) ? message.swipe_id : 0;
-        if (!String(message.swipes[activeSwipe] || '').trim()) {
-          message.swipes[activeSwipe] = resolvedText;
-          changed = true;
-        }
+      if (removed > 0) {
+        context.chatMetadata && (context.chatMetadata.tainted = true);
       }
-      return changed;
+      return removed;
     }
 
     async function createSilentChatMessage(role, text, requestId) {
@@ -795,31 +792,16 @@
         postCommittedReply(reqId, '', { isFinal: true });
         return;
       }
-      if (existingAssistantHit?.index >= 0) {
-        const assistantMessage = context.chat?.[existingAssistantHit.index];
-        if (assistantMessage) {
-          const assistantResolvedText = generatedText
-            || existingAssistantHit?.rawText
-            || existingAssistantHit?.renderedText
-            || '';
-          const textChanged = ensureAssistantMessageText(assistantMessage, assistantResolvedText);
-          assistantMessage.extra = {
-            ...(assistantMessage.extra || {}),
-            hatsuRequestId: reqId,
-            hatsuTxnRole: 'assistant',
-            hatsuTxnAt: assistantMessage?.extra?.hatsuTxnAt || Date.now()
-          };
-          if (textChanged || !assistantMessage?.extra?.hatsuRequestId) {
-            context.chatMetadata && (context.chatMetadata.tainted = true);
-          }
-        }
-      } else {
-        await createSilentChatMessage('assistant', generatedText, reqId);
-      }
+      const assistantResolvedText = generatedText
+        || existingAssistantHit?.rawText
+        || existingAssistantHit?.renderedText
+        || '';
+      removeGeneratedAssistantMessagesAfter(assistantStartIndex, reqId);
+      await createSilentChatMessage('assistant', assistantResolvedText, reqId);
       await persistChatSilently();
-      postCommittedReply(reqId, generatedText, {
+      postCommittedReply(reqId, assistantResolvedText, {
         isFinal: true,
-        rawText: existingAssistantHit?.rawText || generatedText,
+        rawText: existingAssistantHit?.rawText || assistantResolvedText,
         renderedText: existingAssistantHit?.renderedText || ''
       });
     }
