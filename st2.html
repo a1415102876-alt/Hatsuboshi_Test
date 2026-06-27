@@ -344,6 +344,8 @@
             clearPendingReplyRequest();
             postCharacterToFrame();
             updateInPageHatsuClass();
+            hiddenFloorRange = null;
+            adjustMessageVisibility();
           });
           if (eventTypes.CHAT_COMPLETION_PROMPT_READY) {
             eventSource.on(eventTypes.CHAT_COMPLETION_PROMPT_READY, pruneHatsuChatCompletionPayload);
@@ -351,6 +353,8 @@
         }
 
         updateInPageHatsuClass();
+        bindChatDomObserver();
+        adjustMessageVisibility();
         console.log('[Hatsu ST Loader] 零安装直接桥接（In-page Bridge）启动成功。');
       } catch (err) {
         console.error('[Hatsu ST Loader] 启动直接桥接失败：', err);
@@ -363,6 +367,7 @@
     const HATSU_COMMIT_EVENT_NAME = 'hatsuAssistantCommitted';
     const useCommittedReplyEvent = true;
     const useTransactionalBridge = true;
+    const useVisualHideFloors = true;
     let pendingRequestId = '';
     let pendingPromptSentAt = 0;
     let pendingPromptChatLength = 0;
@@ -371,6 +376,9 @@
     let pendingReplyRetryTimer = 0;
     let pendingStreamFinalizeTimer = 0;
     let pendingStreamMessageId = -1;
+    let hiddenFloorRange = null;
+    let chatDomObserver = null;
+    let chatDomUpdateTimer = 0;
     const requestPromptCache = new Map();
     let promptTaskQueue = Promise.resolve();
 
@@ -444,6 +452,61 @@
           body.classList.remove('hatsuboshi-active');
         }
       });
+    }
+
+    function getHostMainDocument() {
+      try {
+        return window.parent?.document || document;
+      } catch (error) {
+        return document;
+      }
+    }
+
+    function computeHiddenFloorRange() {
+      if (!useVisualHideFloors) return null;
+      const mainDoc = getHostMainDocument();
+      const floorIds = [...mainDoc.querySelectorAll('#chat > .mes[mesid]')]
+        .map((node) => Number(node.getAttribute('mesid')))
+        .filter((value) => Number.isInteger(value) && value >= 0)
+        .sort((a, b) => a - b);
+      if (floorIds.length <= 1) return null;
+      const latest = floorIds[floorIds.length - 1];
+      if (!Number.isInteger(latest) || latest <= 0) return null;
+      return { start: 0, end: latest - 1 };
+    }
+
+    function isFloorHidden(mesId) {
+      const id = Number(mesId);
+      if (!Number.isInteger(id) || !hiddenFloorRange) return false;
+      return id >= hiddenFloorRange.start && id <= hiddenFloorRange.end;
+    }
+
+    function adjustMessageVisibility() {
+      const mainDoc = getHostMainDocument();
+      const contextInfo = getCurrentContextInfo();
+      const characterName = contextInfo.character?.name || '';
+      const isHatsu = characterName.includes('初星学园') || characterName.includes('初星') || characterName.includes('Hatsuboshi');
+      hiddenFloorRange = isHatsu ? computeHiddenFloorRange() : null;
+      const floors = mainDoc.querySelectorAll('#chat > .mes[mesid]');
+      floors.forEach((floor) => {
+        const mesId = floor.getAttribute('mesid');
+        floor.style.display = isFloorHidden(mesId) ? 'none' : '';
+      });
+    }
+
+    function bindChatDomObserver() {
+      if (chatDomObserver) return;
+      const mainDoc = getHostMainDocument();
+      const target = mainDoc.querySelector('#chat');
+      if (!target) return;
+      chatDomObserver = new MutationObserver(() => {
+        if (chatDomUpdateTimer) return;
+        chatDomUpdateTimer = window.setTimeout(() => {
+          chatDomUpdateTimer = 0;
+          adjustMessageVisibility();
+        }, 120);
+      });
+      chatDomObserver.observe(target, { childList: true, subtree: false });
     }
 
     function getSavedChatState() {
@@ -533,20 +596,56 @@
       return false;
     }
 
+    function findTransactionalMessageIndex(chat, role, text, requestId, minIndex = 0) {
+      if (!Array.isArray(chat) || !chat.length) return -1;
+      const expectedText = String(text || '').trim();
+      const expectedReqId = String(requestId || '');
+      const isUser = role === 'user';
+      for (let index = chat.length - 1; index >= minIndex; index -= 1) {
+        const item = chat[index];
+        if (!item || Boolean(item.is_user) !== isUser) continue;
+        const reqId = String(item?.extra?.hatsuRequestId || '');
+        const mes = String(item?.mes || '').trim();
+        if (expectedReqId && reqId === expectedReqId) return index;
+        if (expectedText && mes === expectedText) return index;
+      }
+      return -1;
+    }
+
+    async function waitForTransactionalMessage(role, text, requestId, minIndex = 0) {
+      for (let attempts = 0; attempts < 8; attempts += 1) {
+        const context = getContext();
+        const index = findTransactionalMessageIndex(context?.chat, role, text, requestId, minIndex);
+        if (index >= 0) return index;
+        await new Promise((resolve) => setTimeout(resolve, 30));
+      }
+      return -1;
+    }
+
     async function createSilentChatMessage(role, text, requestId) {
       const context = getContext();
       if (!context || !Array.isArray(context.chat)) throw new Error('chat context unavailable');
       const message = buildTransactionalMessage(role, text, requestId);
       const beforeLength = context.chat.length;
       const createChatMessages = resolveCreateChatMessagesFn(context);
-      let createdByHostApi = false;
+      let messageId = -1;
       if (createChatMessages) {
-        createdByHostApi = await tryCreateByHostApi(createChatMessages, role, message);
+        await tryCreateByHostApi(createChatMessages, role, message);
+        messageId = await waitForTransactionalMessage(role, message.mes, requestId, beforeLength);
       }
-      if (!createdByHostApi || context.chat.length === beforeLength) {
+      if (messageId < 0) {
         context.chat.push(message);
+        messageId = context.chat.length - 1;
       }
-      const messageId = context.chat.length - 1;
+      const targetMessage = context.chat?.[messageId];
+      if (targetMessage) {
+        targetMessage.extra = {
+          ...(targetMessage.extra || {}),
+          hatsuRequestId: String(requestId || ''),
+          hatsuTxnRole: role,
+          hatsuTxnAt: targetMessage?.extra?.hatsuTxnAt || Date.now()
+        };
+      }
       context.chatMetadata && (context.chatMetadata.tainted = true);
       return messageId;
     }
