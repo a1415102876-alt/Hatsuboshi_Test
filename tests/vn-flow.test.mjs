@@ -273,6 +273,15 @@ test("malformed choice prompt stays regenerable instead of settling the action",
   assert.doesNotMatch(body, /fallbackChoiceSettlement\(reply\)/);
 });
 
+test("custom outing input waits for IME commit and VN keeps plain story fallback", () => {
+  assert.match(source, /function bindImeSafeTextInput\(/);
+  assert.match(source, /function runAfterImeCommit\(/);
+  assert.match(source, /bindImeSafeTextInput\("freeModeOutingCustomInput"/);
+  assert.match(readFunction("submitCustomFreeModeOutingDestination"), /runAfterImeCommit\("freeModeOutingCustomInput"/);
+  assert.match(readFunction("buildVnSlidesFromStory"), /parseNovelSlides/);
+  assert.match(readFunction("currentChoiceActionTitle"), /resolveMapExploreLocation/);
+});
+
 test("opening a non-choice event clears stale choice UI", () => {
   const elements = new Map();
   const makeElement = (id) => {

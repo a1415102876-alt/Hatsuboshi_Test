@@ -1,3 +1,6 @@
-# 视频文件过大，不纳入版本管理
-assets/videos/
-assets/videosss/
+# 本地视频缓存目录；First Live 播放走 app.js 里的 VIDEO_CDN 远程链接。
+# 可把 mp4 放在此处作本地备份或离线调试，但不要提交到 git。
+assets/videos/*
+!assets/videos/.gitkeep
+assets/videosss/*
+!assets/videosss/.gitkeep

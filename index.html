@@ -237,11 +237,49 @@
         <button id="dockOpenSystem" class="dock-button primary" type="button" data-modal="system" aria-label="系统菜单"><svg><use href="#icon-menu"></use></svg></button>
       </nav>
     </section>
+
+    <section class="free-mode-stage is-hidden" id="freeModeStage" aria-label="学园大地图">
+      <div class="world-map-frame">
+        <div class="world-map-canvas">
+          <img id="worldMapImage" class="world-map-bg" src="./assets/MAP/Gakuen.png" alt="初星学园大地图" draggable="false">
+          <div id="worldMapHotspots" class="world-map-hotspots" aria-label="地图地点"></div>
+          <div id="worldMapIdolMarkers" class="world-map-idol-markers" aria-label="偶像位置"></div>
+        </div>
+        <header class="free-mode-head">
+          <div class="free-mode-head-copy">
+            <p class="ui-kicker">Free Explore</p>
+            <h2>初星学园</h2>
+          </div>
+          <button id="freeModeStatusBadge" class="free-mode-status-badge" type="button" aria-label="当前日期与时间">Live后1天 · 08:00</button>
+        </header>
+        <p id="freeModeLocationBadge" class="free-mode-location-badge">点击地图上的地点开始探索</p>
+        <button id="freeModePhoneBtn" class="free-mode-phone-btn" type="button" aria-label="打开小手机">
+          <svg aria-hidden="true"><use href="#icon-phone"></use></svg>
+          <span>手机</span>
+        </button>
+        <button id="worldMapLayoutEditBtn" class="world-map-layout-edit-toggle" type="button">编辑布局</button>
+        <aside id="worldMapLayoutEditor" class="world-map-layout-editor is-hidden" aria-label="地图布局编辑">
+          <div class="world-map-layout-editor-head">
+            <strong>地图布局编辑</strong>
+            <span id="worldMapLayoutEditorStatus">拖动热点调整位置</span>
+          </div>
+          <p id="worldMapLayoutEditorCoord" class="world-map-layout-editor-coord">当前：--</p>
+          <div class="world-map-layout-editor-actions">
+            <button id="worldMapLayoutSaveBtn" class="world-map-layout-action" type="button">保存到浏览器</button>
+            <button id="worldMapLayoutExportBtn" class="world-map-layout-action primary" type="button">导出 JSON</button>
+            <button id="worldMapLayoutFitBtn" class="world-map-layout-action" type="button">地图：cover</button>
+            <button id="worldMapLayoutResetBtn" class="world-map-layout-action" type="button">恢复默认</button>
+            <button id="worldMapLayoutCloseEditorBtn" class="world-map-layout-action" type="button">完成编辑</button>
+          </div>
+        </aside>
+      </div>
+    </section>
   </main>
 
   <section id="eventOverlay" class="event-overlay" hidden aria-label="行动事件">
     <!-- Visual Novel Play Container -->
     <div id="vnContainer" class="vn-container">
+      <button id="vnFreeModeClock" class="free-mode-status-badge vn-free-mode-clock" type="button" hidden aria-label="当前日期与时间">Live后1天 · 08:00</button>
       <div id="vnBackdrop" class="vn-backdrop"></div>
       <div class="vn-stage">
         <img id="vnStandee" class="vn-standee" src="" alt="立绘" draggable="false">
@@ -416,6 +454,102 @@
       </div>
       <footer class="event-actions">
         <button id="intimacyCancelBtn" class="event-button secondary" type="button">取消</button>
+      </footer>
+    </article>
+  </section>
+
+  <section id="freeModeEntryOverlay" class="event-overlay" hidden aria-label="自由模式入口">
+    <article class="event-panel free-mode-entry-panel">
+      <header class="event-head">
+        <div>
+          <p class="ui-kicker">Free Mode</p>
+          <h2>进入自由模式</h2>
+        </div>
+        <span class="event-phase">First Live 后</span>
+      </header>
+      <p id="freeModeEntryNote" class="ai-prompt-note">First Live 已结束。你可以继续留在育成界面，或进入学园自由探索。</p>
+      <div class="free-mode-entry-points" aria-hidden="true">
+        <span>学园大地图</span>
+        <span>地点探索</span>
+        <span>后续事件预留</span>
+      </div>
+      <footer class="event-actions">
+        <button id="freeModeStayBtn" class="event-button secondary" type="button">留在这里</button>
+        <button id="freeModeEnterBtn" class="event-button primary" type="button">进入自由模式</button>
+      </footer>
+    </article>
+  </section>
+
+  <section id="freeModeTimeOverlay" class="event-overlay free-mode-time-overlay" hidden aria-label="自由模式时间管理">
+    <article class="event-panel free-mode-time-panel">
+      <header class="event-head">
+        <div>
+          <p class="ui-kicker">Time</p>
+          <h2>时间管理</h2>
+        </div>
+      </header>
+      <p id="freeModeTimeCurrent" class="free-mode-time-current">Live后1天 · 08:00</p>
+      <p id="freeModeTimeHint" class="ai-prompt-note">输入分钟数可将时间推进至 22:00。</p>
+      <label class="free-mode-time-label" for="freeModeTimeAdvanceInput">推进分钟数</label>
+      <input id="freeModeTimeAdvanceInput" class="free-mode-time-input" type="number" min="1" max="840" inputmode="numeric" placeholder="例如 30">
+      <div class="free-mode-time-quick" aria-label="快捷推进">
+        <button class="free-mode-time-quick-btn" type="button" data-minutes="15">+15分</button>
+        <button class="free-mode-time-quick-btn" type="button" data-minutes="30">+30分</button>
+        <button class="free-mode-time-quick-btn" type="button" data-minutes="60">+1小时</button>
+        <button class="free-mode-time-quick-btn" type="button" data-minutes="120">+2小时</button>
+      </div>
+      <footer class="event-actions free-mode-time-actions">
+        <button id="freeModeTimeCloseBtn" class="event-button secondary" type="button">关闭</button>
+        <button id="freeModeTimeAdvanceBtn" class="event-button primary" type="button">推进时间</button>
+        <button id="freeModeAdvanceDayBtn" class="event-button primary free-mode-advance-day-btn" type="button" hidden>进入下一天</button>
+      </footer>
+    </article>
+  </section>
+
+  <section id="mapLocationOverlay" class="event-overlay map-location-overlay" hidden aria-label="地图地点详情">
+    <article class="event-panel map-location-panel">
+      <header class="event-head">
+        <div>
+          <p class="ui-kicker">Location</p>
+          <h2 id="mapLocationTitle">地点</h2>
+        </div>
+      </header>
+      <div id="mapLocationVisual" class="map-location-visual">
+        <img id="mapLocationImage" src="" alt="" hidden>
+      </div>
+      <p id="mapLocationDesc" class="ai-prompt-note">地点说明</p>
+      <div id="mapLocationPresence" class="map-location-presence" hidden>
+        <p class="map-location-presence-label">当前可能在场</p>
+        <div id="mapLocationPresenceAvatars" class="map-location-presence-avatars"></div>
+      </div>
+      <footer class="event-actions map-location-entry-actions">
+        <button id="mapLocationBackBtn" class="event-button secondary" type="button">返回地图</button>
+        <div class="map-location-enter-options">
+          <button id="mapLocationEnterWithIdolBtn" class="event-button primary" type="button">和担当一起来</button>
+          <button id="mapLocationEnterAloneBtn" class="event-button secondary" type="button">自己来</button>
+        </div>
+        <button id="mapLocationOutingBtn" class="event-button secondary map-location-outing-btn" type="button" hidden>外出</button>
+      </footer>
+    </article>
+  </section>
+
+  <section id="freeModeOutingOverlay" class="event-overlay" hidden aria-label="自由模式选择外出地点">
+    <article class="event-panel outing-panel">
+      <header class="event-head">
+        <div>
+          <p class="ui-kicker">Free Outing</p>
+          <h2>选择外出地点</h2>
+        </div>
+      </header>
+      <p class="ai-prompt-note">从学园正门离开校外。进入后可像校内地点一样连续选择行动选项，也可输入自定义地点。</p>
+      <div id="freeModeOutingDestinationList" class="outing-destination-list"></div>
+      <label class="outing-custom-field" for="freeModeOutingCustomInput">
+        <span>自定义地点</span>
+        <input id="freeModeOutingCustomInput" type="text" maxlength="40" placeholder="输入想和担当前往的地点">
+      </label>
+      <footer class="event-actions">
+        <button id="freeModeOutingCancelBtn" class="event-button secondary" type="button">返回</button>
+        <button id="freeModeOutingCustomConfirmBtn" class="event-button primary" type="button">前往自定义地点</button>
       </footer>
     </article>
   </section>

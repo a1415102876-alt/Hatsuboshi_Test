@@ -118,7 +118,8 @@ p {
 
 .select-screen.is-hidden,
 .select-panel.is-hidden,
-.game-stage.is-hidden {
+.game-stage.is-hidden,
+.free-mode-stage.is-hidden {
   display: none;
 }
 
@@ -3992,6 +3993,14 @@ p {
   background: #0d0d12;
 }
 
+.vn-free-mode-clock {
+  position: absolute;
+  top: calc(10px + env(safe-area-inset-top));
+  right: max(14px, env(safe-area-inset-right));
+  z-index: 12;
+  backdrop-filter: blur(8px);
+}
+
 .vn-backdrop {
   position: absolute;
   inset: 0;
@@ -4320,6 +4329,522 @@ p {
   .vn-custom-choice-actions {
     width: 100%;
   }
+}
+
+.free-mode-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 56;
+  overflow: hidden;
+  background: #10141c;
+}
+
+body.is-free-mode-active {
+  overflow: hidden;
+}
+
+.world-map-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.world-map-canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.world-map-bg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  transition: opacity 0.35s ease;
+}
+
+.world-map-hotspots {
+  position: absolute;
+  inset: 0;
+}
+
+.free-mode-head {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: calc(10px + env(safe-area-inset-top)) 14px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(16, 20, 28, 0.82), rgba(16, 20, 28, 0.42));
+  backdrop-filter: blur(10px);
+  color: #fff;
+}
+
+.free-mode-head .ui-kicker {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.free-mode-head-copy h2 {
+  margin: 0;
+  font-size: 22px;
+  color: #fff;
+}
+
+.free-mode-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.free-mode-back-btn svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+}
+
+.free-mode-idol-label {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 79, 154, 0.24);
+  color: #ffd9ea;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.free-mode-status-badge {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.free-mode-status-badge.is-day-ended {
+  border-color: rgba(255, 196, 53, 0.45);
+  background: rgba(255, 196, 53, 0.16);
+  color: #ffe7a3;
+}
+
+.free-mode-time-panel {
+  width: min(420px, 100%);
+}
+
+.free-mode-time-current {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.free-mode-time-label {
+  display: block;
+  margin: 12px 0 6px;
+  color: var(--soft-ink);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.free-mode-time-input {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 14px;
+  border: 1px solid rgba(111, 102, 128, 0.18);
+  border-radius: 12px;
+  font: inherit;
+  font-size: 16px;
+}
+
+.free-mode-time-quick {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.free-mode-time-quick-btn {
+  min-height: 38px;
+  border: 1px solid rgba(111, 102, 128, 0.16);
+  border-radius: 999px;
+  background: rgba(246, 248, 255, 0.92);
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.free-mode-time-quick-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.free-mode-time-actions {
+  grid-template-columns: 1fr 1fr;
+}
+
+.free-mode-advance-day-btn {
+  grid-column: 1 / -1;
+}
+
+.free-mode-phone-btn {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  z-index: 4;
+  transform: translateY(-10%);
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 56px;
+  min-height: 56px;
+  padding: 8px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 18px;
+  background: rgba(16, 20, 28, 0.78);
+  color: #fff;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
+}
+
+.free-mode-phone-btn svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+.world-map-idol-markers {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.world-map-idol-marker {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  min-height: 34px;
+  border-width: 2px;
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--avatar-color, #624aff) 38%, transparent);
+}
+
+.world-map-hotspot.is-locked .world-map-hotspot-marker {
+  background: linear-gradient(180deg, rgba(120, 120, 130, 0.92), rgba(90, 90, 100, 0.92));
+  box-shadow: none;
+  animation: none;
+}
+
+.vn-choice-btn-map-back {
+  border-color: rgba(255, 255, 255, 0.28) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.vn-choice-btn-map-back-direct {
+  opacity: 0.72;
+  font-size: 13px;
+}
+
+.free-mode-location-badge {
+  position: absolute;
+  left: 50%;
+  top: calc(72px + env(safe-area-inset-top));
+  z-index: 3;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(16, 20, 28, 0.72);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 12px;
+  text-align: center;
+  white-space: nowrap;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+  pointer-events: none;
+}
+
+.world-map-hotspot {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.world-map-hotspot-marker {
+  display: grid;
+  place-items: center;
+  min-width: 42px;
+  min-height: 42px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 122, 176, 0.96), rgba(255, 79, 154, 0.96));
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  box-shadow: 0 10px 24px rgba(255, 79, 154, 0.38);
+  animation: mapHotspotPulse 2.4s ease-in-out infinite;
+}
+
+.world-map-hotspot-label {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 8px 18px rgba(17, 15, 22, 0.12);
+  pointer-events: none;
+}
+
+.world-map-hotspot:focus-visible .world-map-hotspot-marker,
+.world-map-hotspot:hover .world-map-hotspot-marker {
+  transform: scale(1.06);
+}
+
+@keyframes mapHotspotPulse {
+  0%, 100% { box-shadow: 0 10px 24px rgba(255, 79, 154, 0.38); }
+  50% { box-shadow: 0 14px 28px rgba(255, 79, 154, 0.56); }
+}
+
+.free-mode-entry-panel {
+  width: min(520px, 100%);
+}
+
+.free-mode-entry-points {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.free-mode-entry-points span {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(38, 169, 244, 0.12);
+  color: #1677b3;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.map-location-panel {
+  width: min(520px, 100%);
+}
+
+.map-location-visual {
+  margin-bottom: 12px;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid rgba(111, 102, 128, 0.12);
+}
+
+.map-location-visual img {
+  display: block;
+  width: 100%;
+  height: min(220px, 38svh);
+  object-fit: cover;
+}
+
+.map-location-presence {
+  margin-bottom: 12px;
+}
+
+.map-location-presence-label {
+  margin: 0 0 8px;
+  color: var(--soft-ink);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.map-location-presence-avatars {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.map-location-presence-avatar {
+  width: 44px;
+  height: 44px;
+  border-width: 2px;
+}
+
+.map-location-entry-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.map-location-enter-options {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(88px, 1fr);
+  gap: 8px;
+}
+
+.map-location-enter-options .event-button {
+  min-height: 50px;
+  padding-inline: 14px;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+#mapLocationEnterWithIdolBtn {
+  font-size: 15px;
+}
+
+.map-location-outing-btn {
+  min-height: 46px;
+}
+
+@media (max-width: 420px) {
+  .map-location-enter-options {
+    grid-template-columns: 1fr;
+  }
+
+  .map-location-enter-options .event-button {
+    white-space: normal;
+  }
+}
+
+.world-map-layout-edit-toggle {
+  position: absolute;
+  right: 14px;
+  bottom: calc(14px + env(safe-area-inset-bottom));
+  z-index: 4;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  background: rgba(16, 20, 28, 0.72);
+  color: #fff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+}
+
+.world-map-layout-editor {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  z-index: 5;
+  display: grid;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 16px;
+  background: rgba(16, 20, 28, 0.88);
+  color: #fff;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+}
+
+.world-map-layout-editor.is-hidden {
+  display: none !important;
+}
+
+.world-map-layout-editor-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  font-size: 13px;
+}
+
+.world-map-layout-editor-head strong {
+  font-size: 14px;
+}
+
+.world-map-layout-editor-head span,
+.world-map-layout-editor-coord {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 12px;
+}
+
+.world-map-layout-editor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.world-map-layout-action {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.world-map-layout-action.primary {
+  border-color: rgba(255, 79, 154, 0.5);
+  background: rgba(255, 79, 154, 0.28);
+}
+
+.free-mode-stage.is-layout-editing .free-mode-location-badge {
+  top: calc(72px + env(safe-area-inset-top));
+}
+
+.free-mode-stage.is-layout-editing .world-map-hotspot-marker {
+  animation: none;
+  outline: 2px solid rgba(255, 255, 255, 0.92);
+  outline-offset: 2px;
+}
+
+.free-mode-stage.is-layout-editing .world-map-hotspot {
+  cursor: grab;
+  touch-action: none;
+}
+
+.free-mode-stage.is-layout-editing .world-map-hotspot:active {
+  cursor: grabbing;
+}
+
+.world-map-canvas[data-map-fit="contain"] .world-map-bg {
+  object-fit: contain;
 }
 
 /* Dark mode dialogue box fallback for high-contrast */
