@@ -402,6 +402,20 @@
       }
     }
 
+    // 酒馆助手 (TavernHelper / JS-Slash-Runner) 注入的封装接口。它的 generate 能把提示词
+    // 作为 user_input 显式传入、只返回文本不建楼；createChatMessages 用 {role,message} 格式
+    // 并支持 refresh:'affected' 只刷新单楼。优先用它，拿不到再退回裸 getContext()。
+    function getTavernHelper() {
+      const candidates = [];
+      try {
+        if (window.parent && window.parent !== window) candidates.push(window.parent.TavernHelper);
+      } catch (e) {}
+      try {
+        candidates.push(window.TavernHelper);
+      } catch (e) {}
+      return candidates.find((api) => api && typeof api.generate === 'function') || null;
+    }
+
     function getCurrentContextInfo() {
       const context = getContext();
       const characterId = context?.characterId;
@@ -727,9 +741,48 @@
       if (useVisualHideFloors) adjustMessageVisibility();
     }
 
+    function stampTransactionalExtra(messageId, role, requestId) {
+      const context = getContext();
+      const targetMessage = context?.chat?.[messageId];
+      if (targetMessage) {
+        targetMessage.extra = {
+          ...(targetMessage.extra || {}),
+          hatsuRequestId: String(requestId || ''),
+          hatsuTxnRole: role,
+          hatsuTxnAt: targetMessage?.extra?.hatsuTxnAt || Date.now()
+        };
+      }
+      context && context.chatMetadata && (context.chatMetadata.tainted = true);
+    }
+
     async function createSilentChatMessage(role, text, requestId) {
       const context = getContext();
       if (!context || !Array.isArray(context.chat)) throw new Error('chat context unavailable');
+      const reqId = String(requestId || '');
+
+      // 优先走酒馆助手：{role,message} 格式 + refresh:'affected' 只刷新本楼，
+      // 内容直接写入，不会出现空楼层，也不会触发全楼层重绘。
+      const tavernHelper = getTavernHelper();
+      if (tavernHelper && typeof tavernHelper.createChatMessages === 'function') {
+        try {
+          await tavernHelper.createChatMessages(
+            [{
+              role: role === 'user' ? 'user' : 'assistant',
+              message: String(text || ''),
+              extra: { hatsuRequestId: reqId, hatsuTxnRole: role, hatsuTxnAt: Date.now() }
+            }],
+            { refresh: 'affected' }
+          );
+          const messageId = context.chat.length - 1;
+          stampTransactionalExtra(messageId, role, reqId);
+          if (useVisualHideFloors) adjustMessageVisibility();
+          return messageId;
+        } catch (error) {
+          console.warn('[st.html] TavernHelper.createChatMessages 失败，回退原生:', error);
+        }
+      }
+
+      // 兜底：裸 getContext()，手动 push 后用 addOneMessage 单楼渲染。
       const message = buildTransactionalMessage(role, text, requestId);
       const beforeLength = context.chat.length;
       const createChatMessages = resolveCreateChatMessagesFn(context);
@@ -742,16 +795,7 @@
         context.chat.push(message);
         messageId = context.chat.length - 1;
       }
-      const targetMessage = context.chat?.[messageId];
-      if (targetMessage) {
-        targetMessage.extra = {
-          ...(targetMessage.extra || {}),
-          hatsuRequestId: String(requestId || ''),
-          hatsuTxnRole: role,
-          hatsuTxnAt: targetMessage?.extra?.hatsuTxnAt || Date.now()
-        };
-      }
-      context.chatMetadata && (context.chatMetadata.tainted = true);
+      stampTransactionalExtra(messageId, role, reqId);
       renderSilentFloor(messageId);
       return messageId;
     }
@@ -795,6 +839,36 @@
       }
     }
 
+    async function runTransactionalViaTavernHelper(tavernHelper, promptText, reqId) {
+      // 酒馆助手路径：先生成（此时聊天历史里还没有这条输入，避免提示词重复），
+      // 拿到文本后再依次建 user / assistant 楼层。生成失败则不留任何孤儿楼层。
+      let generatedText = '';
+      try {
+        const generated = await tavernHelper.generate({
+          user_input: promptText,
+          should_stream: false,
+          should_silence: true,
+          generation_id: reqId
+        });
+        generatedText = extractReplyTextFromGenerated(generated);
+      } catch (error) {
+        postCommittedReply(reqId, '', { isFinal: true });
+        throw error;
+      }
+      if (!generatedText) {
+        postCommittedReply(reqId, '', { isFinal: true });
+        return;
+      }
+      await createSilentChatMessage('user', promptText, reqId);
+      await createSilentChatMessage('assistant', generatedText, reqId);
+      await persistChatSilently();
+      postCommittedReply(reqId, generatedText, {
+        isFinal: true,
+        rawText: generatedText,
+        renderedText: ''
+      });
+    }
+
     async function runTransactionalPrompt(prompt, requestId) {
       const context = getContext();
       const promptText = String(prompt || '').trim();
@@ -803,6 +877,13 @@
       requestPromptCache.set(reqId, promptText);
       pendingRequestId = reqId;
       clearReplyCandidateState();
+
+      const tavernHelper = getTavernHelper();
+      if (tavernHelper) {
+        await runTransactionalViaTavernHelper(tavernHelper, promptText, reqId);
+        return;
+      }
+
       const txnStartedAt = Date.now();
       const userIndex = await createSilentChatMessage('user', promptText, reqId);
       await persistChatSilently();
