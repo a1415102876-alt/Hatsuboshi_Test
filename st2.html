@@ -678,6 +678,29 @@
       return fallback;
     }
 
+    function ensureAssistantMessageText(message, text) {
+      if (!message) return false;
+      const resolvedText = String(text || '').trim();
+      if (!resolvedText) return false;
+      let changed = false;
+      if (!String(message.mes || '').trim()) {
+        message.mes = resolvedText;
+        changed = true;
+      }
+      if (!Array.isArray(message.swipes) || message.swipes.length === 0) {
+        message.swipes = [resolvedText];
+        message.swipe_id = 0;
+        changed = true;
+      } else {
+        const activeSwipe = Number.isInteger(message.swipe_id) ? message.swipe_id : 0;
+        if (!String(message.swipes[activeSwipe] || '').trim()) {
+          message.swipes[activeSwipe] = resolvedText;
+          changed = true;
+        }
+      }
+      return changed;
+    }
+
     async function createSilentChatMessage(role, text, requestId) {
       const context = getContext();
       if (!context || !Array.isArray(context.chat)) throw new Error('chat context unavailable');
@@ -775,13 +798,20 @@
       if (existingAssistantHit?.index >= 0) {
         const assistantMessage = context.chat?.[existingAssistantHit.index];
         if (assistantMessage) {
+          const assistantResolvedText = generatedText
+            || existingAssistantHit?.rawText
+            || existingAssistantHit?.renderedText
+            || '';
+          const textChanged = ensureAssistantMessageText(assistantMessage, assistantResolvedText);
           assistantMessage.extra = {
             ...(assistantMessage.extra || {}),
             hatsuRequestId: reqId,
             hatsuTxnRole: 'assistant',
             hatsuTxnAt: assistantMessage?.extra?.hatsuTxnAt || Date.now()
           };
-          context.chatMetadata && (context.chatMetadata.tainted = true);
+          if (textChanged || !assistantMessage?.extra?.hatsuRequestId) {
+            context.chatMetadata && (context.chatMetadata.tainted = true);
+          }
         }
       } else {
         await createSilentChatMessage('assistant', generatedText, reqId);
