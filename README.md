@@ -6,6 +6,28 @@
 
 直接用浏览器打开 `index.html` 即可运行。
 
+## 酒馆助手脚本入口
+
+新增了可被 `import` 的悬浮球脚本入口：
+
+- `dist/hatsu-launcher/index.js`
+
+示例（按你的仓库地址替换）：
+
+```js
+import 'https://testingcf.jsdelivr.net/gh/<your-user>/<your-repo>@<tag-or-branch>/dist/hatsu-launcher/index.js'
+```
+
+可选全局配置（在 `import` 前设置）：
+
+```js
+window.HatsuLauncherConfig = {
+  frontendUrl: '/hatsu-produce-local/st.html',
+  launcherText: '初',
+  launcherSize: 44
+};
+```
+
 ## 当前功能
 
 - 担当偶像选择
