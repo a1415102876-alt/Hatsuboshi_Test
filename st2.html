@@ -698,6 +698,35 @@
       return removed;
     }
 
+    function renderSilentFloor(messageId) {
+      // 把单个楼层渲染进酒馆 DOM，使其真正显示内容（之前只 push 进 chat 数组，
+      // 不调用 addOneMessage，导致酒馆里楼层是空的）。addOneMessage 只渲染单条，
+      // 不会像 printMessages 那样重绘全部楼层，所以不会让被隐藏的旧楼层冒出来。
+      try {
+        const context = getContext();
+        const chat = context?.chat;
+        const idx = Number(messageId);
+        if (!Array.isArray(chat) || !Number.isInteger(idx) || idx < 0 || idx >= chat.length) return;
+        if (typeof context.addOneMessage !== 'function') return;
+        const mainDoc = getHostMainDocument();
+        const already = mainDoc.querySelector(`#chat > .mes[mesid="${idx}"]`);
+        if (already) {
+          const mesText = already.querySelector('.mes_text');
+          if (mesText && !String(mesText.innerText || '').trim() && String(chat[idx]?.mes || '').trim()) {
+            // 楼层已存在但内容为空：补回内容。
+            mesText.innerHTML = context.messageFormatting
+              ? context.messageFormatting(String(chat[idx].mes || ''), chat[idx].name, false, Boolean(chat[idx].is_user), idx)
+              : String(chat[idx].mes || '');
+          }
+          return;
+        }
+        context.addOneMessage(chat[idx], { scroll: false, forceId: idx });
+      } catch (error) {
+        // 渲染失败不影响事务主流程。
+      }
+      if (useVisualHideFloors) adjustMessageVisibility();
+    }
+
     async function createSilentChatMessage(role, text, requestId) {
       const context = getContext();
       if (!context || !Array.isArray(context.chat)) throw new Error('chat context unavailable');
@@ -723,6 +752,7 @@
         };
       }
       context.chatMetadata && (context.chatMetadata.tainted = true);
+      renderSilentFloor(messageId);
       return messageId;
     }
 
@@ -735,6 +765,12 @@
       if (!message?.is_user) return;
       if (String(message?.extra?.hatsuRequestId || '') !== String(requestId || '')) return;
       context.chat.splice(idx, 1);
+      try {
+        const mainDoc = getHostMainDocument();
+        mainDoc.querySelector(`#chat > .mes[mesid="${idx}"]`)?.remove();
+      } catch (error) {
+        // 忽略 DOM 清理失败。
+      }
     }
 
     async function persistChatSilently() {
