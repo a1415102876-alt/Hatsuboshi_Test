@@ -11,6 +11,7 @@
 新增了可被 `import` 的悬浮球脚本入口：
 
 - `dist/hatsu-launcher/index.js`
+- `dist/hatsu-launcher/keep-latest-floor.js`（仅保留最新楼层）
 
 示例（按你的仓库地址替换）：
 
@@ -18,11 +19,22 @@
 import 'https://testingcf.jsdelivr.net/gh/<your-user>/<your-repo>@<tag-or-branch>/dist/hatsu-launcher/index.js'
 ```
 
+仅保留最新楼层（伪 0 层）示例：
+
+```js
+window.HatsuKeepLatestConfig = {
+  hardRemove: false,
+  debounceMs: 120,
+  reloadOnChatChanged: true
+};
+import 'https://testingcf.jsdelivr.net/gh/<your-user>/<your-repo>@<tag-or-branch>/dist/hatsu-launcher/keep-latest-floor.js'
+```
+
 可选全局配置（在 `import` 前设置）：
 
 ```js
 window.HatsuLauncherConfig = {
-  frontendUrl: '/hatsu-produce-local/st.html',
+  frontendUrl: '/hatsu-produce-local/st2.html',
   launcherText: '初',
   launcherSize: 44
 };

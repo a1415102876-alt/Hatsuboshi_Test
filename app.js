@@ -7856,7 +7856,8 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     }
   }
 
-  function applyAiReply(text, requestId = "", rawText = "", renderedText = "", isFinal = true) {
+  function applyAiReply(text, requestId = "", rawText = "", renderedText = "", isFinal = true, variableCommands = []) {
+    aiBridgeDebug.lastVariableCommands = Array.isArray(variableCommands) ? variableCommands : [];
     const acceptedRequest = shouldAcceptAiReply(requestId, pendingAiRequestId);
     if (!acceptedRequest) {
       recordAiReplyDebug({ text, rawText, renderedText, requestId, isFinal, source: "", accepted: false });
@@ -8989,6 +8990,42 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   });
   document.getElementById("vnCustomChoiceCancelBtn").addEventListener("click", hideVnCustomChoicePanel);
   document.getElementById("vnCustomChoiceConfirmBtn").addEventListener("click", handleVnCustomChoiceSubmit);
+  const committedReplyDedupKeys = [];
+  function shouldSkipCommittedReply(payload) {
+    if (!payload || payload.type !== "aiReplyCommitted") return false;
+    const key = [
+      String(payload.requestId || ""),
+      payload.isFinal === false ? "0" : "1",
+      String(payload.rawText || payload.text || "").slice(0, 320)
+    ].join("::");
+    if (committedReplyDedupKeys.includes(key)) return true;
+    committedReplyDedupKeys.push(key);
+    if (committedReplyDedupKeys.length > 48) {
+      committedReplyDedupKeys.splice(0, committedReplyDedupKeys.length - 48);
+    }
+    return false;
+  }
+
+  function routeHostAiPayload(payload) {
+    if (!payload || payload.source !== "hatsuboshi-produce-host") return;
+    if (payload.type === "character") {
+      console.log("[app.js] Applying character payload. Name:", payload.character?.name, "SaveScope:", payload.saveScope);
+      applyHostCharacter(payload.character, payload.saveScope, payload.savedState, payload.hasSavedState);
+      return;
+    }
+    if (shouldSkipCommittedReply(payload)) return;
+    if (payload.type === "aiReply" || payload.type === "aiReplyCommitted") {
+      applyAiReply(
+        payload.text,
+        payload.requestId,
+        payload.rawText,
+        payload.renderedText,
+        payload.isFinal,
+        payload.variableCommands
+      );
+    }
+  }
+
   window.addEventListener("message", (event) => {
     const data = event.data || {};
     
@@ -9008,13 +9045,11 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       return;
     }
     
-    if (data.source !== "hatsuboshi-produce-host") return;
-    if (data.type === "character") {
-      console.log("[app.js] Applying character payload. Name:", data.character?.name, "SaveScope:", data.saveScope);
-      applyHostCharacter(data.character, data.saveScope, data.savedState, data.hasSavedState);
-    }
-    if (data.type === "aiReply") applyAiReply(data.text, data.requestId, data.rawText, data.renderedText, data.isFinal);
-    if (data.type === "aiReplyCommitted") applyAiReply(data.text, data.requestId, data.rawText, data.renderedText, data.isFinal);
+    routeHostAiPayload(data);
+  });
+  window.addEventListener("hatsuAssistantCommitted", (event) => {
+    const detail = event?.detail || {};
+    routeHostAiPayload(detail);
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
