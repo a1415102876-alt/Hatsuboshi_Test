@@ -645,6 +645,7 @@
     function findLatestAssistantReply(chat, requestId = '', minIndex = 0, startedAt = 0) {
       if (!Array.isArray(chat)) return null;
       const reqId = String(requestId || '');
+      const mainDoc = getHostMainDocument();
       for (let index = chat.length - 1; index >= minIndex; index -= 1) {
         const message = chat[index];
         if (!message || message.is_user) continue;
@@ -652,13 +653,15 @@
         if (reqId && messageReqId && messageReqId !== reqId) continue;
         const messageAt = Number(message?.send_date || 0);
         if (startedAt > 0 && Number.isFinite(messageAt) && messageAt > 0 && messageAt + 5 < startedAt) continue;
-        const text = String(message?.mes || '').trim();
+        const rawText = getMessageRawText(message).trim();
+        const renderedText = String(mainDoc.querySelector(`.mes[mesid="${index}"] .mes_text`)?.innerText || '').trim();
+        const text = rawText.length >= renderedText.length ? rawText : renderedText;
         if (!text) continue;
         const score =
           (reqId && messageReqId === reqId ? 3 : 0)
           + (index >= minIndex ? 2 : 0)
           + (startedAt > 0 && Number.isFinite(messageAt) && messageAt >= startedAt ? 1 : 0);
-        return { index, text, score };
+        return { index, text, rawText, renderedText, score };
       }
       return null;
     }
@@ -725,8 +728,8 @@
         type: 'aiReplyCommitted',
         requestId: String(requestId || ''),
         text: String(text || ''),
-        rawText: String(text || ''),
-        renderedText: '',
+        rawText: String(options.rawText || text || ''),
+        renderedText: String(options.renderedText || ''),
         isFinal: options.isFinal !== false
       };
       window.postMessage(payload, '*');
@@ -784,7 +787,11 @@
         await createSilentChatMessage('assistant', generatedText, reqId);
       }
       await persistChatSilently();
-      postCommittedReply(reqId, generatedText, { isFinal: true });
+      postCommittedReply(reqId, generatedText, {
+        isFinal: true,
+        rawText: existingAssistantHit?.rawText || generatedText,
+        renderedText: existingAssistantHit?.renderedText || ''
+      });
     }
 
     function postCharacterToFrame() {
