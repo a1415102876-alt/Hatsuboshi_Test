@@ -134,12 +134,14 @@
 
       #hatsu-floating-controls {
         position: fixed !important;
-        top: 16px !important;
-        right: 16px !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
         z-index: 2147483647 !important;
         display: flex !important;
         gap: 10px !important;
         align-items: center !important;
+        justify-content: center !important;
       }
 
       #hatsu-floating-controls button {
@@ -191,11 +193,11 @@
 
       @media (max-width: 560px) {
         #hatsu-floating-controls {
-          top: max(8px, env(safe-area-inset-top)) !important;
-          right: 8px !important;
+          top: 50% !important;
+          left: 50% !important;
           gap: 6px !important;
-          transform: scale(0.88) !important;
-          transform-origin: top right !important;
+          transform: translate(-50%, -50%) scale(0.88) !important;
+          transform-origin: center !important;
         }
 
         #hatsu-floating-controls button {
