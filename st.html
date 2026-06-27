@@ -13,7 +13,6 @@
   });
 
   window.isHatsuLoaderST = true;
-  window.hatsuFloorsHidden = true;
   document.documentElement.style.setProperty('--hatsu-viewport-height', `${window.visualViewport?.height || window.innerHeight}px`);
   function updateHatsuViewportHeight() {
     document.documentElement.style.setProperty('--hatsu-viewport-height', `${window.visualViewport?.height || window.innerHeight}px`);
@@ -73,7 +72,6 @@
     overlay.innerHTML = `
       <div id="hatsu-floating-controls">
         <button id="hatsu-real-fullscreen-btn" type="button">浏览器全屏</button>
-        <button id="hatsu-toggle-floors-btn" type="button" style="display: none;">取消隐藏下方楼层</button>
       </div>
 
       <div id="hatsu-fullscreen-content">
@@ -214,37 +212,8 @@
         }
       }
 
-      /* 隐式生成：处于初星学园聊天时，隐藏除第一楼（开场白）外的所有聊天气泡和输入状态 */
-      body.hatsuboshi-active.hatsuboshi-floor-hide-enabled .mes[mesid]:not([mesid="0"]) {
-        display: none !important;
-      }
-      body.hatsuboshi-active .writing_indicator {
-        display: none !important;
-      }
     `;
     document.head.appendChild(fullStyle);
-
-    // 注入隐藏规则到父窗口的 head
-    try {
-      if (window.parent && window.parent.document && window.parent.document.head) {
-        const parentDoc = window.parent.document;
-        if (!parentDoc.getElementById('hatsuboshi-parent-styles')) {
-          const parentStyle = parentDoc.createElement('style');
-          parentStyle.id = 'hatsuboshi-parent-styles';
-          parentStyle.textContent = `
-            body.hatsuboshi-active.hatsuboshi-floor-hide-enabled .mes[mesid]:not([mesid="0"]) {
-              display: none !important;
-            }
-            body.hatsuboshi-active .writing_indicator {
-              display: none !important;
-            }
-          `;
-          parentDoc.head.appendChild(parentStyle);
-        }
-      }
-    } catch (e) {
-      console.warn('[st.html] Failed to inject styles into parent document:', e);
-    }
 
     // 浏览器真正全屏：必须点击按钮才能触发
     document.getElementById('hatsu-real-fullscreen-btn')?.addEventListener('click', async () => {
@@ -257,12 +226,6 @@
       } catch (err) {
         console.error('[Hatsu] 浏览器全屏失败：', err);
       }
-    });
-
-    // 绑定隐藏/恢复楼层按钮点击事件
-    document.getElementById('hatsu-toggle-floors-btn')?.addEventListener('click', () => {
-      window.hatsuFloorsHidden = !window.hatsuFloorsHidden;
-      updateInPageHatsuClass();
     });
 
     // 读取 app.js，并修正里面的 ./assets/
@@ -321,40 +284,17 @@
         }
         if (data.type === 'sendPrompt') {
           const reqId = String(data.requestId || '');
-          if (useTransactionalBridge) {
-            queuePromptTask(() => runTransactionalPrompt(data.prompt, reqId));
-          } else {
-            clearReplyCandidateState();
-            pendingRequestId = reqId;
-            sendPromptToSillyTavern(data.prompt);
-          }
+          queuePromptTask(() => runTransactionalPrompt(data.prompt, reqId));
         }
         if (data.type === 'regenerate') {
           const reqId = String(data.requestId || '');
-          if (useTransactionalBridge) {
-            const cachedPrompt = requestPromptCache.get(reqId);
-            if (cachedPrompt) {
-              queuePromptTask(() => runTransactionalPrompt(cachedPrompt, reqId));
-            }
-          } else {
-            clearReplyCandidateState();
-            pendingRequestId = reqId;
-            const mainDoc = window.parent?.document || document;
-            const regenBtn = mainDoc.getElementById('option_regenerate');
-            if (regenBtn) {
-              const jQuery = window.parent?.jQuery || window.jQuery;
-              if (jQuery) {
-                jQuery(regenBtn).trigger('click');
-              } else {
-                regenBtn.click();
-              }
-            }
+          const cachedPrompt = requestPromptCache.get(reqId);
+          if (cachedPrompt) {
+            queuePromptTask(() => runTransactionalPrompt(cachedPrompt, reqId));
           }
         }
         if (data.type === 'aiReplyAck') {
-          if (!useTransactionalBridge) {
-            handleReplyAck(data);
-          }
+          // 固定事务流：不依赖 host->app ACK 回传
         }
         if (data.type === 'saveState') {
           saveChatState(data.state);
@@ -391,10 +331,7 @@
 
         const context = getContext();
 
-        // 旧事件桥接仅在非事务模式启用
-        if (!useTransactionalBridge) {
-          bindSillyTavernReplyBridge();
-        }
+        // 固定事务流：不绑定旧事件桥接
 
         // 立即发送一次角色数据（以防 app.js 已经在那等着了）
         postCharacterToFrame();
@@ -407,6 +344,8 @@
             clearPendingReplyRequest();
             postCharacterToFrame();
             updateInPageHatsuClass();
+            hiddenFloorRange = null;
+            adjustMessageVisibility();
           });
           if (eventTypes.CHAT_COMPLETION_PROMPT_READY) {
             eventSource.on(eventTypes.CHAT_COMPLETION_PROMPT_READY, pruneHatsuChatCompletionPayload);
@@ -415,6 +354,7 @@
 
         updateInPageHatsuClass();
         bindChatDomObserver();
+        adjustMessageVisibility();
         console.log('[Hatsu ST Loader] 零安装直接桥接（In-page Bridge）启动成功。');
       } catch (err) {
         console.error('[Hatsu ST Loader] 启动直接桥接失败：', err);
@@ -425,8 +365,9 @@
     // ── 桥接辅助函数 ──
     const CHAT_STATE_METADATA_KEY = 'hatsuboshi_produce_state_v1';
     const HATSU_COMMIT_EVENT_NAME = 'hatsuAssistantCommitted';
-    const useCommittedReplyEvent = window.HatsuBridgeUseCommittedReplyEvent === true;
-    const useTransactionalBridge = window.HatsuBridgeTransactional === true;
+    const useCommittedReplyEvent = true;
+    const useTransactionalBridge = true;
+    const useVisualHideFloors = true;
     let pendingRequestId = '';
     let pendingPromptSentAt = 0;
     let pendingPromptChatLength = 0;
@@ -435,6 +376,9 @@
     let pendingReplyRetryTimer = 0;
     let pendingStreamFinalizeTimer = 0;
     let pendingStreamMessageId = -1;
+    let hiddenFloorRange = null;
+    let chatDomObserver = null;
+    let chatDomUpdateTimer = 0;
     const requestPromptCache = new Map();
     let promptTaskQueue = Promise.resolve();
 
@@ -456,6 +400,20 @@
         console.warn('[st.html] getContext failed:', e);
         return null;
       }
+    }
+
+    // 酒馆助手 (TavernHelper / JS-Slash-Runner) 注入的封装接口。它的 generate 能把提示词
+    // 作为 user_input 显式传入、只返回文本不建楼；createChatMessages 用 {role,message} 格式
+    // 并支持 refresh:'affected' 只刷新单楼。优先用它，拿不到再退回裸 getContext()。
+    function getTavernHelper() {
+      const candidates = [];
+      try {
+        if (window.parent && window.parent !== window) candidates.push(window.parent.TavernHelper);
+      } catch (e) {}
+      try {
+        candidates.push(window.TavernHelper);
+      } catch (e) {}
+      return candidates.find((api) => api && typeof api.generate === 'function') || null;
     }
 
     function getCurrentContextInfo() {
@@ -501,32 +459,68 @@
         }
       } catch (e) {}
 
-      const mainDoc = window.parent?.document || document;
-      const openingFloorMounted = Boolean(mainDoc.querySelector('.mes[mesid="0"]'));
-      const shouldHide = isHatsu && window.hatsuFloorsHidden !== false && openingFloorMounted;
-
       targets.forEach(body => {
         if (isHatsu) {
           body.classList.add('hatsuboshi-active');
         } else {
           body.classList.remove('hatsuboshi-active');
         }
-        body.classList.toggle('hatsuboshi-floor-hide-enabled', shouldHide);
       });
+    }
 
-      const btn = document.getElementById('hatsu-toggle-floors-btn');
-      if (btn) {
-        if (isHatsu) {
-          btn.style.display = 'block';
-          btn.textContent = shouldHide
-            ? '取消隐藏下方楼层'
-            : openingFloorMounted
-              ? '继续隐藏下方楼层'
-              : '0L未挂载，已暂停隐藏';
-        } else {
-          btn.style.display = 'none';
-        }
+    function getHostMainDocument() {
+      try {
+        return window.parent?.document || document;
+      } catch (error) {
+        return document;
       }
+    }
+
+    function computeHiddenFloorRange() {
+      if (!useVisualHideFloors) return null;
+      const mainDoc = getHostMainDocument();
+      const floorIds = [...mainDoc.querySelectorAll('#chat > .mes[mesid]')]
+        .map((node) => Number(node.getAttribute('mesid')))
+        .filter((value) => Number.isInteger(value) && value >= 0)
+        .sort((a, b) => a - b);
+      if (floorIds.length <= 1) return null;
+      const latest = floorIds[floorIds.length - 1];
+      if (!Number.isInteger(latest) || latest <= 0) return null;
+      return { start: 0, end: latest - 1 };
+    }
+
+    function isFloorHidden(mesId) {
+      const id = Number(mesId);
+      if (!Number.isInteger(id) || !hiddenFloorRange) return false;
+      return id >= hiddenFloorRange.start && id <= hiddenFloorRange.end;
+    }
+
+    function adjustMessageVisibility() {
+      const mainDoc = getHostMainDocument();
+      const contextInfo = getCurrentContextInfo();
+      const characterName = contextInfo.character?.name || '';
+      const isHatsu = characterName.includes('初星学园') || characterName.includes('初星') || characterName.includes('Hatsuboshi');
+      hiddenFloorRange = isHatsu ? computeHiddenFloorRange() : null;
+      const floors = mainDoc.querySelectorAll('#chat > .mes[mesid]');
+      floors.forEach((floor) => {
+        const mesId = floor.getAttribute('mesid');
+        floor.style.display = isFloorHidden(mesId) ? 'none' : '';
+      });
+    }
+
+    function bindChatDomObserver() {
+      if (chatDomObserver) return;
+      const mainDoc = getHostMainDocument();
+      const target = mainDoc.querySelector('#chat');
+      if (!target) return;
+      chatDomObserver = new MutationObserver(() => {
+        if (chatDomUpdateTimer) return;
+        chatDomUpdateTimer = window.setTimeout(() => {
+          chatDomUpdateTimer = 0;
+          adjustMessageVisibility();
+        }, 120);
+      });
+      chatDomObserver.observe(target, { childList: true, subtree: false });
     }
 
     function getSavedChatState() {
@@ -557,11 +551,10 @@
       return promptTaskQueue;
     }
 
-    async function createSilentChatMessage(role, text, requestId) {
+    function buildTransactionalMessage(role, text, requestId) {
       const context = getContext();
-      if (!context || !Array.isArray(context.chat)) throw new Error('chat context unavailable');
-      const message = {
-        name: role === 'user' ? String(context.name1 || 'User') : String(context.name2 || 'Assistant'),
+      return {
+        name: role === 'user' ? String(context?.name1 || 'User') : String(context?.name2 || 'Assistant'),
         is_user: role === 'user',
         is_system: false,
         send_date: Date.now(),
@@ -572,29 +565,244 @@
           hatsuTxnAt: Date.now()
         }
       };
-      context.chat.push(message);
-      const messageId = context.chat.length - 1;
-      context.chatMetadata && (context.chatMetadata.tainted = true);
-      try {
-        context.addOneMessage?.(message, { forceId: messageId, scroll: true });
-      } catch (error) {
-        console.warn('[st.html] addOneMessage failed:', error);
-      }
-      try {
-        const eventSource = context.eventSource;
-        const eventTypes = context.eventTypes;
-        if (eventSource && eventTypes) {
-          if (role === 'user') {
-            await eventSource.emit(eventTypes.MESSAGE_SENT, messageId);
-            await eventSource.emit(eventTypes.USER_MESSAGE_RENDERED, messageId);
-          } else {
-            await eventSource.emit(eventTypes.MESSAGE_RECEIVED, messageId, 'normal');
-            await eventSource.emit(eventTypes.CHARACTER_MESSAGE_RENDERED, messageId, 'normal');
-          }
+    }
+
+    function resolveCreateChatMessagesFn(context) {
+      const globalST = getSillyTavernGlobal();
+      const candidates = [
+        context?.createChatMessages,
+        globalST?.createChatMessages,
+        window.parent?.createChatMessages,
+        window.createChatMessages
+      ];
+      return candidates.find((fn) => typeof fn === 'function') || null;
+    }
+
+    async function tryCreateByHostApi(createChatMessages, role, message) {
+      const hostOptions = {
+        triggerGenerate: false,
+        doGenerate: false,
+        generate: false,
+        shouldGenerate: false,
+        refresh: false,
+        shouldRefresh: false,
+        refreshUi: false,
+        redraw: false,
+        scroll: false,
+        silent: true,
+        source: 'hatsu-transaction'
+      };
+      const calls = [
+        () => createChatMessages([message], hostOptions),
+        () => createChatMessages(message, hostOptions),
+        () => createChatMessages(role, message.mes, hostOptions),
+        () => createChatMessages(role, message.mes, false, false),
+        () => createChatMessages(role, message.mes)
+      ];
+      for (const invoke of calls) {
+        try {
+          await invoke();
+          return true;
+        } catch (error) {
+          // 向下兼容不同宿主签名，单次失败不终止。
         }
-      } catch (error) {
-        console.warn('[st.html] message render events failed:', error);
       }
+      return false;
+    }
+
+    function findTransactionalMessageIndex(chat, role, text, requestId, minIndex = 0) {
+      if (!Array.isArray(chat) || !chat.length) return -1;
+      const expectedText = String(text || '').trim();
+      const expectedReqId = String(requestId || '');
+      const isUser = role === 'user';
+      for (let index = chat.length - 1; index >= minIndex; index -= 1) {
+        const item = chat[index];
+        if (!item || Boolean(item.is_user) !== isUser) continue;
+        const reqId = String(item?.extra?.hatsuRequestId || '');
+        const mes = String(item?.mes || '').trim();
+        if (expectedReqId && reqId === expectedReqId) return index;
+        if (expectedText && mes === expectedText) return index;
+      }
+      return -1;
+    }
+
+    async function waitForTransactionalMessage(role, text, requestId, minIndex = 0) {
+      for (let attempts = 0; attempts < 8; attempts += 1) {
+        const context = getContext();
+        const index = findTransactionalMessageIndex(context?.chat, role, text, requestId, minIndex);
+        if (index >= 0) return index;
+        await new Promise((resolve) => setTimeout(resolve, 30));
+      }
+      return -1;
+    }
+
+    function extractReplyTextFromGenerated(generated) {
+      if (typeof generated === 'string') return generated.trim();
+      if (!generated || typeof generated !== 'object') return '';
+      // 酒馆 Generate 常返回 `new String(text)` 包装对象 (typeof 为 'object')，
+      // 直接 String() 取回原文，否则会被当成空字符串漏掉。
+      if (generated instanceof String) return String(generated).trim();
+      const wrapped = (generated.valueOf && typeof generated.valueOf() === 'string') ? String(generated.valueOf()).trim() : '';
+      if (wrapped) return wrapped;
+      const candidates = [
+        generated.text,
+        generated.mes,
+        generated.message,
+        generated.content
+      ];
+      for (const candidate of candidates) {
+        const text = typeof candidate === 'string' ? candidate.trim() : '';
+        if (text) return text;
+      }
+      if (Array.isArray(generated.swipes) && generated.swipes.length > 0) {
+        const swipeText = String(generated.swipes[generated.swipe_id] || generated.swipes[0] || '').trim();
+        if (swipeText) return swipeText;
+      }
+      return '';
+    }
+
+    function findLatestAssistantReply(chat, requestId = '', minIndex = 0, startedAt = 0) {
+      if (!Array.isArray(chat)) return null;
+      const reqId = String(requestId || '');
+      const mainDoc = getHostMainDocument();
+      for (let index = chat.length - 1; index >= minIndex; index -= 1) {
+        const message = chat[index];
+        if (!message || message.is_user) continue;
+        const messageReqId = String(message?.extra?.hatsuRequestId || '');
+        if (reqId && messageReqId && messageReqId !== reqId) continue;
+        const messageAt = Number(message?.send_date || 0);
+        if (startedAt > 0 && Number.isFinite(messageAt) && messageAt > 0 && messageAt + 5 < startedAt) continue;
+        const rawText = getMessageRawText(message).trim();
+        const renderedText = String(mainDoc.querySelector(`.mes[mesid="${index}"] .mes_text`)?.innerText || '').trim();
+        const text = rawText.length >= renderedText.length ? rawText : renderedText;
+        if (!text) continue;
+        const score =
+          (reqId && messageReqId === reqId ? 3 : 0)
+          + (index >= minIndex ? 2 : 0)
+          + (startedAt > 0 && Number.isFinite(messageAt) && messageAt >= startedAt ? 1 : 0);
+        return { index, text, rawText, renderedText, score };
+      }
+      return null;
+    }
+
+    async function waitForLatestAssistantReply(requestId = '', minIndex = 0, startedAt = 0) {
+      let fallback = null;
+      for (let attempts = 0; attempts < 10; attempts += 1) {
+        const context = getContext();
+        const hit = findLatestAssistantReply(context?.chat, requestId, minIndex, startedAt);
+        if (hit && hit.score >= 3) return hit;
+        if (hit && !fallback) fallback = hit;
+        await new Promise((resolve) => setTimeout(resolve, 40));
+      }
+      return fallback;
+    }
+
+    function removeGeneratedAssistantMessagesAfter(startIndex, requestId = '') {
+      const context = getContext();
+      const chat = context?.chat;
+      if (!Array.isArray(chat)) return 0;
+      const reqId = String(requestId || '');
+      let removed = 0;
+      for (let index = chat.length - 1; index >= Math.max(0, Number(startIndex) || 0); index -= 1) {
+        const message = chat[index];
+        if (!message || message.is_user) continue;
+        const messageReqId = String(message?.extra?.hatsuRequestId || '');
+        if (messageReqId && reqId && messageReqId === reqId) continue;
+        chat.splice(index, 1);
+        removed += 1;
+      }
+      if (removed > 0) {
+        context.chatMetadata && (context.chatMetadata.tainted = true);
+      }
+      return removed;
+    }
+
+    function renderSilentFloor(messageId) {
+      // 把单个楼层渲染进酒馆 DOM，使其真正显示内容（之前只 push 进 chat 数组，
+      // 不调用 addOneMessage，导致酒馆里楼层是空的）。addOneMessage 只渲染单条，
+      // 不会像 printMessages 那样重绘全部楼层，所以不会让被隐藏的旧楼层冒出来。
+      try {
+        const context = getContext();
+        const chat = context?.chat;
+        const idx = Number(messageId);
+        if (!Array.isArray(chat) || !Number.isInteger(idx) || idx < 0 || idx >= chat.length) return;
+        if (typeof context.addOneMessage !== 'function') return;
+        const mainDoc = getHostMainDocument();
+        const already = mainDoc.querySelector(`#chat > .mes[mesid="${idx}"]`);
+        if (already) {
+          const mesText = already.querySelector('.mes_text');
+          if (mesText && !String(mesText.innerText || '').trim() && String(chat[idx]?.mes || '').trim()) {
+            // 楼层已存在但内容为空：补回内容。
+            mesText.innerHTML = context.messageFormatting
+              ? context.messageFormatting(String(chat[idx].mes || ''), chat[idx].name, false, Boolean(chat[idx].is_user), idx)
+              : String(chat[idx].mes || '');
+          }
+          return;
+        }
+        context.addOneMessage(chat[idx], { scroll: false, forceId: idx });
+      } catch (error) {
+        // 渲染失败不影响事务主流程。
+      }
+      if (useVisualHideFloors) adjustMessageVisibility();
+    }
+
+    function stampTransactionalExtra(messageId, role, requestId) {
+      const context = getContext();
+      const targetMessage = context?.chat?.[messageId];
+      if (targetMessage) {
+        targetMessage.extra = {
+          ...(targetMessage.extra || {}),
+          hatsuRequestId: String(requestId || ''),
+          hatsuTxnRole: role,
+          hatsuTxnAt: targetMessage?.extra?.hatsuTxnAt || Date.now()
+        };
+      }
+      context && context.chatMetadata && (context.chatMetadata.tainted = true);
+    }
+
+    async function createSilentChatMessage(role, text, requestId) {
+      const context = getContext();
+      if (!context || !Array.isArray(context.chat)) throw new Error('chat context unavailable');
+      const reqId = String(requestId || '');
+
+      // 优先走酒馆助手：{role,message} 格式 + refresh:'affected' 只刷新本楼，
+      // 内容直接写入，不会出现空楼层，也不会触发全楼层重绘。
+      const tavernHelper = getTavernHelper();
+      if (tavernHelper && typeof tavernHelper.createChatMessages === 'function') {
+        try {
+          await tavernHelper.createChatMessages(
+            [{
+              role: role === 'user' ? 'user' : 'assistant',
+              message: String(text || ''),
+              extra: { hatsuRequestId: reqId, hatsuTxnRole: role, hatsuTxnAt: Date.now() }
+            }],
+            // refresh:'none' 与 index2 一致：只写入聊天数据、不触碰 DOM，
+            // 因此不会把前端所在的楼层顶下去导致前端被重渲染（"顿一下"）。
+            { refresh: 'none' }
+          );
+          const messageId = context.chat.length - 1;
+          stampTransactionalExtra(messageId, role, reqId);
+          return messageId;
+        } catch (error) {
+          console.warn('[st.html] TavernHelper.createChatMessages 失败，回退原生:', error);
+        }
+      }
+
+      // 兜底：裸 getContext()，手动 push 后用 addOneMessage 单楼渲染。
+      const message = buildTransactionalMessage(role, text, requestId);
+      const beforeLength = context.chat.length;
+      const createChatMessages = resolveCreateChatMessagesFn(context);
+      let messageId = -1;
+      if (createChatMessages) {
+        await tryCreateByHostApi(createChatMessages, role, message);
+        messageId = await waitForTransactionalMessage(role, message.mes, requestId, beforeLength);
+      }
+      if (messageId < 0) {
+        context.chat.push(message);
+        messageId = context.chat.length - 1;
+      }
+      stampTransactionalExtra(messageId, role, reqId);
+      renderSilentFloor(messageId);
       return messageId;
     }
 
@@ -607,6 +815,12 @@
       if (!message?.is_user) return;
       if (String(message?.extra?.hatsuRequestId || '') !== String(requestId || '')) return;
       context.chat.splice(idx, 1);
+      try {
+        const mainDoc = getHostMainDocument();
+        mainDoc.querySelector(`#chat > .mes[mesid="${idx}"]`)?.remove();
+      } catch (error) {
+        // 忽略 DOM 清理失败。
+      }
     }
 
     async function persistChatSilently() {
@@ -620,8 +834,8 @@
         type: 'aiReplyCommitted',
         requestId: String(requestId || ''),
         text: String(text || ''),
-        rawText: String(text || ''),
-        renderedText: '',
+        rawText: String(options.rawText || text || ''),
+        renderedText: String(options.renderedText || ''),
         isFinal: options.isFinal !== false
       };
       window.postMessage(payload, '*');
@@ -629,6 +843,75 @@
       if (String(pendingRequestId || '') === String(requestId || '')) {
         clearPendingReplyRequest();
       }
+    }
+
+    async function runTransactionalViaTavernHelper(tavernHelper, promptText, reqId) {
+      // 酒馆助手路径：先生成（此时聊天历史里还没有这条输入，避免提示词重复），
+      // 拿到文本后再依次建 user / assistant 楼层。生成失败则不留任何孤儿楼层。
+      //
+      // generate() 的返回值偶尔不可靠/为空，但酒馆助手会在生成结束时发出
+      // GENERATION_ENDED ('js_generation_ended') 事件并带上最终文本。仿 index2 的做法，
+      // 用 [事件, generate 返回值, 超时] 做 race，谁先给出非空文本就用谁。
+      const eventSource = getContext()?.eventSource;
+      const GEN_ENDED = 'js_generation_ended';
+      let endedResolve = null;
+      const endedPromise = new Promise((resolve) => { endedResolve = resolve; });
+      const endedHandler = (finalText) => { try { endedResolve(finalText); } catch (e) {} };
+      let listening = false;
+      if (eventSource && typeof eventSource.on === 'function') {
+        try { eventSource.on(GEN_ENDED, endedHandler); listening = true; } catch (e) {}
+      }
+      const removeEndedListener = () => {
+        if (!listening) return;
+        try {
+          if (typeof eventSource.removeListener === 'function') eventSource.removeListener(GEN_ENDED, endedHandler);
+          else if (typeof eventSource.off === 'function') eventSource.off(GEN_ENDED, endedHandler);
+        } catch (e) {}
+        listening = false;
+      };
+
+      let generatedText = '';
+      try {
+        const generatePromise = Promise.resolve(tavernHelper.generate({
+          user_input: promptText,
+          should_stream: false,
+          // 不静默：与 index2 一致，让酒馆底部显示生成/停止标志。
+          should_silence: false,
+          generation_id: reqId
+        }));
+        const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve(''), 120000));
+        const raced = await Promise.race([endedPromise, generatePromise, timeoutPromise]);
+        generatedText = extractReplyTextFromGenerated(raced);
+        if (!generatedText) {
+          // race 先返回的是空：再等 generate 自身的返回值兜底。
+          try { generatedText = extractReplyTextFromGenerated(await generatePromise); } catch (e) {}
+        }
+        if (!generatedText && listening) {
+          // generate 返回也空：最后再给事件一点时间。
+          const lateText = await Promise.race([
+            endedPromise,
+            new Promise((resolve) => setTimeout(() => resolve(''), 1500))
+          ]);
+          generatedText = extractReplyTextFromGenerated(lateText);
+        }
+      } catch (error) {
+        removeEndedListener();
+        postCommittedReply(reqId, '', { isFinal: true });
+        throw error;
+      }
+      removeEndedListener();
+      if (!generatedText) {
+        postCommittedReply(reqId, '', { isFinal: true });
+        return;
+      }
+      await createSilentChatMessage('user', promptText, reqId);
+      await createSilentChatMessage('assistant', generatedText, reqId);
+      await persistChatSilently();
+      postCommittedReply(reqId, generatedText, {
+        isFinal: true,
+        rawText: generatedText,
+        renderedText: ''
+      });
     }
 
     async function runTransactionalPrompt(prompt, requestId) {
@@ -639,12 +922,26 @@
       requestPromptCache.set(reqId, promptText);
       pendingRequestId = reqId;
       clearReplyCandidateState();
+
+      const tavernHelper = getTavernHelper();
+      if (tavernHelper) {
+        await runTransactionalViaTavernHelper(tavernHelper, promptText, reqId);
+        return;
+      }
+
+      const txnStartedAt = Date.now();
       const userIndex = await createSilentChatMessage('user', promptText, reqId);
       await persistChatSilently();
+      const assistantStartIndex = Array.isArray(context.chat) ? context.chat.length : 0;
       let generatedText = '';
+      let existingAssistantHit = null;
       try {
         const generated = await context.generate?.('quiet');
-        generatedText = String(generated || '').trim();
+        generatedText = extractReplyTextFromGenerated(generated);
+        if (!generatedText) {
+          existingAssistantHit = await waitForLatestAssistantReply(reqId, assistantStartIndex, txnStartedAt);
+          generatedText = existingAssistantHit?.text || '';
+        }
       } catch (error) {
         rollbackSilentUserMessage(userIndex, reqId);
         await persistChatSilently();
@@ -657,9 +954,18 @@
         postCommittedReply(reqId, '', { isFinal: true });
         return;
       }
-      await createSilentChatMessage('assistant', generatedText, reqId);
+      const assistantResolvedText = generatedText
+        || existingAssistantHit?.rawText
+        || existingAssistantHit?.renderedText
+        || '';
+      removeGeneratedAssistantMessagesAfter(assistantStartIndex, reqId);
+      await createSilentChatMessage('assistant', assistantResolvedText, reqId);
       await persistChatSilently();
-      postCommittedReply(reqId, generatedText, { isFinal: true });
+      postCommittedReply(reqId, assistantResolvedText, {
+        isFinal: true,
+        rawText: existingAssistantHit?.rawText || assistantResolvedText,
+        renderedText: existingAssistantHit?.renderedText || ''
+      });
     }
 
     function postCharacterToFrame() {
@@ -860,26 +1166,6 @@
       if (pendingStreamFinalizeTimer) window.clearTimeout(pendingStreamFinalizeTimer);
       pendingStreamFinalizeTimer = 0;
       pendingStreamMessageId = -1;
-    }
-
-    let chatDomObserver = null;
-    let chatDomUpdateTimer = 0;
-    function bindChatDomObserver() {
-      if (chatDomObserver) return;
-      let mainDoc = document;
-      try {
-        mainDoc = window.parent?.document || document;
-      } catch (e) {}
-      const target = mainDoc.body;
-      if (!target) return;
-      chatDomObserver = new MutationObserver(() => {
-        if (chatDomUpdateTimer) return;
-        chatDomUpdateTimer = window.setTimeout(() => {
-          chatDomUpdateTimer = 0;
-          updateInPageHatsuClass();
-        }, 150);
-      });
-      chatDomObserver.observe(target, { childList: true, subtree: true });
     }
 
     function isHatsuFrontendPromptMessage(message) {
