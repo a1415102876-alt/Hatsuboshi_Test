@@ -72,7 +72,6 @@
 
     overlay.innerHTML = `
       <div id="hatsu-floating-controls">
-        <button id="hatsu-minimize-btn" type="button">收起</button>
         <button id="hatsu-real-fullscreen-btn" type="button">浏览器全屏</button>
         <button id="hatsu-toggle-floors-btn" type="button" style="display: none;">取消隐藏下方楼层</button>
       </div>
@@ -83,21 +82,6 @@
     `;
 
     document.body.appendChild(overlay);
-    const launcherBtn = document.createElement('button');
-    launcherBtn.id = 'hatsu-launcher-btn';
-    launcherBtn.type = 'button';
-    launcherBtn.setAttribute('aria-label', '打开初星前端');
-    launcherBtn.textContent = '初';
-    document.body.appendChild(launcherBtn);
-
-    function setHatsuOverlayVisible(visible) {
-      const shouldShow = Boolean(visible);
-      overlay.classList.toggle('hatsu-overlay-hidden', !shouldShow);
-      launcherBtn.hidden = shouldShow;
-    }
-
-    // 默认仅显示悬浮球，点击后再展开前端。
-    setHatsuOverlayVisible(false);
 
     function ensureHatsuOverlayMounted() {
       if (!document.body) return;
@@ -146,41 +130,6 @@
         height: var(--hatsu-viewport-height, 100dvh) !important;
         max-height: var(--hatsu-viewport-height, 100dvh) !important;
         overflow: hidden !important;
-      }
-
-      #hatsu-fullscreen-overlay.hatsu-overlay-hidden {
-        display: none !important;
-      }
-
-      #hatsu-launcher-btn {
-        position: fixed !important;
-        right: max(12px, env(safe-area-inset-right)) !important;
-        bottom: max(14px, env(safe-area-inset-bottom)) !important;
-        z-index: 2147483647 !important;
-        width: 46px !important;
-        height: 46px !important;
-        border-radius: 999px !important;
-        border: 1px solid rgba(255, 255, 255, 0.2) !important;
-        background: rgba(20, 20, 26, 0.86) !important;
-        color: #fff !important;
-        font-size: 18px !important;
-        font-weight: 800 !important;
-        line-height: 1 !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        cursor: pointer !important;
-        box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35) !important;
-        backdrop-filter: blur(8px) !important;
-        -webkit-backdrop-filter: blur(8px) !important;
-      }
-
-      #hatsu-launcher-btn:hover {
-        background: rgba(255, 255, 255, 0.22) !important;
-      }
-
-      #hatsu-launcher-btn[hidden] {
-        display: none !important;
       }
 
       #hatsu-floating-controls {
@@ -313,13 +262,6 @@
     // 绑定隐藏/恢复楼层按钮点击事件
     document.getElementById('hatsu-toggle-floors-btn')?.addEventListener('click', () => {
       window.hatsuFloorsHidden = !window.hatsuFloorsHidden;
-      updateInPageHatsuClass();
-    });
-    document.getElementById('hatsu-minimize-btn')?.addEventListener('click', () => {
-      setHatsuOverlayVisible(false);
-    });
-    launcherBtn.addEventListener('click', () => {
-      setHatsuOverlayVisible(true);
       updateInPageHatsuClass();
     });
 
