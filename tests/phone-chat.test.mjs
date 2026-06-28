@@ -60,6 +60,9 @@ test("phone chat overlay exposes LINE-style structure", () => {
   assert.match(html, /id="phoneChatList"/);
   assert.match(html, /id="phoneChatMessages"/);
   assert.match(html, /id="phoneChatForm"/);
+  assert.match(html, /id="phoneChatMenuBtn"/);
+  assert.match(source, /phoneChatMenuBtn/);
+  assert.match(source, /openVnDebugView/);
   assert.match(html, /class="line-tabbar"/);
   assert.match(html, /class="mini-phone-bezel"/);
 });

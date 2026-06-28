@@ -142,22 +142,88 @@ test("VN debug button opens an in-event bridge state overlay", () => {
   assert.match(html, /id="vnBtnDebug"/);
   assert.match(html, /id="vnDebugOverlay"/);
   assert.match(html, /id="vnDebugContent"/);
+  const eventOverlayEnd = html.indexOf("</section>", html.indexOf('id="eventOverlay"'));
   const debugOverlayStart = html.indexOf('id="vnDebugOverlay"');
-  const logOverlayStart = html.indexOf('id="vnLogOverlay"', debugOverlayStart);
-  const debugOverlayHtml = html.slice(debugOverlayStart, logOverlayStart);
+  assert.ok(debugOverlayStart > eventOverlayEnd, "vnDebugOverlay should be a top-level overlay outside eventOverlay");
+  const debugOverlayEnd = html.indexOf("</section>", debugOverlayStart);
+  const debugOverlayHtml = html.slice(debugOverlayStart, debugOverlayEnd);
   assert.match(debugOverlayHtml, /class="vn-debug-head"/);
   assert.doesNotMatch(debugOverlayHtml, /class="vn-log-head"/);
   assert.match(css, /\.vn-debug-overlay/);
+  assert.match(css, /position:\s*fixed/);
   assert.match(css, /\.vn-debug-head/);
   assert.equal((css.match(/^\.vn-debug-overlay \{/gm) || []).length, 1);
   assert.match(source, /const aiBridgeDebug = \{/);
   assert.match(source, /function openVnDebugView\(/);
   assert.match(source, /function buildVnDebugHtml\(/);
+  assert.match(source, /function classifyPromptKind\(/);
+  assert.match(source, /function buildDebugDiagnoses\(/);
+  assert.match(source, /function recordDebugPromptDispatch\(/);
+  assert.match(source, /function recordDebugOpeningDispatch\(/);
   assert.match(source, /function recordAiReplyDebug\(/);
   assert.match(source, /function recordAiAckDebug\(/);
-  assert.match(readFunction("requestHostPromptSend"), /aiBridgeDebug\.lastPromptRequest/);
+  assert.match(readFunction("requestHostPromptSend"), /recordDebugPromptDispatch\(/);
   assert.match(applyBody, /recordAiReplyDebug\(/);
   assert.match(readFunction("sendAiReplyAck"), /recordAiAckDebug\(/);
+  assert.match(html, /桥接诊断/);
+  assert.match(css, /\.vn-debug-alert-error/);
+});
+
+test("debug prompt classifier and diagnosis detect known bridge mismatches", () => {
+  const classifyPromptKind = readFunction("classifyPromptKind");
+  const buildDebugDiagnoses = readFunction("buildDebugDiagnoses");
+  const context = {
+    state: {
+      idol: "藤田琴音",
+      day: 1,
+      round: 1,
+      affinity: { openingComplete: false },
+      eventMode: "choice_resolution",
+      choiceStep: 2,
+      pendingActionContext: { action: "outing" },
+      phoneChat: { isAwaitingReply: false, retryAvailable: false, activeView: "home", activeThreadId: "" },
+      activeStoryNode: null,
+      selectedChoiceText: "去甜品店",
+      lastPrompt: "[初星育成系统：互动分支设计]",
+      pendingAiRequestId: ""
+    },
+    aiBridgeDebug: {
+      lastPromptRequest: { promptKind: "choice_phase1", requestId: "req-1" },
+      lastReply: { accepted: true, optionCount: 0, requestId: "req-1" },
+      openingDispatches: [
+        { source: "ST角色卡自动绑定", at: Date.now() },
+        { source: "签署合约", at: Date.now() }
+      ],
+      promptHistory: [],
+      lastMessage: ""
+    },
+    pendingAiRequestId: "req-2",
+    state_pendingAiRequestId: "",
+    hostStateReady: false,
+    isSillyTavernHost() { return true; },
+    expectedPromptKindForState() { return "choice_phase2"; },
+    classifyPromptKind
+  };
+
+  vm.runInNewContext(
+    `function expectedPromptKindForState() { return "choice_phase2"; }
+function isSillyTavernHost() { return true; }
+${classifyPromptKind}
+${buildDebugDiagnoses}
+this.classifyPromptKind = classifyPromptKind; this.buildDebugDiagnoses = buildDebugDiagnoses;`,
+    context
+  );
+
+  assert.equal(context.classifyPromptKind("[初星育成系统：好感度0担当开场]\n"), "opening");
+  assert.equal(context.classifyPromptKind("[初星育成系统：互动分支设计]\n"), "choice_phase1");
+  assert.equal(context.classifyPromptKind("[初星育成系统：互动分支结算与收尾]\n"), "choice_phase2");
+  assert.equal(context.classifyPromptKind("[初星育成系统：小手机私聊]\n"), "phone_chat");
+
+  const issues = context.buildDebugDiagnoses();
+  const joined = issues.map((item) => item.message).join("\n");
+  assert.match(joined, /担当开场/);
+  assert.match(joined, /openingComplete 仍为 false/);
+  assert.match(joined, /提示词类型与当前状态不一致/);
 });
 test("choice UI is gated by explicit event mode and action whitelist", () => {
   const context = {

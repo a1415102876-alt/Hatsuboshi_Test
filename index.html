@@ -317,18 +317,6 @@
           </div>
         </div>
       </div>
-      <div id="vnDebugOverlay" class="vn-debug-overlay" hidden>
-        <section class="vn-debug-panel" role="dialog" aria-modal="true" aria-labelledby="vnDebugTitle">
-          <header class="vn-debug-head">
-            <div>
-              <p class="vn-debug-kicker">Bridge Debug</p>
-              <h2 id="vnDebugTitle">前端调试状态</h2>
-            </div>
-            <button id="vnDebugCloseBtn" class="vn-debug-close" type="button" aria-label="关闭调试状态">×</button>
-          </header>
-          <div id="vnDebugContent" class="vn-debug-content"></div>
-        </section>
-      </div>
       <div id="vnLogOverlay" class="vn-log-overlay" hidden>
         <section class="vn-log-panel" role="dialog" aria-modal="true" aria-labelledby="vnLogTitle">
           <header class="vn-log-head">
@@ -711,7 +699,7 @@
                 </div>
                 <div class="line-topbar-actions">
                   <button type="button" class="line-icon-btn" aria-label="搜索"><svg aria-hidden="true"><use href="#icon-search"></use></svg></button>
-                  <button type="button" class="line-icon-btn" aria-label="菜单"><svg aria-hidden="true"><use href="#icon-menu"></use></svg></button>
+                  <button id="phoneChatMenuBtn" type="button" class="line-icon-btn" aria-label="桥接诊断"><svg aria-hidden="true"><use href="#icon-menu"></use></svg></button>
                 </div>
               </header>
               <div id="phoneChatMessages" class="line-message-scroll"></div>
@@ -838,6 +826,19 @@
         <button id="liveSkipBtn" class="live-hud-btn skip-btn" type="button">跳过演出</button>
       </div>
     </div>
+  </section>
+
+  <section id="vnDebugOverlay" class="vn-debug-overlay" hidden aria-label="桥接诊断">
+    <section class="vn-debug-panel" role="dialog" aria-modal="true" aria-labelledby="vnDebugTitle">
+      <header class="vn-debug-head">
+        <div>
+          <p class="vn-debug-kicker">Bridge Diagnostics</p>
+          <h2 id="vnDebugTitle">桥接诊断</h2>
+        </div>
+        <button id="vnDebugCloseBtn" class="vn-debug-close" type="button" aria-label="关闭桥接诊断">×</button>
+      </header>
+      <div id="vnDebugContent" class="vn-debug-content"></div>
+    </section>
   </section>
 
   <div id="appModal" class="modal-backdrop" hidden>

@@ -1481,7 +1481,9 @@
     lastReply: null,
     lastAck: null,
     lastOverlay: null,
-    lastMessage: "尚未记录 AI 桥接事件"
+    lastMessage: "尚未记录 AI 桥接事件",
+    promptHistory: [],
+    openingDispatches: []
   };
   let state = loadState();
 
@@ -2019,6 +2021,7 @@
       return;
     }
     if (!state.affinity.openingComplete) {
+      recordDebugOpeningDispatch("行动拦截：openingComplete 为 false");
       triggerAffinityStory(0);
       return;
     }
@@ -3397,7 +3400,8 @@ ${buildProducerPromptSection()}
 ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结为主体的剧情。`)}`;
   }
 
-  function startOpeningStory() {
+  function startOpeningStory(source = "startOpeningStory") {
+    recordDebugOpeningDispatch(source);
     markAffinityUnlocked(0);
     const prompt = buildOpeningPrompt();
     const requestId = createRequestId();
@@ -3422,6 +3426,9 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     if (!state.affinity.unlocked.includes(threshold)) {
       showToast("剧情尚未解锁", affinityNodes[threshold]?.timing || "继续推进育成即可解锁。", "warn");
       return;
+    }
+    if (threshold === 0) {
+      recordDebugOpeningDispatch("triggerAffinityStory(0)");
     }
     const node = affinityNodes[threshold];
     const prompt = threshold === 0 ? buildOpeningPrompt() : buildAffinityPrompt(threshold);
@@ -5291,15 +5298,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     }
     pendingAiRequestId = requestId;
     aiReplyRetryCount = 0;
-    aiBridgeDebug.lastPromptRequest = {
-      at: Date.now(),
-      requestId,
-      promptLength: prompt.length,
-      eventMode: state.eventMode,
-      choiceStep: state.choiceStep,
-      action: state.pendingActionContext?.action || "",
-      activeStoryNode: state.activeStoryNode?.type || ""
-    };
+    recordDebugPromptDispatch(prompt, requestId);
     aiBridgeDebug.lastMessage = "已向 SillyTavern 发送提示词";
     refreshVnDebugView();
     saveState();
@@ -5337,7 +5336,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     const characterIdol = canonicalIdolName(character.name);
     if (!state.idol && idols[characterIdol]) {
       applyIdolPreset(characterIdol, true);
-      startOpeningStory();
+      startOpeningStory("ST角色卡自动绑定");
       return;
     }
     if (resolution.source === "empty") {
@@ -7791,6 +7790,280 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     refreshVnDebugView();
   }
 
+  function classifyPromptKind(promptText = "") {
+    const text = String(promptText || "");
+    if (!text.trim()) return "empty";
+    if (text.includes("小手机私聊")) return "phone_chat";
+    if (text.includes("小手机添加好友问候")) return "phone_greeting";
+    if (text.includes("NSFW 亲密")) {
+      if (text.includes("收尾")) return "nsfw_intimacy_close";
+      if (text.includes("继续") || text.includes("承接上文")) return "nsfw_intimacy_continue";
+      return "nsfw_intimacy_open";
+    }
+    if (text.includes("互动分支结算与收尾")) return "choice_phase2";
+    if (text.includes("互动分支设计")) return "choice_phase1";
+    if (text.includes("羁绊") && text.includes("最终收束")) return "bond_final";
+    if (text.includes("羁绊") && text.includes("第二轮选择")) return "bond_phase2";
+    if (text.includes("羁绊") && text.includes("第一轮选择")) return "bond_phase1";
+    if (text.includes("好感度0担当开场")) return "opening";
+    if (text.includes("First Live")) return "first_live";
+    if (text.includes("行动已经由前端结算")) return "produce_action";
+    if (text.includes("自由闲聊")) return "free_chat";
+    if (text.includes("偶像互动")) return "idol_interaction";
+    if (text.includes("初星育成系统")) return "produce_other";
+    return "unknown";
+  }
+
+  function extractPromptHeader(promptText = "") {
+    const text = String(promptText || "");
+    const bracketMatch = text.match(/^\[(初星育成系统[^\]]+)\]/);
+    if (bracketMatch) return bracketMatch[1];
+    return summarizeDebugText(text, 56);
+  }
+
+  function expectedPromptKindForState() {
+    if (state.phoneChat?.isAwaitingReply) {
+      return state.activeStoryNode?.mode === "greeting" ? "phone_greeting" : "phone_chat";
+    }
+    if (state.activeStoryNode?.type === "phonechat") {
+      return state.activeStoryNode?.mode === "greeting" ? "phone_greeting" : "phone_chat";
+    }
+    if (state.activeStoryNode?.type === "affinity" && Number(state.activeStoryNode?.threshold) === 0) {
+      return "opening";
+    }
+    if (state.eventMode === "choice_resolution") {
+      if (state.pendingActionContext?.action === "bond") {
+        return state.bondChoiceRound === 2 ? "bond_final" : "bond_phase2";
+      }
+      if (isNsfwIntimacyActive()) return "nsfw_intimacy_close";
+      return "choice_phase2";
+    }
+    if (isChoicePromptMode()) {
+      if (state.pendingActionContext?.action === "bond") {
+        return state.bondChoiceRound === 2 ? "bond_phase2" : "bond_phase1";
+      }
+      if (isNsfwIntimacyActive()) return "nsfw_intimacy_continue";
+      return "choice_phase1";
+    }
+    if (state.pendingActionContext?.action) {
+      const action = state.pendingActionContext.action;
+      if (["outing", "companion", "intimacy"].includes(action)) return "choice_phase1";
+      if (action === "map_location") return "produce_other";
+      return "produce_action";
+    }
+    if (state.activeStoryNode?.type === "affinity") return "produce_other";
+    return "";
+  }
+
+  function recordDebugOpeningDispatch(source = "unknown") {
+    aiBridgeDebug.openingDispatches.unshift({
+      at: Date.now(),
+      source: String(source || "unknown"),
+      openingComplete: Boolean(state.affinity.openingComplete),
+      idol: state.idol || "",
+      requestId: pendingAiRequestId || state.pendingAiRequestId || ""
+    });
+    if (aiBridgeDebug.openingDispatches.length > 6) {
+      aiBridgeDebug.openingDispatches.length = 6;
+    }
+    refreshVnDebugView();
+  }
+
+  function recordDebugPromptDispatch(promptText, requestId) {
+    const entry = {
+      at: Date.now(),
+      requestId: String(requestId || ""),
+      promptKind: classifyPromptKind(promptText),
+      promptHeader: extractPromptHeader(promptText),
+      promptLength: String(promptText || "").length,
+      eventMode: state.eventMode,
+      choiceStep: state.choiceStep,
+      action: state.pendingActionContext?.action || "",
+      activeNode: state.activeStoryNode?.type || "",
+      activeNodeMode: state.activeStoryNode?.mode || "",
+      openingComplete: Boolean(state.affinity.openingComplete),
+      hostSource: hostPromptSendSource,
+      day: state.day,
+      round: state.round,
+      selectedChoice: state.selectedChoiceText || ""
+    };
+    aiBridgeDebug.lastPromptRequest = entry;
+    aiBridgeDebug.promptHistory.unshift(entry);
+    if (aiBridgeDebug.promptHistory.length > 8) {
+      aiBridgeDebug.promptHistory.length = 8;
+    }
+    refreshVnDebugView();
+  }
+
+  function buildDebugDiagnoses() {
+    const issues = [];
+    const prompt = aiBridgeDebug.lastPromptRequest || {};
+    const reply = aiBridgeDebug.lastReply || {};
+    const sentKind = prompt.promptKind || classifyPromptKind(state.lastPrompt);
+    const expectedKind = expectedPromptKindForState();
+
+    if (aiBridgeDebug.openingDispatches.length >= 2) {
+      const sources = aiBridgeDebug.openingDispatches.map((item) => item.source).join("；");
+      issues.push({
+        level: "error",
+        message: `本页已触发 ${aiBridgeDebug.openingDispatches.length} 次担当开场（${sources}）。若包含“ST角色卡自动绑定”和“签署合约”，就会出现开场播两次。`
+      });
+    }
+
+    if (state.idol && !state.affinity.openingComplete) {
+      issues.push({
+        level: "warn",
+        message: "openingComplete 仍为 false。此时任何训练/上课/休息都会被拦截并再次触发 threshold 0 开场剧情。"
+      });
+    }
+
+    if (isSillyTavernHost() && !hostStateReady) {
+      issues.push({
+        level: "warn",
+        message: "已嵌入 SillyTavern，但聊天存档 scope 尚未就绪。切换聊天后状态可能回滚，导致 openingComplete 或轮次异常。"
+      });
+    }
+
+    if (pendingAiRequestId && state.pendingAiRequestId && pendingAiRequestId !== state.pendingAiRequestId) {
+      issues.push({
+        level: "warn",
+        message: `pending 请求 ID 不一致（内存 ${pendingAiRequestId} / 存档 ${state.pendingAiRequestId}）。可能导致回复路由失败。`
+      });
+    }
+
+    if (reply.accepted === false) {
+      issues.push({
+        level: "error",
+        message: `最近一次 AI 回复 requestId 不匹配（收到 ${reply.requestId || "--"}，当前 pending ${pendingAiRequestId || "--"}），回复已被丢弃。`
+      });
+    }
+
+    if (expectedKind && sentKind && expectedKind !== sentKind) {
+      issues.push({
+        level: "error",
+        message: `提示词类型与当前状态不一致：期望 ${expectedKind}，最近发送 ${sentKind}。常见于选项选完后 Phase2 未发出，或 ST 仍按上一轮上下文生成。`
+      });
+    }
+
+    if (state.eventMode === "choice_resolution" && state.choiceStep === 2 && sentKind === "choice_phase1") {
+      issues.push({
+        level: "error",
+        message: "当前处于选项结算阶段 (choiceStep=2)，但最近发送仍是 Phase1“互动分支设计”提示词。这会导致 AI 继续出选项而不是写反应。"
+      });
+    }
+
+    if (state.eventMode === "choice_prompt" && pendingAiRequestId && reply.optionCount === 4 && reply.requestId === prompt.requestId) {
+      issues.push({
+        level: "info",
+        message: "Phase1 选项已收到，等待玩家选择。选完后应发送 choice_phase2。"
+      });
+    }
+
+    if (state.phoneChat?.isAwaitingReply && !["phone_chat", "phone_greeting"].includes(sentKind)) {
+      issues.push({
+        level: "error",
+        message: `私聊正在等待回复，但最近发送的提示词类型是 ${sentKind || "unknown"}，不是 phone_chat / phone_greeting。`
+      });
+    }
+
+    if (state.phoneChat?.retryAvailable && state.lastPrompt) {
+      issues.push({
+        level: "warn",
+        message: "私聊处于可重试状态。重试会复用 state.lastPrompt，不会按最新聊天记录重建；若对话已前进，可能造成重复回复。"
+      });
+    }
+
+    if (reply.optionCount === 4 && state.eventMode === "choice_resolution") {
+      issues.push({
+        level: "warn",
+        message: "当前应进入选项结算，但最近回复仍像 Phase1（含 4 个 option）。可能是 Phase1 回复迟到，或模型没有按 Phase2 提示词写作。"
+      });
+    }
+
+    if (!issues.length) {
+      issues.push({
+        level: "ok",
+        message: "未发现已知异常模式。若仍有问题，请对照下方“提示词历史”和 SillyTavern 聊天楼层核对 requestId。"
+      });
+    }
+
+    return issues;
+  }
+
+  function buildDebugDiagnosisHtml() {
+    const issues = buildDebugDiagnoses();
+    return `
+      <section class="vn-debug-card vn-debug-card-full vn-debug-diagnosis">
+        <h3>自动诊断</h3>
+        <ul class="vn-debug-alert-list">
+          ${issues.map((issue) => `
+            <li class="vn-debug-alert vn-debug-alert-${issue.level}">
+              ${escapeDebugHtml(issue.message)}
+            </li>
+          `).join("")}
+        </ul>
+      </section>
+    `;
+  }
+
+  function buildDebugHistoryHtml() {
+    const history = aiBridgeDebug.promptHistory || [];
+    if (!history.length) {
+      return `<section class="vn-debug-card vn-debug-card-full"><h3>提示词历史</h3><p class="vn-debug-empty">尚无发送记录。</p></section>`;
+    }
+    return `
+      <section class="vn-debug-card vn-debug-card-full">
+        <h3>提示词历史（最近 ${history.length} 次）</h3>
+        <div class="vn-debug-history">
+          ${history.map((entry, index) => `
+            <article class="vn-debug-history-item">
+              <div class="vn-debug-history-head">
+                <strong>${index === 0 ? "最近" : `#${index + 1}`} · ${escapeDebugHtml(entry.promptKind || "unknown")}</strong>
+                <span>${escapeDebugHtml(formatDebugTime(entry.at))}</span>
+              </div>
+              <dl>${buildDebugRows([
+                ["header", entry.promptHeader || "--"],
+                ["requestId", entry.requestId || "--"],
+                ["mode/step", `${entry.eventMode || "none"} / ${entry.choiceStep ?? 0}`],
+                ["day/round", `第 ${entry.day ?? "?"} 天 · 第 ${entry.round ?? "?"} 轮`],
+                ["openingComplete", entry.openingComplete ? "true" : "false"],
+                ["来源", entry.hostSource || "general"],
+                ["选中项", entry.selectedChoice || "无"]
+              ])}</dl>
+            </article>
+          `).join("")}
+        </div>
+      </section>
+    `;
+  }
+
+  function buildDebugOpeningHtml() {
+    const dispatches = aiBridgeDebug.openingDispatches || [];
+    if (!dispatches.length) {
+      return "";
+    }
+    return `
+      <section class="vn-debug-card vn-debug-card-full">
+        <h3>担当开场触发记录</h3>
+        <div class="vn-debug-history">
+          ${dispatches.map((entry, index) => `
+            <article class="vn-debug-history-item">
+              <div class="vn-debug-history-head">
+                <strong>${index === 0 ? "最近" : `#${index + 1}`} · ${escapeDebugHtml(entry.source || "unknown")}</strong>
+                <span>${escapeDebugHtml(formatDebugTime(entry.at))}</span>
+              </div>
+              <dl>${buildDebugRows([
+                ["idol", entry.idol || "--"],
+                ["openingComplete", entry.openingComplete ? "true" : "false"],
+                ["requestId", entry.requestId || "--"]
+              ])}</dl>
+            </article>
+          `).join("")}
+        </div>
+      </section>
+    `;
+  }
+
   function buildDebugRows(rows) {
     return rows.map(([key, value]) => `<dt>${escapeDebugHtml(key)}</dt><dd>${escapeDebugHtml(value)}</dd>`).join("");
   }
@@ -7800,25 +8073,63 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     const reply = aiBridgeDebug.lastReply || {};
     const ack = aiBridgeDebug.lastAck || {};
     const overlay = aiBridgeDebug.lastOverlay || {};
+    const sentKind = prompt.promptKind || classifyPromptKind(state.lastPrompt);
+    const expectedKind = expectedPromptKindForState();
+    const canShowGame = Boolean(state.idol) && Boolean(state.affinity.openingComplete);
     const liveStory = String(state.lastEventStory || "");
     const liveLoading = Boolean(pendingAiRequestId)
       || liveStory.includes("等待角色卡")
       || liveStory.includes("等待 AI")
       || liveStory.includes("等待 SillyTavern")
       || liveStory.includes("正在重新生成");
+    const phoneThread = getPhoneThreadDefinition(state.phoneChat?.activeThreadId);
     return `
+      ${buildDebugDiagnosisHtml()}
       <div class="vn-debug-grid">
+        <section class="vn-debug-card">
+          <h3>育成门禁</h3>
+          <dl>${buildDebugRows([
+            ["担当", state.idol || "未选择"],
+            ["openingComplete", state.affinity.openingComplete ? "true" : "false"],
+            ["主界面可见", canShowGame ? "是" : "否"],
+            ["activeNode", state.activeStoryNode?.type || "无"],
+            ["threshold", state.activeStoryNode?.threshold ?? "无"],
+            ["node.ready", state.activeStoryNode?.ready === undefined ? "无" : state.activeStoryNode.ready ? "true" : "false"],
+            ["day / round", `第 ${state.day} 天 · ${roundLabel()}`]
+          ])}</dl>
+        </section>
+        <section class="vn-debug-card">
+          <h3>桥接环境</h3>
+          <dl>${buildDebugRows([
+            ["运行环境", isSillyTavernHost() ? "SillyTavern iframe" : "独立页面"],
+            ["hostStateReady", hostStateReady ? "true" : "false"],
+            ["saveScope", activeHostSaveScope || "无"],
+            ["绑定角色卡", state.boundCharacter?.name || "未绑定"],
+            ["最后消息", aiBridgeDebug.lastMessage]
+          ])}</dl>
+        </section>
         <section class="vn-debug-card">
           <h3>当前状态</h3>
           <dl>${buildDebugRows([
-            ["最后消息", aiBridgeDebug.lastMessage],
             ["pending", pendingAiRequestId || "无"],
             ["state.pending", state.pendingAiRequestId || "无"],
             ["eventMode", state.eventMode || "none"],
             ["choiceStep", state.choiceStep ?? ""],
             ["action", state.pendingActionContext?.action || "无"],
-            ["activeNode", state.activeStoryNode?.type || "无"],
+            ["期望 prompt", expectedKind || "无"],
+            ["最近 prompt", sentKind || "无"],
             ["VN loading", liveLoading ? "是" : "否"]
+          ])}</dl>
+        </section>
+        <section class="vn-debug-card">
+          <h3>私聊状态</h3>
+          <dl>${buildDebugRows([
+            ["view", state.phoneChat?.activeView || "home"],
+            ["thread", phoneThread?.name || state.phoneChat?.activeThreadId || "无"],
+            ["awaiting", state.phoneChat?.isAwaitingReply ? "是" : "否"],
+            ["retryAvailable", state.phoneChat?.retryAvailable ? "是" : "否"],
+            ["pendingRequestId", state.phoneChat?.pendingRequestId || "无"],
+            ["thread消息数", String(getPhoneThreadMessages(state.phoneChat?.activeThreadId || "idol").length)]
           ])}</dl>
         </section>
         <section class="vn-debug-card">
@@ -7826,8 +8137,11 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
           <dl>${buildDebugRows([
             ["时间", formatDebugTime(prompt.at)],
             ["requestId", prompt.requestId || "--"],
+            ["类型", sentKind || "--"],
+            ["header", prompt.promptHeader || "--"],
             ["prompt长度", prompt.promptLength ?? "--"],
-            ["发送时模式", prompt.eventMode || "--"],
+            ["发送时 mode/step", `${prompt.eventMode || "--"} / ${prompt.choiceStep ?? "--"}`],
+            ["发送时 opening", prompt.openingComplete === undefined ? "--" : prompt.openingComplete ? "true" : "false"],
             ["发送时行动", prompt.action || "--"]
           ])}</dl>
         </section>
@@ -7866,6 +8180,8 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
           <pre class="vn-debug-pre">${escapeDebugHtml(reply.sample || "暂无已选回复样本")}</pre>
         </section>
       </div>
+      ${buildDebugOpeningHtml()}
+      ${buildDebugHistoryHtml()}
     `;
   }
 
@@ -9512,7 +9828,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     triggerWipeTransition(() => {
       // Start produce game
       applyIdolPreset(selectedIdol, true);
-      startOpeningStory();
+      startOpeningStory("签署合约");
       saveState();
 
       // Toggle panels back to default selection layout
@@ -9603,6 +9919,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   });
   document.getElementById("phoneChatBackBtn").addEventListener("click", showPhoneListView);
   document.getElementById("phoneLineTabHomeBtn").addEventListener("click", showPhoneHomeView);
+  document.getElementById("phoneChatMenuBtn")?.addEventListener("click", openVnDebugView);
   document.getElementById("phoneNavBackBtn").addEventListener("click", phoneNavBack);
   document.getElementById("phoneNavHomeBtn").addEventListener("click", showPhoneHomeView);
   document.getElementById("phoneNavCloseBtn").addEventListener("click", closePhoneOverlay);
@@ -9772,6 +10089,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
+      closeVnDebugView();
       closeEventOverlay();
       closeAiPromptOverlay();
       closeFreeChatOverlay();
@@ -9788,7 +10106,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     triggerWipeTransition(() => {
       state = clone(baseState);
       applyIdolPreset(idolName, true);
-      startOpeningStory();
+      startOpeningStory("重置育成");
       showToast("育成已重置", "保留当前担当并重建第 1 天档案。", "warn");
     });
   });
