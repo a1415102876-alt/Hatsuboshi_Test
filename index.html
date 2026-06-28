@@ -30,6 +30,14 @@
     <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
     <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></symbol>
     <symbol id="icon-chevron-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+    <symbol id="icon-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="icon-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></symbol>
+    <symbol id="icon-pause" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></symbol>
+    <symbol id="icon-skip-prev" viewBox="0 0 24 24"><path d="M6 5v14H4V5h2Zm14 0v14L9 12 20 5Z"/></symbol>
+    <symbol id="icon-skip-next" viewBox="0 0 24 24"><path d="M18 5v14h2V5h-2ZM4 5v14l11-7L4 5Z"/></symbol>
+    <symbol id="icon-shuffle" viewBox="0 0 24 24"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="M4 4l5 5"/></symbol>
+    <symbol id="icon-repeat" viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></symbol>
+    <symbol id="icon-dots" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></symbol>
   </svg>
 
   <div id="toastStack" class="toast-stack" aria-live="polite" aria-atomic="false"></div>
@@ -734,7 +742,66 @@
             </div>
           </div>
 
+          <div id="phoneMusicApp" class="music-app" hidden>
+            <div id="phoneMusicLibrary" class="music-library">
+              <header class="music-lib-head">
+                <h1 class="music-lib-title">音乐</h1>
+                <button type="button" class="music-icon-btn" aria-label="搜索"><svg aria-hidden="true"><use href="#icon-search"></use></svg></button>
+              </header>
+              <div class="music-scroll">
+                <div id="phoneMusicQuickGrid" class="music-quick-grid"></div>
+                <div class="music-tabs">
+                  <button type="button" class="music-tab music-tab-active" data-pm-filter="all">全部曲目</button>
+                  <button type="button" class="music-tab" data-pm-filter="liked">已点赞 <span id="phoneMusicLikedCount">0</span></button>
+                </div>
+                <div id="phoneMusicTrackList" class="music-track-list"></div>
+              </div>
+              <div id="phoneMusicMini" class="music-mini" hidden>
+                <div id="phoneMusicMiniProg" class="music-mini-prog"></div>
+                <div id="phoneMusicMiniCover" class="music-cover music-mini-cover"></div>
+                <div class="music-mini-meta">
+                  <div id="phoneMusicMiniTitle" class="music-mini-title">—</div>
+                  <div id="phoneMusicMiniArtist" class="music-mini-artist">—</div>
+                </div>
+                <button id="phoneMusicMiniPlayBtn" type="button" class="music-mini-play" aria-label="播放/暂停"><svg aria-hidden="true"><use href="#icon-play"></use></svg></button>
+              </div>
+            </div>
+
+            <div id="phoneMusicNow" class="music-now">
+              <header class="music-now-top">
+                <button id="phoneMusicNowCloseBtn" type="button" class="music-now-icon" aria-label="收起"><svg aria-hidden="true"><use href="#icon-chevron-down"></use></svg></button>
+                <span class="music-now-label">正在播放</span>
+                <button type="button" class="music-now-icon" aria-label="更多"><svg aria-hidden="true"><use href="#icon-dots"></use></svg></button>
+              </header>
+              <div class="music-now-body">
+                <div id="phoneMusicNowCover" class="music-cover music-now-cover"></div>
+                <div class="music-now-info">
+                  <div class="music-now-info-text">
+                    <div id="phoneMusicNowSong" class="music-now-song">—</div>
+                    <div id="phoneMusicNowSinger" class="music-now-singer">—</div>
+                  </div>
+                  <button id="phoneMusicNowLikeBtn" type="button" class="music-now-like" aria-label="点赞"><svg aria-hidden="true"><use href="#icon-heart"></use></svg></button>
+                </div>
+                <div class="music-now-progress">
+                  <div id="phoneMusicTrack" class="music-now-track">
+                    <div id="phoneMusicFill" class="music-now-fill"></div>
+                    <div id="phoneMusicKnob" class="music-now-knob"></div>
+                  </div>
+                  <div class="music-now-time"><span id="phoneMusicCur">0:00</span><span id="phoneMusicDur">0:00</span></div>
+                </div>
+                <div class="music-now-controls">
+                  <button id="phoneMusicShuffleBtn" type="button" class="music-ctrl music-ctrl-sec" aria-label="随机播放"><svg aria-hidden="true"><use href="#icon-shuffle"></use></svg></button>
+                  <button id="phoneMusicPrevBtn" type="button" class="music-ctrl music-ctrl-step" aria-label="上一首"><svg aria-hidden="true"><use href="#icon-skip-prev"></use></svg></button>
+                  <button id="phoneMusicPlayBtn" type="button" class="music-ctrl music-now-play" aria-label="播放/暂停"><svg aria-hidden="true"><use href="#icon-play"></use></svg></button>
+                  <button id="phoneMusicNextBtn" type="button" class="music-ctrl music-ctrl-step" aria-label="下一首"><svg aria-hidden="true"><use href="#icon-skip-next"></use></svg></button>
+                  <button id="phoneMusicRepeatBtn" type="button" class="music-ctrl music-ctrl-sec" aria-label="循环"><svg aria-hidden="true"><use href="#icon-repeat"></use></svg></button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <button id="phoneHomeIndicator" type="button" class="phone-home-indicator" hidden aria-label="返回主屏幕"></button>
+          <audio id="phoneMusicAudio" preload="metadata"></audio>
         </div>
       </div>
       <button id="phoneCloseBtn" class="mini-phone-exit-btn" type="button">返回</button>

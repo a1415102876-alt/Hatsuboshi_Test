@@ -380,8 +380,101 @@
       theme: "#06c755",
       iconText: "L",
       installed: true
+    },
+    {
+      id: "music",
+      name: "音乐",
+      subtitle: "音乐",
+      theme: "#1db954",
+      iconText: "M",
+      installed: true
     }
   ];
+
+  // 歌单数据：由 generate-playlist.cjs 自动写入，请勿手改。重新生成: node generate-playlist.cjs
+  // === HATSU_MUSIC_TRACKS_START ===
+  const phoneMusicTracks = [
+    { title: "Campus mode!!", artist: "初星学園", file: "./assets/PlayList/初星学園 - Campus mode!!.mp3", cover: "./assets/PlayList/covers/初星学園 - Campus mode!!.jpg" },
+    { title: "初", artist: "初星学園", file: "./assets/PlayList/初星学園 - 初.mp3", cover: "./assets/PlayList/covers/初星学園 - 初.jpg" },
+    { title: "VEIL", artist: "GUCCHO / Dubscribe / 秦谷美鈴", file: "./assets/PlayList/初星学園, GUCCHO, Dubscribe, 秦谷美鈴 - VEIL.mp3", cover: "./assets/PlayList/covers/初星学園, GUCCHO, Dubscribe, 秦谷美鈴 - VEIL.jpg" },
+    { title: "MY STAGE", artist: "MOMONADY / YUKI FUNAKOSHI / 雨夜 燕", file: "./assets/PlayList/初星学園, MOMONADY, YUKI FUNAKOSHI, 雨夜 燕 - MY STAGE.mp3", cover: "./assets/PlayList/covers/初星学園, MOMONADY, YUKI FUNAKOSHI, 雨夜 燕 - MY STAGE.jpg" },
+    { title: "三分半の創世", artist: "Shuntaro / 雨夜 燕", file: "./assets/PlayList/初星学園, Shuntaro, 雨夜 燕 - 三分半の創世.mp3", cover: "./assets/PlayList/covers/初星学園, Shuntaro, 雨夜 燕 - 三分半の創世.jpg" },
+    { title: "ガラクタロード", artist: "佐藤貴文", file: "./assets/PlayList/初星学園, 佐藤貴文 - ガラクタロード.mp3", cover: "./assets/PlayList/covers/初星学園, 佐藤貴文 - ガラクタロード.jpg" },
+    { title: "SUGAR FLAVOR", artist: "有村麻央 / 姫崎莉波", file: "./assets/PlayList/初星学園, 有村麻央, 姫崎莉波 - SUGAR FLAVOR.mp3", cover: "./assets/PlayList/covers/初星学園, 有村麻央, 姫崎莉波 - SUGAR FLAVOR.jpg" },
+    { title: "わかし・さわがし・スカパンク", artist: "AYATOMO / 木村孝明", file: "./assets/PlayList/初星学園,AYATOMO,木村孝明 - わかし・さわがし・スカパンク.mp3", cover: "./assets/PlayList/covers/初星学園,AYATOMO,木村孝明 - わかし・さわがし・スカパンク.jpg" },
+    { title: "Feel Jewel Dream", artist: "DE DE MOUSE / 有村麻央", file: "./assets/PlayList/初星学園,DE DE MOUSE,有村麻央 - Feel Jewel Dream.mp3", cover: "./assets/PlayList/covers/初星学園,DE DE MOUSE,有村麻央 - Feel Jewel Dream.jpg" },
+    { title: "空と約束", artist: "Evan Call / 倉本千奈", file: "./assets/PlayList/初星学園,Evan Call,倉本千奈 - 空と約束.mp3", cover: "./assets/PlayList/covers/初星学園,Evan Call,倉本千奈 - 空と約束.jpg" },
+    { title: "Fighting My Way", artist: "Giga / 花海咲季", file: "./assets/PlayList/初星学園,Giga,花海咲季 - Fighting My Way.mp3", cover: "./assets/PlayList/covers/初星学園,Giga,花海咲季 - Fighting My Way.png" },
+    { title: "Wildest Flower", artist: "Giga / 花海咲季", file: "./assets/PlayList/初星学園,Giga,花海咲季 - Wildest Flower.mp3", cover: "./assets/PlayList/covers/初星学園,Giga,花海咲季 - Wildest Flower.jpg" },
+    { title: "Atmosphere", artist: "Heart's Cry / 葛城リーリヤ", file: "./assets/PlayList/初星学園,Heart's Cry,葛城リーリヤ - Atmosphere.mp3", cover: "./assets/PlayList/covers/初星学園,Heart's Cry,葛城リーリヤ - Atmosphere.jpg" },
+    { title: "世界一可愛い私", artist: "HoneyWorks / 藤田ことね", file: "./assets/PlayList/初星学園,HoneyWorks,藤田ことね - 世界一可愛い私.mp3", cover: "./assets/PlayList/covers/初星学園,HoneyWorks,藤田ことね - 世界一可愛い私.jpg" },
+    { title: "見て", artist: "kamome sano / 有村麻央", file: "./assets/PlayList/初星学園,kamome sano,有村麻央 - 見て.mp3", cover: "./assets/PlayList/covers/初星学園,kamome sano,有村麻央 - 見て.jpg" },
+    { title: "EGO", artist: "Kijibato / 花海咲季", file: "./assets/PlayList/初星学園,Kijibato,花海咲季 - EGO.mp3", cover: "./assets/PlayList/covers/初星学園,Kijibato,花海咲季 - EGO.jpg" },
+    { title: "Try it now", artist: "Kijibato / 花海咲季", file: "./assets/PlayList/初星学園,Kijibato,花海咲季 - Try it now.mp3", cover: "./assets/PlayList/covers/初星学園,Kijibato,花海咲季 - Try it now.jpg" },
+    { title: "Let's GO!! ICHI-NO-NI!!", artist: "midori nao / 倉本千奈", file: "./assets/PlayList/初星学園,midori nao,倉本千奈 - Let's GO!! ICHI-NO-NI!!.mp3", cover: "./assets/PlayList/covers/初星学園,midori nao,倉本千奈 - Let's GO!! ICHI-NO-NI!!.jpg" },
+    { title: "Fluorite", artist: "Moe Shop / 有村麻央", file: "./assets/PlayList/初星学園,Moe Shop,有村麻央 - Fluorite.mp3", cover: "./assets/PlayList/covers/初星学園,Moe Shop,有村麻央 - Fluorite.jpg" },
+    { title: "Cosmetic", artist: "MOMONADY / Yuki Funakoshi", file: "./assets/PlayList/初星学園,MOMONADY,Yuki Funakoshi - Cosmetic.mp3", cover: "./assets/PlayList/covers/初星学園,MOMONADY,Yuki Funakoshi - Cosmetic.jpg" },
+    { title: "ヨルニテ", artist: "Shogo Nomura / 秦谷美鈴", file: "./assets/PlayList/初星学園,Shogo Nomura,秦谷美鈴 - ヨルニテ.mp3", cover: "./assets/PlayList/covers/初星学園,Shogo Nomura,秦谷美鈴 - ヨルニテ.jpg" },
+    { title: "Sweet Magic", artist: "SHOW / 有村麻央", file: "./assets/PlayList/初星学園,SHOW,有村麻央 - Sweet Magic.mp3", cover: "./assets/PlayList/covers/初星学園,SHOW,有村麻央 - Sweet Magic.jpg" },
+    { title: "Top Secret", artist: "SHOW / 有村麻央", file: "./assets/PlayList/初星学園,SHOW,有村麻央 - Top Secret.mp3", cover: "./assets/PlayList/covers/初星学園,SHOW,有村麻央 - Top Secret.jpg" },
+    { title: "Superlative", artist: "siqlo / 秦谷美鈴", file: "./assets/PlayList/初星学園,siqlo,秦谷美鈴 - Superlative.mp3", cover: "./assets/PlayList/covers/初星学園,siqlo,秦谷美鈴 - Superlative.jpg" },
+    { title: "SUPREMACY", artist: "アオワイファイ / 花海咲季", file: "./assets/PlayList/初星学園,アオワイファイ,花海咲季 - SUPREMACY.mp3", cover: "./assets/PlayList/covers/初星学園,アオワイファイ,花海咲季 - SUPREMACY.jpg" },
+    { title: "みちなるひろがる", artist: "いよわ / 倉本千奈", file: "./assets/PlayList/初星学園,いよわ,倉本千奈 - みちなるひろがる.mp3", cover: "./assets/PlayList/covers/初星学園,いよわ,倉本千奈 - みちなるひろがる.jpg" },
+    { title: "Star-mine", artist: "じん / Begrazia", file: "./assets/PlayList/初星学園,じん,Begrazia - Star-mine.mp3", cover: "./assets/PlayList/covers/初星学園,じん,Begrazia - Star-mine.jpg" },
+    { title: "アイヴイ", artist: "ツミキ / 月村手毬", file: "./assets/PlayList/初星学園,ツミキ,月村手毬 - アイヴイ.mp3", cover: "./assets/PlayList/covers/初星学園,ツミキ,月村手毬 - アイヴイ.jpg" },
+    { title: "ハッピーミルフィーユ", artist: "ナナホシ管弦楽団 / 篠澤 広", file: "./assets/PlayList/初星学園,ナナホシ管弦楽団,篠澤 広 - ハッピーミルフィーユ.mp3", cover: "./assets/PlayList/covers/初星学園,ナナホシ管弦楽団,篠澤 広 - ハッピーミルフィーユ.jpg" },
+    { title: "自己肯定感爆上げ↑↑しゅきしゅきソング", artist: "ヒゲドライバー / 藤田ことね", file: "./assets/PlayList/初星学園,ヒゲドライバー,藤田ことね - 自己肯定感爆上げ↑↑しゅきしゅきソング.mp3", cover: "./assets/PlayList/covers/初星学園,ヒゲドライバー,藤田ことね - 自己肯定感爆上げ↑↑しゅきしゅきソング.jpg" },
+    { title: "メクルメ", artist: "フロクロ / 篠澤 広", file: "./assets/PlayList/初星学園,フロクロ,篠澤 広 - メクルメ.mp3", cover: "./assets/PlayList/covers/初星学園,フロクロ,篠澤 広 - メクルメ.jpg" },
+    { title: "たいせつなもの", artist: "フワリ / 秦谷美鈴", file: "./assets/PlayList/初星学園,フワリ,秦谷美鈴 - たいせつなもの.mp3", cover: "./assets/PlayList/covers/初星学園,フワリ,秦谷美鈴 - たいせつなもの.jpg" },
+    { title: "ツキノカメ", artist: "ミフメイ / 秦谷美鈴", file: "./assets/PlayList/初星学園,ミフメイ,秦谷美鈴 - ツキノカメ.mp3", cover: "./assets/PlayList/covers/初星学園,ミフメイ,秦谷美鈴 - ツキノカメ.jpg" },
+    { title: "赤裸々", artist: "岡部啓一 / 十王星南", file: "./assets/PlayList/初星学園,岡部啓一,十王星南 - 赤裸々.mp3", cover: "./assets/PlayList/covers/初星学園,岡部啓一,十王星南 - 赤裸々.jpg" },
+    { title: "Boom Boom Pow", artist: "花海咲季", file: "./assets/PlayList/初星学園,花海咲季 - Boom Boom Pow.mp3", cover: "./assets/PlayList/covers/初星学園,花海咲季 - Boom Boom Pow.jpg" },
+    { title: "ENDLESS DANCE (花海佑芽・秦谷美鈴・十王星南 ver.)", artist: "花海佑芽 / 秦谷美鈴", file: "./assets/PlayList/初星学園,花海佑芽,秦谷美鈴 - ENDLESS DANCE (花海佑芽・秦谷美鈴・十王星南 ver.).mp3", cover: "./assets/PlayList/covers/初星学園,花海佑芽,秦谷美鈴 - ENDLESS DANCE (花海佑芽・秦谷美鈴・十王星南 ver.).jpg" },
+    { title: "Fragile Heart", artist: "葛城リーリヤ", file: "./assets/PlayList/初星学園,葛城リーリヤ - Fragile Heart.mp3", cover: "./assets/PlayList/covers/初星学園,葛城リーリヤ - Fragile Heart.jpg" },
+    { title: "Wake up!!", artist: "葛城リーリヤ", file: "./assets/PlayList/初星学園,葛城リーリヤ - Wake up!!.mp3", cover: "./assets/PlayList/covers/初星学園,葛城リーリヤ - Wake up!!.jpg" },
+    { title: "極光", artist: "葛城リーリヤ", file: "./assets/PlayList/初星学園,葛城リーリヤ - 極光.mp3", cover: "./assets/PlayList/covers/初星学園,葛城リーリヤ - 極光.jpg" },
+    { title: "白線", artist: "葛城リーリヤ / ナユタン星人", file: "./assets/PlayList/初星学園,葛城リーリヤ,ナユタン星人 - 白線.mp3", cover: "./assets/PlayList/covers/初星学園,葛城リーリヤ,ナユタン星人 - 白線.jpg" },
+    { title: "冠菊", artist: "葛城リーリヤ / 花海咲季", file: "./assets/PlayList/初星学園,葛城リーリヤ,花海咲季 - 冠菊.mp3", cover: "./assets/PlayList/covers/初星学園,葛城リーリヤ,花海咲季 - 冠菊.jpg" },
+    { title: "White Night! White Wish!", artist: "葛城リーリヤ / 花海佑芽", file: "./assets/PlayList/初星学園,葛城リーリヤ,花海佑芽 - White Night! White Wish!.mp3", cover: "./assets/PlayList/covers/初星学園,葛城リーリヤ,花海佑芽 - White Night! White Wish!.jpg" },
+    { title: "桜フォトグラフ", artist: "葛城リーリヤ / 紫雲清夏", file: "./assets/PlayList/初星学園,葛城リーリヤ,紫雲清夏 - 桜フォトグラフ.mp3", cover: "./assets/PlayList/covers/初星学園,葛城リーリヤ,紫雲清夏 - 桜フォトグラフ.jpg" },
+    { title: "The Cute!!!", artist: "金山秀士 / 藤田ことね", file: "./assets/PlayList/初星学園,金山秀士,藤田ことね - The Cute!!!.mp3", cover: "./assets/PlayList/covers/初星学園,金山秀士,藤田ことね - The Cute!!!.jpg" },
+    { title: "Unhappy Light", artist: "月村手毬", file: "./assets/PlayList/初星学園,月村手毬 - Unhappy Light.mp3", cover: "./assets/PlayList/covers/初星学園,月村手毬 - Unhappy Light.jpg" },
+    { title: "一体いつから", artist: "月村手毬", file: "./assets/PlayList/初星学園,月村手毬 - 一体いつから.mp3", cover: "./assets/PlayList/covers/初星学園,月村手毬 - 一体いつから.jpg" },
+    { title: "Wonder Scale", artist: "兼松衆 / 倉本千奈", file: "./assets/PlayList/初星学園,兼松衆,倉本千奈 - Wonder Scale.mp3", cover: "./assets/PlayList/covers/初星学園,兼松衆,倉本千奈 - Wonder Scale.jpg" },
+    { title: "憧れをいっぱい", artist: "高木龍一 / 倉本千奈", file: "./assets/PlayList/初星学園,高木龍一,倉本千奈 - 憧れをいっぱい.mp3", cover: "./assets/PlayList/covers/初星学園,高木龍一,倉本千奈 - 憧れをいっぱい.jpg" },
+    { title: "コントラスト", artist: "佐々木恵梨 / 鵜飼大幹", file: "./assets/PlayList/初星学園,佐々木恵梨,鵜飼大幹 - コントラスト.mp3", cover: "./assets/PlayList/covers/初星学園,佐々木恵梨,鵜飼大幹 - コントラスト.jpg" },
+    { title: "The Rolling Riceball", artist: "佐藤貴文 / 花海佑芽", file: "./assets/PlayList/初星学園,佐藤貴文,花海佑芽 - The Rolling Riceball.mp3", cover: "./assets/PlayList/covers/初星学園,佐藤貴文,花海佑芽 - The Rolling Riceball.jpg" },
+    { title: "グースーピー", artist: "佐藤貴文 / 花海佑芽", file: "./assets/PlayList/初星学園,佐藤貴文,花海佑芽 - グースーピー.mp3", cover: "./assets/PlayList/covers/初星学園,佐藤貴文,花海佑芽 - グースーピー.jpg" },
+    { title: "真っ白いページと水彩の主人公", artist: "佐藤貴文 / 花海佑芽", file: "./assets/PlayList/初星学園,佐藤貴文,花海佑芽 - 真っ白いページと水彩の主人公.mp3", cover: "./assets/PlayList/covers/初星学園,佐藤貴文,花海佑芽 - 真っ白いページと水彩の主人公.jpg" },
+    { title: "ナイワ", artist: "佐伯ユウスケ / 3年1組", file: "./assets/PlayList/初星学園,佐伯ユウスケ,3年1組 - ナイワ.mp3", cover: "./assets/PlayList/covers/初星学園,佐伯ユウスケ,3年1組 - ナイワ.jpg" },
+    { title: "Kira Kira", artist: "紫雲清夏", file: "./assets/PlayList/初星学園,紫雲清夏 - Kira Kira.mp3", cover: "./assets/PlayList/covers/初星学園,紫雲清夏 - Kira Kira.jpg" },
+    { title: "Love & Joy", artist: "紫雲清夏", file: "./assets/PlayList/初星学園,紫雲清夏 - Love & Joy.mp3", cover: "./assets/PlayList/covers/初星学園,紫雲清夏 - Love & Joy.jpg" },
+    { title: "Tame-Lie-One-Step", artist: "紫雲清夏", file: "./assets/PlayList/初星学園,紫雲清夏 - Tame-Lie-One-Step.mp3", cover: "./assets/PlayList/covers/初星学園,紫雲清夏 - Tame-Lie-One-Step.jpg" },
+    { title: "カクシタワタシ", artist: "紫雲清夏", file: "./assets/PlayList/初星学園,紫雲清夏 - カクシタワタシ.mp3", cover: "./assets/PlayList/covers/初星学園,紫雲清夏 - カクシタワタシ.jpg" },
+    { title: "サンフェーデッド", artist: "篠澤 広", file: "./assets/PlayList/初星学園,篠澤 広 - サンフェーデッド.mp3", cover: "./assets/PlayList/covers/初星学園,篠澤 広 - サンフェーデッド.jpg" },
+    { title: "光景", artist: "篠澤 広", file: "./assets/PlayList/初星学園,篠澤 広 - 光景.mp3", cover: "./assets/PlayList/covers/初星学園,篠澤 広 - 光景.jpg" },
+    { title: "Choo Choo Choo", artist: "十王星南", file: "./assets/PlayList/初星学園,十王星南 - Choo Choo Choo.mp3", cover: "./assets/PlayList/covers/初星学園,十王星南 - Choo Choo Choo.jpg" },
+    { title: "理論武装して", artist: "松隈ケンタ / 雨夜 燕", file: "./assets/PlayList/初星学園,松隈ケンタ,雨夜 燕 - 理論武装して.mp3", cover: "./assets/PlayList/covers/初星学園,松隈ケンタ,雨夜 燕 - 理論武装して.jpg" },
+    { title: "コンテンポラリのダンス", artist: "真島ゆろ / 篠澤 広", file: "./assets/PlayList/初星学園,真島ゆろ,篠澤 広 - コンテンポラリのダンス.mp3", cover: "./assets/PlayList/covers/初星学園,真島ゆろ,篠澤 広 - コンテンポラリのダンス.jpg" },
+    { title: "ときめきエモーション", artist: "神山羊 / 葛城リーリヤ", file: "./assets/PlayList/初星学園,神山羊,葛城リーリヤ - ときめきエモーション.mp3", cover: "./assets/PlayList/covers/初星学園,神山羊,葛城リーリヤ - ときめきエモーション.jpg" },
+    { title: "雨上がりのアイリス", artist: "神前暁 / Re;IRIS", file: "./assets/PlayList/初星学園,神前暁,Re;IRIS - 雨上がりのアイリス.mp3", cover: "./assets/PlayList/covers/初星学園,神前暁,Re;IRIS - 雨上がりのアイリス.jpg" },
+    { title: "marble heart", artist: "須藤幽玄 / 姫崎莉波", file: "./assets/PlayList/初星学園,須藤幽玄,姫崎莉波 - marble heart.mp3", cover: "./assets/PlayList/covers/初星学園,須藤幽玄,姫崎莉波 - marble heart.jpg" },
+    { title: "ときめきのソルフェージュ", artist: "倉本千奈", file: "./assets/PlayList/初星学園,倉本千奈 - ときめきのソルフェージュ.mp3", cover: "./assets/PlayList/covers/初星学園,倉本千奈 - ときめきのソルフェージュ.jpg" },
+    { title: "仮装狂騒曲", artist: "倉本千奈 / 月村手毬", file: "./assets/PlayList/初星学園,倉本千奈,月村手毬 - 仮装狂騒曲.mp3", cover: "./assets/PlayList/covers/初星学園,倉本千奈,月村手毬 - 仮装狂騒曲.jpg" },
+    { title: "古今東西ちょちょいのちょい (花海咲季・月村手毬・藤田ことね ver.)", artist: "大澤めい / 花海咲季", file: "./assets/PlayList/初星学園,大澤めい,花海咲季 - 古今東西ちょちょいのちょい (花海咲季・月村手毬・藤田ことね ver.).mp3", cover: "./assets/PlayList/covers/初星学園,大澤めい,花海咲季 - 古今東西ちょちょいのちょい (花海咲季・月村手毬・藤田ことね ver.).jpg" },
+    { title: "金の斧、銀の斧、エメラルドの斧", artist: "大澤めい / 花海佑芽", file: "./assets/PlayList/初星学園,大澤めい,花海佑芽 - 金の斧、銀の斧、エメラルドの斧.mp3", cover: "./assets/PlayList/covers/初星学園,大澤めい,花海佑芽 - 金の斧、銀の斧、エメラルドの斧.jpg" },
+    { title: "Our Chant", artist: "中鶴潤一 / Fra", file: "./assets/PlayList/初星学園,中鶴潤一,Fra - Our Chant.mp3", cover: "./assets/PlayList/covers/初星学園,中鶴潤一,Fra - Our Chant.jpg" },
+    { title: "小さな野望", artist: "椎名豪 / 十王星南", file: "./assets/PlayList/初星学園,椎名豪,十王星南 - 小さな野望.mp3", cover: "./assets/PlayList/covers/初星学園,椎名豪,十王星南 - 小さな野望.jpg" },
+    { title: "つよつよ最強エクササイズ", artist: "坪井リヒト / 佐藤貴文", file: "./assets/PlayList/初星学園,坪井リヒト,佐藤貴文 - つよつよ最強エクササイズ.mp3", cover: "./assets/PlayList/covers/初星学園,坪井リヒト,佐藤貴文 - つよつよ最強エクササイズ.jpg" },
+    { title: "叶えたい、ことばかり", artist: "田中透真 / 月村手毬", file: "./assets/PlayList/初星学園,田中透真,月村手毬 - 叶えたい、ことばかり.mp3", cover: "./assets/PlayList/covers/初星学園,田中透真,月村手毬 - 叶えたい、ことばかり.jpg" },
+    { title: "Ride on Beat", artist: "田中龍志 / 柿迫ヒカル", file: "./assets/PlayList/初星学園,田中龍志,柿迫ヒカル - Ride on Beat.mp3", cover: "./assets/PlayList/covers/初星学園,田中龍志,柿迫ヒカル - Ride on Beat.jpg" },
+    { title: "clumsy trick", artist: "渡辺翔 / 姫崎莉波", file: "./assets/PlayList/初星学園,渡辺翔,姫崎莉波 - clumsy trick.mp3", cover: "./assets/PlayList/covers/初星学園,渡辺翔,姫崎莉波 - clumsy trick.jpg" },
+    { title: "ふわふわ", artist: "藤田ことね", file: "./assets/PlayList/初星学園,藤田ことね - ふわふわ.mp3", cover: "./assets/PlayList/covers/初星学園,藤田ことね - ふわふわ.jpg" },
+    { title: "歌声は君いろ", artist: "姫崎莉波", file: "./assets/PlayList/初星学園,姫崎莉波 - 歌声は君いろ.mp3", cover: "./assets/PlayList/covers/初星学園,姫崎莉波 - 歌声は君いろ.jpg" },
+    { title: "L.U.V", artist: "諭吉佳作men / 姫崎莉波", file: "./assets/PlayList/初星学園,諭吉佳作men,姫崎莉波 - L.U.V.mp3", cover: "./assets/PlayList/covers/初星学園,諭吉佳作men,姫崎莉波 - L.U.V.jpg" },
+    { title: "SEARCH RIGHT", artist: "涼木シンジ", file: "./assets/PlayList/初星学園,涼木シンジ - SEARCH RIGHT.mp3", cover: "./assets/PlayList/covers/初星学園,涼木シンジ - SEARCH RIGHT.jpg" }
+  ];
+  // === HATSU_MUSIC_TRACKS_END ===
   const REQUIRED_BOND_THRESHOLDS = [20, 40, 60, 80];
   const affinityThresholds = [20, 40, 60, 80, 100];
 
@@ -1034,7 +1127,18 @@
     }
   };
 
+  function isPhoneMusicPlaying() {
+    const audio = document.getElementById("phoneMusicAudio");
+    return !!(audio && !audio.paused && !audio.ended && audio.currentTime > 0);
+  }
+
   function updateBgm() {
+    // 小手机音乐播放器优先：只要在放歌，游戏 BGM 让位（即使切换场景也不会盖上来）。
+    if (isPhoneMusicPlaying()) {
+      bgmManager.stop();
+      return;
+    }
+
     const liveTheater = document.getElementById("liveTheater");
     if (liveTheater && !liveTheater.hidden) {
       bgmManager.stop();
@@ -3178,6 +3282,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       return;
     }
 
+    pausePhoneMusic();
     setElementHidden("liveTheater", false);
     requestAnimationFrame(() => {
       overlay.style.opacity = "1";
@@ -5234,6 +5339,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     if (!bar) return;
     bar.classList.toggle("is-home", mode === "home");
     bar.classList.toggle("is-line", mode === "line");
+    bar.classList.toggle("is-music", mode === "music");
   }
 
   function setPhoneHomeIndicatorVisible(visible) {
@@ -5271,6 +5377,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
 
   function showPhoneLineAppShell() {
     setElementHidden("phoneHomeView", true);
+    setElementHidden("phoneMusicApp", true);
     setElementHidden("phoneLineApp", false);
     setPhoneStatusBarMode("line");
     setPhoneHomeIndicatorVisible(true);
@@ -5281,6 +5388,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     state.phoneChat.activeView = "home";
     state.phoneChat.activeThreadId = "";
     setElementHidden("phoneLineApp", true);
+    setElementHidden("phoneMusicApp", true);
     setElementHidden("phoneHomeView", false);
     setPhoneStatusBarMode("home");
     setPhoneHomeIndicatorVisible(false);
@@ -5297,6 +5405,366 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     if (!app) return;
     if (appId === "line") {
       openPhoneLineApp();
+    } else if (appId === "music") {
+      openPhoneMusicApp();
+    }
+  }
+
+  // ===== 小手机 · 音乐播放器 =====
+  const PHONE_MUSIC_LIKED_KEY = "hatsu_phone_music_liked_v1";
+  const PHONE_MUSIC_PALETTE = [
+    ["#7b4dff", "#3a1d6e"], ["#ff7ab8", "#7a2f5e"], ["#2fd4c9", "#155e66"],
+    ["#ff5a3c", "#7a1f2e"], ["#5aa9ff", "#1f3a7a"], ["#ffc24d", "#7a4f15"],
+    ["#ff4f9a", "#3a1d6e"], ["#9d7bff", "#2a1f5e"], ["#4ade80", "#155e3a"]
+  ];
+  const musicTracks = phoneMusicTracks.map((t, i) => ({ ...t, _pal: PHONE_MUSIC_PALETTE[i % PHONE_MUSIC_PALETTE.length] }));
+  let musicLikedSet = loadMusicLiked();
+  let musicCur = -1;
+  let musicPlaying = false;
+  let musicShuffle = false;
+  let musicRepeat = false;
+  let musicFilter = "all";
+  let musicQueue = [];
+  let musicQueuePos = -1;
+  let musicInited = false;
+  let musicAudioEl = null;
+
+  function loadMusicLiked() {
+    try { return new Set(JSON.parse(localStorage.getItem(PHONE_MUSIC_LIKED_KEY) || "[]")); }
+    catch (error) { return new Set(); }
+  }
+  function saveMusicLiked() {
+    try { localStorage.setItem(PHONE_MUSIC_LIKED_KEY, JSON.stringify([...musicLikedSet])); }
+    catch (error) { /* 忽略存储失败 */ }
+  }
+  function musicTrackKey(t) { return t.file; }
+  function isMusicLiked(i) { return musicLikedSet.has(musicTrackKey(musicTracks[i])); }
+  function musicCoverCss(t) { return `background:linear-gradient(150deg, ${t._pal[0]}, ${t._pal[1]});`; }
+  function musicInitial(t) { return String(t.title || "?").trim().charAt(0).toUpperCase(); }
+  function musicCoverInner(t) {
+    const span = `<span>${escapePhoneText(musicInitial(t))}</span>`;
+    if (!t.cover) return span;
+    return `<img src="${encodeURI(t.cover)}" alt="" loading="lazy" onerror="this.remove()">${span}`;
+  }
+  function musicFmt(s) {
+    if (!Number.isFinite(s)) return "0:00";
+    return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+  }
+  function musicLikedIndices() { return musicTracks.map((_, i) => i).filter((i) => isMusicLiked(i)); }
+  function musicViewIndices() { return musicFilter === "liked" ? musicLikedIndices() : musicTracks.map((_, i) => i); }
+
+  function ensureMusicAudio() {
+    if (!musicAudioEl) musicAudioEl = document.getElementById("phoneMusicAudio");
+    return musicAudioEl;
+  }
+
+  function openPhoneMusicApp() {
+    setElementHidden("phoneHomeView", true);
+    setElementHidden("phoneLineApp", true);
+    setElementHidden("phoneMusicApp", false);
+    setPhoneStatusBarMode("music");
+    setPhoneHomeIndicatorVisible(true);
+    if (!musicInited) {
+      musicInited = true;
+      bindPhoneMusicEvents();
+    }
+    closeMusicNow();
+    renderMusicLibrary();
+  }
+
+  function renderMusicLibrary() {
+    const grid = document.getElementById("phoneMusicQuickGrid");
+    const list = document.getElementById("phoneMusicTrackList");
+    const countEl = document.getElementById("phoneMusicLikedCount");
+    if (!grid || !list) return;
+    if (countEl) countEl.textContent = String(musicLikedSet.size);
+
+    if (!musicTracks.length) {
+      grid.innerHTML = "";
+      list.innerHTML = `<div class="music-empty">未找到歌曲。<br>请把音频放入 assets/PlayList 后运行 generate-playlist.cjs。</div>`;
+      return;
+    }
+
+    const likedTile = `
+      <div class="music-quick-card liked-tile" data-pm-tile="liked">
+        <div class="music-cover music-qc-cover"><svg aria-hidden="true"><use href="#icon-heart"></use></svg></div>
+        <div class="music-qc-name">已点赞的歌曲</div>
+      </div>`;
+    const songTiles = musicTracks.slice(0, 3).map((t, i) => `
+      <div class="music-quick-card" data-pm-index="${i}">
+        <div class="music-cover music-qc-cover" style="${musicCoverCss(t)}">${musicCoverInner(t)}</div>
+        <div class="music-qc-name">${escapePhoneText(t.title)}</div>
+      </div>`).join("");
+    grid.innerHTML = likedTile + songTiles;
+
+    document.querySelectorAll(".music-tab").forEach((b) => {
+      b.classList.toggle("music-tab-active", b.dataset.pmFilter === musicFilter);
+    });
+
+    const idxs = musicViewIndices();
+    if (!idxs.length) {
+      list.innerHTML = `<div class="music-empty">还没有点赞的歌曲。<br>点击歌曲右侧的红心即可收藏。</div>`;
+      return;
+    }
+
+    const actionsBar = musicFilter === "liked" ? `
+      <div class="music-liked-actions">
+        <button type="button" class="music-liked-play" data-pm-action="play"><svg aria-hidden="true"><use href="#icon-play"></use></svg>播放</button>
+        <button type="button" class="music-liked-shuffle" data-pm-action="shuffle"><svg aria-hidden="true"><use href="#icon-shuffle"></use></svg>随机播放</button>
+      </div>` : "";
+
+    list.innerHTML = actionsBar + idxs.map((i) => {
+      const t = musicTracks[i];
+      return `
+        <div class="music-track-row${i === musicCur ? " is-playing" : ""}" data-pm-index="${i}">
+          <div class="music-cover music-tr-cover" style="${musicCoverCss(t)}">${musicCoverInner(t)}</div>
+          <div class="music-tr-meta">
+            <div class="music-tr-title">${escapePhoneText(t.title)}</div>
+            <div class="music-tr-artist">${escapePhoneText(t.artist)}</div>
+          </div>
+          <div class="music-tr-eq"><span></span><span></span><span></span></div>
+          <button type="button" class="music-tr-like${isMusicLiked(i) ? " liked" : ""}" data-pm-like="${i}" aria-label="点赞"><svg aria-hidden="true"><use href="#icon-heart"></use></svg></button>
+        </div>`;
+    }).join("");
+  }
+
+  function setMusicFilter(f) {
+    musicFilter = f === "liked" ? "liked" : "all";
+    const scroller = document.querySelector("#phoneMusicApp .music-scroll");
+    const top = scroller ? scroller.scrollTop : 0;
+    renderMusicLibrary();
+    if (scroller) scroller.scrollTop = top;
+  }
+
+  function toggleMusicLike(i) {
+    if (!musicTracks[i]) return;
+    const key = musicTrackKey(musicTracks[i]);
+    if (musicLikedSet.has(key)) musicLikedSet.delete(key); else musicLikedSet.add(key);
+    saveMusicLiked();
+    const scroller = document.querySelector("#phoneMusicApp .music-scroll");
+    const top = scroller ? scroller.scrollTop : 0;
+    renderMusicLibrary();
+    if (scroller) scroller.scrollTop = top;
+    if (musicCur === i) updateMusicNowLike();
+  }
+
+  function updateMusicNowLike() {
+    const btn = document.getElementById("phoneMusicNowLikeBtn");
+    if (btn) btn.classList.toggle("liked", musicCur >= 0 && isMusicLiked(musicCur));
+  }
+
+  function musicSelectTrack(i, context) {
+    const audio = ensureMusicAudio();
+    if (!audio || !musicTracks[i]) return;
+    musicCur = i;
+    musicQueue = (context && context.length) ? context.slice() : musicViewIndices();
+    if (!musicQueue.includes(i)) musicQueue = musicTracks.map((_, k) => k);
+    musicQueuePos = musicQueue.indexOf(i);
+    notifyMusicPlaybackStart();
+    audio.src = encodeURI(musicTracks[i].file);
+    audio.play().catch(() => {});
+    syncMusicTrackUi();
+  }
+
+  function syncMusicTrackUi() {
+    const t = musicTracks[musicCur];
+    if (!t) return;
+    const mini = document.getElementById("phoneMusicMini");
+    if (mini) mini.hidden = false;
+    setMusicCover("phoneMusicMiniCover", t);
+    setText("phoneMusicMiniTitle", t.title);
+    setText("phoneMusicMiniArtist", t.artist);
+    setMusicCover("phoneMusicNowCover", t);
+    setText("phoneMusicNowSong", t.title);
+    setText("phoneMusicNowSinger", t.artist);
+    const now = document.getElementById("phoneMusicNow");
+    if (now) now.style.setProperty("--np-accent", t._pal[1]);
+    document.querySelectorAll("#phoneMusicTrackList .music-track-row").forEach((r) => {
+      r.classList.toggle("is-playing", Number(r.dataset.pmIndex) === musicCur);
+    });
+    updateMusicNowLike();
+    syncMusicPlayButtons();
+    updateMusicProgress();
+  }
+
+  function setMusicCover(id, t) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.cssText = musicCoverCss(t);
+    el.innerHTML = musicCoverInner(t);
+  }
+
+  function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  }
+
+  function syncMusicPlayButtons() {
+    const icon = musicPlaying ? "#icon-pause" : "#icon-play";
+    ["phoneMusicPlayBtn", "phoneMusicMiniPlayBtn"].forEach((id) => {
+      const use = document.querySelector(`#${id} use`);
+      if (use) use.setAttribute("href", icon);
+    });
+  }
+
+  function updateMusicProgress() {
+    const audio = ensureMusicAudio();
+    if (!audio) return;
+    const dur = audio.duration || 0;
+    const pos = audio.currentTime || 0;
+    const pct = dur ? Math.min(100, (pos / dur) * 100) : 0;
+    const fill = document.getElementById("phoneMusicFill");
+    const knob = document.getElementById("phoneMusicKnob");
+    const miniProg = document.getElementById("phoneMusicMiniProg");
+    if (fill) fill.style.width = pct + "%";
+    if (knob) knob.style.left = pct + "%";
+    if (miniProg) miniProg.style.width = pct + "%";
+    setText("phoneMusicCur", musicFmt(pos));
+    setText("phoneMusicDur", musicFmt(dur));
+  }
+
+  function toggleMusicPlay() {
+    const audio = ensureMusicAudio();
+    if (!audio) return;
+    if (musicCur < 0) { musicSelectTrack(0); return; }
+    if (audio.paused) audio.play().catch(() => {}); else audio.pause();
+  }
+
+  function ensureMusicQueue() {
+    if (!musicQueue.length) {
+      musicQueue = musicViewIndices();
+      if (!musicQueue.length) musicQueue = musicTracks.map((_, k) => k);
+    }
+    if (musicQueuePos < 0) musicQueuePos = Math.max(0, musicQueue.indexOf(musicCur));
+  }
+
+  function musicNext() {
+    if (!musicTracks.length) return;
+    ensureMusicQueue();
+    let pos;
+    if (musicShuffle) {
+      if (musicQueue.length <= 1) pos = musicQueuePos;
+      else { do { pos = Math.floor(Math.random() * musicQueue.length); } while (pos === musicQueuePos); }
+    } else {
+      pos = (musicQueuePos + 1) % musicQueue.length;
+    }
+    musicQueuePos = pos;
+    musicSelectTrack(musicQueue[pos], musicQueue);
+  }
+
+  function musicPrev() {
+    const audio = ensureMusicAudio();
+    if (audio && audio.currentTime > 3) { audio.currentTime = 0; return; }
+    ensureMusicQueue();
+    const pos = (musicQueuePos - 1 + musicQueue.length) % musicQueue.length;
+    musicQueuePos = pos;
+    musicSelectTrack(musicQueue[pos], musicQueue);
+  }
+
+  function playMusicLiked(shuffleMode) {
+    const idxs = musicLikedIndices();
+    if (!idxs.length) return;
+    musicShuffle = shuffleMode;
+    const sb = document.getElementById("phoneMusicShuffleBtn");
+    if (sb) sb.classList.toggle("active", musicShuffle);
+    musicQueue = idxs.slice();
+    musicQueuePos = shuffleMode ? Math.floor(Math.random() * musicQueue.length) : 0;
+    musicSelectTrack(musicQueue[musicQueuePos], musicQueue);
+    openMusicNow();
+  }
+
+  function openMusicNow() {
+    const now = document.getElementById("phoneMusicNow");
+    if (now) now.classList.add("open");
+  }
+  function closeMusicNow() {
+    const now = document.getElementById("phoneMusicNow");
+    if (now) now.classList.remove("open");
+  }
+
+  // 与直播视频/其它音源互斥：开始播歌时暂停直播视频。
+  function notifyMusicPlaybackStart() {
+    try {
+      const live = document.getElementById("liveVideo");
+      if (live && !live.paused) live.pause();
+    } catch (error) { /* 忽略 */ }
+  }
+
+  // 直播等场景开始时调用，暂停音乐。
+  function pausePhoneMusic() {
+    const audio = ensureMusicAudio();
+    if (audio && !audio.paused) audio.pause();
+  }
+
+  function bindPhoneMusicEvents() {
+    const audio = ensureMusicAudio();
+    const grid = document.getElementById("phoneMusicQuickGrid");
+    const list = document.getElementById("phoneMusicTrackList");
+
+    if (grid) grid.addEventListener("click", (event) => {
+      const tile = event.target.closest("[data-pm-tile]");
+      if (tile) { setMusicFilter("liked"); return; }
+      const card = event.target.closest("[data-pm-index]");
+      if (card) { musicSelectTrack(Number(card.dataset.pmIndex)); openMusicNow(); }
+    });
+
+    if (list) list.addEventListener("click", (event) => {
+      const likeBtn = event.target.closest("[data-pm-like]");
+      if (likeBtn) { event.stopPropagation(); toggleMusicLike(Number(likeBtn.dataset.pmLike)); return; }
+      const action = event.target.closest("[data-pm-action]");
+      if (action) { playMusicLiked(action.dataset.pmAction === "shuffle"); return; }
+      const row = event.target.closest("[data-pm-index]");
+      if (row) { musicSelectTrack(Number(row.dataset.pmIndex)); openMusicNow(); }
+    });
+
+    document.querySelectorAll(".music-tab").forEach((b) => {
+      b.addEventListener("click", () => setMusicFilter(b.dataset.pmFilter));
+    });
+
+    const bind = (id, handler, evt = "click") => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener(evt, handler);
+    };
+    bind("phoneMusicMini", openMusicNow);
+    bind("phoneMusicMiniPlayBtn", (e) => { e.stopPropagation(); toggleMusicPlay(); });
+    bind("phoneMusicPlayBtn", toggleMusicPlay);
+    bind("phoneMusicNextBtn", musicNext);
+    bind("phoneMusicPrevBtn", musicPrev);
+    bind("phoneMusicNowCloseBtn", closeMusicNow);
+    bind("phoneMusicNowLikeBtn", () => { if (musicCur >= 0) toggleMusicLike(musicCur); });
+    bind("phoneMusicShuffleBtn", () => {
+      musicShuffle = !musicShuffle;
+      document.getElementById("phoneMusicShuffleBtn")?.classList.toggle("active", musicShuffle);
+    });
+    bind("phoneMusicRepeatBtn", () => {
+      musicRepeat = !musicRepeat;
+      document.getElementById("phoneMusicRepeatBtn")?.classList.toggle("active", musicRepeat);
+    });
+    bind("phoneMusicTrack", (event) => {
+      if (!audio) return;
+      const rect = event.currentTarget.getBoundingClientRect();
+      const dur = audio.duration || 0;
+      if (dur) audio.currentTime = ((event.clientX - rect.left) / rect.width) * dur;
+    });
+
+    if (audio) {
+      audio.addEventListener("play", () => {
+        musicPlaying = true;
+        syncMusicPlayButtons();
+        bgmManager.stop();
+      });
+      audio.addEventListener("pause", () => {
+        musicPlaying = false;
+        syncMusicPlayButtons();
+        // 切歌瞬间也会触发 pause；延迟校验，仅在确实停下时才恢复 BGM。
+        setTimeout(() => { if (audio.paused) updateBgm(); }, 200);
+      });
+      audio.addEventListener("timeupdate", updateMusicProgress);
+      audio.addEventListener("loadedmetadata", updateMusicProgress);
+      audio.addEventListener("ended", () => {
+        if (musicRepeat) { audio.currentTime = 0; audio.play().catch(() => {}); }
+        else musicNext();
+      });
     }
   }
 
