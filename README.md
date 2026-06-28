@@ -34,7 +34,7 @@ import 'https://testingcf.jsdelivr.net/gh/<your-user>/<your-repo>@<tag-or-branch
 
 ```js
 window.HatsuLauncherConfig = {
-  frontendUrl: '/hatsu-produce-local/st2.html',
+  frontendUrl: '/hatsu-produce-local/index.html',
   launcherText: '初',
   launcherSize: 44
 };

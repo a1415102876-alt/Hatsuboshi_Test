@@ -79,9 +79,11 @@ function makePromptBuilder() {
     },
     affinityNodes: readObjectLiteral("affinityNodes"),
     affinityRouteSeeds: readObjectLiteral("affinityRouteSeeds"),
+    seinaBondRoutes: readObjectLiteral("seinaBondRoutes"),
     kotoneBondRoutes: readObjectLiteral("kotoneBondRoutes"),
     temariBondRoutes: readObjectLiteral("temariBondRoutes"),
     misuzuBondRoutes: readObjectLiteral("misuzuBondRoutes"),
+    amayaBondRoutes: readObjectLiteral("amayaBondRoutes"),
     getAffinityStageLine: () => "好感度阶段标签：AFF_TEMARI_40",
     buildProducerPromptSection: () => "",
     getPhase: () => "First Live 中期",
@@ -144,4 +146,33 @@ test("Kotone has dedicated two-choice bond route seeds", () => {
 
   const routeSelector = readFunction("specialBondRoutesFor");
   assert.match(routeSelector, /idolName === "藤田琴音"[\s\S]*kotoneBondRoutes/);
+});
+
+test("Amaya has dedicated two-choice bond route seeds", () => {
+  const routes = readObjectLiteral("amayaBondRoutes");
+  assert.deepEqual(Object.keys(routes).map(Number), [20, 40, 60, 80]);
+  assert.match(routes[20].canonAnchor, /星南要毕业后退出偶像/);
+  assert.match(routes[40].objective, /帅气凛然/);
+  assert.match(routes[60].resolution, /你要支撑着我/);
+  assert.match(routes[80].canonAnchor, /战胜星南/);
+
+  const routeSelector = readFunction("specialBondRoutesFor");
+  assert.match(routeSelector, /idolName === "雨夜燕"[\s\S]*amayaBondRoutes/);
+});
+
+
+test("Seina has dedicated two-choice bond route seeds", () => {
+  const routes = readObjectLiteral("seinaBondRoutes");
+  assert.deepEqual(Object.keys(routes).map(Number), [20, 40, 60, 80]);
+  assert.match(routes[20].canonAnchor, /零成长/);
+  assert.match(routes[40].canonAnchor, /藤田琴音/);
+  assert.match(routes[60].resolution, /我要成为顶级偶像/);
+  assert.match(routes[80].canonAnchor, /指路明灯/);
+
+  const seeds = readObjectLiteral("affinityRouteSeeds")["十王星南"];
+  assert.match(seeds[0], /一等星·启明星/);
+  assert.match(seeds[100], /我最棒的顶级制作人/);
+
+  const routeSelector = readFunction("specialBondRoutesFor");
+  assert.match(routeSelector, /idolName === "十王星南"[\s\S]*seinaBondRoutes/);
 });

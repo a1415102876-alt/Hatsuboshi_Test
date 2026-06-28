@@ -64,7 +64,8 @@ test("all playable idols have stable affinity tag codes", () => {
     "葛城莉莉娅": "LILJA",
     "紫云清夏": "SUMIKA",
     "有村麻央": "MAO",
-    "姬崎莉波": "RINAMI"
+    "姬崎莉波": "RINAMI",
+    "雨夜燕": "TSUBAME"
   });
 });
 

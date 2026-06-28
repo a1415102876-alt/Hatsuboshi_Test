@@ -43,6 +43,7 @@ const idolPresets = readObjectLiteral("idolPresets");
 const affinityRouteSeeds = readObjectLiteral("affinityRouteSeeds");
 
 const expected = {
+  "雨夜燕": [115, 125, 100, 20, 23, 17],
   "姬崎莉波": [85, 120, 125, 13, 21.5, 25.5],
   "葛城莉莉娅": [80, 100, 115, 18, 20, 18],
   "有村麻央": [125, 90, 100, 22, 8, 23],
@@ -80,7 +81,8 @@ test("every playable idol has a stable background filename", () => {
     "葛城莉莉娅": "./assets/idols/katsuragi-lilja.png",
     "紫云清夏": "./assets/idols/shiun-sumika.png",
     "有村麻央": "./assets/idols/arimura-mao.png",
-    "姬崎莉波": "./assets/idols/himesaki-rinami.png"
+    "姬崎莉波": "./assets/idols/himesaki-rinami.png",
+    "雨夜燕": "./assets/idols/amaya-tsubame.png"
   };
   for (const [name, background] of Object.entries(backgrounds)) {
     assert.equal(idols[name].background, background);
@@ -89,6 +91,13 @@ test("every playable idol has a stable background filename", () => {
     assert.equal(existsSync(new URL(`../${background.replace("./", "")}`, import.meta.url)), true);
   }
   assert.match(source, /function applyIdolBackground\(/);
+});
+
+
+test("雨夜燕 uses the existing select background filename", () => {
+  assert.match(source, /const selectBackgroundCodes = \{/);
+  assert.match(source, /"雨夜燕": "amaya"/);
+  assert.match(source, /selectBackgroundCodes\[idolName\] \|\| affinityIdolCodes\[idolName\]\?\.toLowerCase\(\)/);
 });
 
 test("configured BGM files exist", () => {
@@ -111,7 +120,8 @@ test("every playable idol has a stable avatar filename", () => {
     "葛城莉莉娅": "./assets/avatars/katsuragi-lilja.png",
     "紫云清夏": "./assets/avatars/shiun-sumika.png",
     "有村麻央": "./assets/avatars/arimura-mao.png",
-    "姬崎莉波": "./assets/avatars/himesaki-rinami.png"
+    "姬崎莉波": "./assets/avatars/himesaki-rinami.png",
+    "雨夜燕": "./assets/avatars/amaya-tsubame.png"
   };
   for (const [name, avatar] of Object.entries(avatars)) {
     assert.equal(idols[name].avatar, avatar);

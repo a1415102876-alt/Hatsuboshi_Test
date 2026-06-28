@@ -3,7 +3,7 @@
   window.__hatsuLauncherScriptMounted = true;
 
   const config = window.HatsuLauncherConfig || {};
-  const frontendUrl = String(config.frontendUrl || "/hatsu-produce-local/st2.html");
+  const frontendUrl = String(config.frontendUrl || "/hatsu-produce-local/index.html");
   const launcherText = String(config.launcherText || "初");
   const launcherSize = Number(config.launcherSize) > 0 ? Number(config.launcherSize) : 44;
   const zIndexBase = Number.isFinite(Number(config.zIndexBase)) ? Number(config.zIndexBase) : 36000;
