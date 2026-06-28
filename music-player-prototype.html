@@ -550,6 +550,10 @@
     ["#ff5a3c", "#7a1f2e"], ["#5aa9ff", "#1f3a7a"], ["#ffc24d", "#7a4f15"],
     ["#ff4f9a", "#3a1d6e"], ["#9d7bff", "#2a1f5e"], ["#4ade80", "#155e3a"],
   ];
+  // 音乐文件托管在 R2（桶内同名 PlayList 文件夹）。换桶只改这一行。
+  const MUSIC_CDN = "https://pub-cfdeb8f85de84d8193695eca002e7880.r2.dev";
+  const musicUrl = (key) => !key ? "" :
+    (/^https?:\/\//i.test(key) ? key : MUSIC_CDN + "/" + key.split("/").map(encodeURIComponent).join("/"));
   const tracks = (window.HATSU_TRACKS || []).map((t, i) => {
     const pal = PALETTE[i % PALETTE.length];
     return { ...t, c1: pal[0], c2: pal[1] };
@@ -576,7 +580,7 @@
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
   const initial = (t) => (t.title || "?").trim().charAt(0).toUpperCase();
   const coverInner = (t) => t.cover
-    ? `<img src="${encodeURI(t.cover)}" alt="" loading="lazy" onerror="this.remove()"><span>${esc(initial(t))}</span>`
+    ? `<img src="${musicUrl(t.cover)}" alt="" loading="lazy" onerror="this.remove()"><span>${esc(initial(t))}</span>`
     : `<span>${esc(initial(t))}</span>`;
   const playSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
   const pauseSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
@@ -694,7 +698,7 @@
     if (!queue.includes(i)) queue = tracks.map((_, k) => k);
     queuePos = queue.indexOf(i);
     const t = tracks[cur];
-    audio.src = encodeURI(t.file);
+    audio.src = musicUrl(t.file);
     audio.play().catch(() => {});
     syncTrackUi();
   }

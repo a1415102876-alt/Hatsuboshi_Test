@@ -25,10 +25,11 @@ function parseName(base) {
   return { title, artist: artist || LABEL };
 }
 
+// 返回相对 R2 桶根的 key（桶里是同名 PlayList 文件夹）。播放器运行时拼 MUSIC_CDN。
 function findCover(base) {
   for (const ext of [".jpg", ".png", ".jpeg", ".webp"]) {
     if (fs.existsSync(path.join(COVERS_DIR, base + ext))) {
-      return "assets/PlayList/covers/" + base + ext;
+      return "PlayList/covers/" + base + ext;
     }
   }
   return "";
@@ -46,7 +47,7 @@ function main() {
     return {
       title,
       artist,
-      file: "assets/PlayList/" + file,
+      file: "PlayList/" + file,
       cover: findCover(base)
     };
   });
@@ -59,7 +60,8 @@ function main() {
   patchAppJs(tracks);
 }
 
-// 把歌单以 ./assets/PlayList 字面量内嵌进 app.js 的标记块（兼容 st.html 路径重写）。
+// 把歌单以相对 R2 桶根的 key（PlayList/...）内嵌进 app.js 的标记块。
+// 运行时由 MUSIC_CDN 拼成完整地址；不再走 ./assets，避免 st.html 把它重写成本地路径。
 function patchAppJs(tracks) {
   const appPath = path.join(ROOT, "app.js");
   if (!fs.existsSync(appPath)) { console.log("未找到 app.js，跳过内嵌"); return; }
@@ -69,8 +71,8 @@ function patchAppJs(tracks) {
   if (!src.includes(START) || !src.includes(END)) { console.log("app.js 缺少标记块，跳过内嵌"); return; }
 
   const lines = tracks.map((t) => {
-    const file = "./" + t.file;
-    const cover = t.cover ? "./" + t.cover : "";
+    const file = t.file;
+    const cover = t.cover || "";
     return "    { title: " + JSON.stringify(t.title) +
       ", artist: " + JSON.stringify(t.artist) +
       ", file: " + JSON.stringify(file) +

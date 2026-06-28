@@ -38,6 +38,7 @@
     <symbol id="icon-shuffle" viewBox="0 0 24 24"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="M4 4l5 5"/></symbol>
     <symbol id="icon-repeat" viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></symbol>
     <symbol id="icon-dots" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></symbol>
+    <symbol id="icon-home" viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/></symbol>
   </svg>
 
   <div id="toastStack" class="toast-stack" aria-live="polite" aria-atomic="false"></div>
@@ -800,7 +801,20 @@
             </div>
           </div>
 
-          <button id="phoneHomeIndicator" type="button" class="phone-home-indicator" hidden aria-label="返回主屏幕"></button>
+          <nav id="phoneNavBar" class="phone-navbar" hidden aria-label="手机功能栏">
+            <button id="phoneNavBackBtn" type="button" class="phone-nav-btn" aria-label="返回">
+              <svg aria-hidden="true"><use href="#icon-chevron-left"></use></svg>
+              <span class="phone-nav-label">返回</span>
+            </button>
+            <button id="phoneNavHomeBtn" type="button" class="phone-nav-btn" aria-label="主屏幕">
+              <svg aria-hidden="true"><use href="#icon-home"></use></svg>
+              <span class="phone-nav-label">主页</span>
+            </button>
+            <button id="phoneNavCloseBtn" type="button" class="phone-nav-btn" aria-label="收起手机">
+              <svg aria-hidden="true"><use href="#icon-chevron-down"></use></svg>
+              <span class="phone-nav-label">收起</span>
+            </button>
+          </nav>
           <audio id="phoneMusicAudio" preload="metadata"></audio>
         </div>
       </div>
