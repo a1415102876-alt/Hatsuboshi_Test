@@ -304,6 +304,22 @@ test("intimacy choice settlement restores stamina and stress with fixed trust fo
   assert.match(source, /INTIMACY_NORMAL_TRUST_GAIN = 20/);
 });
 
+test("companion action requires custom topic input before AI generation", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const phase1Start = source.indexOf("function buildChoicePhase1Prompt(");
+  const phase2Start = source.indexOf("function buildChoicePhase2Prompt(");
+  const phase1 = source.slice(phase1Start, phase2Start);
+
+  assert.match(html, /id="companionOverlay"/);
+  assert.match(html, /id="companionTopicTextarea"/);
+  assert.match(source, /function openCompanionOverlay\(/);
+  assert.match(source, /function confirmCompanionTopic\(/);
+  assert.match(source, /button\.dataset\.action === "companion"[\s\S]*openCompanionOverlay\(\)/);
+  assert.match(source, /settleAction\("companion", null, \{ companionTopic \}\)/);
+  assert.match(phase1, /companionTopicPrompt/);
+  assert.match(phase1, /制作人指定的交流内容/);
+});
+
 test("choice resolution mode is separate from choice prompt parsing", () => {
   const context = {
     state: {

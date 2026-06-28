@@ -440,6 +440,27 @@
     </article>
   </section>
 
+  <section id="companionOverlay" class="event-overlay" hidden aria-label="输入交流内容">
+    <article class="event-panel companion-panel">
+      <header class="event-head">
+        <div>
+          <p class="ui-kicker">Companion Input</p>
+          <h2>输入交流内容</h2>
+        </div>
+        <span id="companionPhaseBadge" class="event-phase">First Live 前期</span>
+      </header>
+      <p class="ai-prompt-note">写下这次想与担当聊的话题、关心的事，或希望进行的互动。AI 将据此展开剧情并生成四个制作人回应选项。</p>
+      <label class="interaction-plot-field" for="companionTopicTextarea">
+        <span>交流内容</span>
+        <textarea id="companionTopicTextarea" spellcheck="false" maxlength="500" placeholder="例如：聊聊最近训练后的疲劳，或者一起回顾上次 Live 的失误"></textarea>
+      </label>
+      <footer class="event-actions">
+        <button id="companionCancelBtn" class="event-button secondary" type="button">取消</button>
+        <button id="companionConfirmBtn" class="event-button primary" type="button">开始交流</button>
+      </footer>
+    </article>
+  </section>
+
   <section id="intimacyOverlay" class="event-overlay" hidden aria-label="选择亲密模式">
     <article class="event-panel intimacy-panel">
       <header class="event-head">

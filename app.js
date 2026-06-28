@@ -1136,6 +1136,9 @@
       style: "",
       settings: ""
     },
+    produceOptions: {
+      skipLessonTrainingAiStory: false
+    },
     lastStory: "请选择行动",
     lastEventTitle: "",
     lastEventResult: "",
@@ -1420,6 +1423,12 @@
       return;
     }
 
+    const companionOverlay = document.getElementById("companionOverlay");
+    if (companionOverlay && !companionOverlay.hidden) {
+      bgmManager.play("talk");
+      return;
+    }
+
     const intimacyOverlay = document.getElementById("intimacyOverlay");
     if (intimacyOverlay && !intimacyOverlay.hidden) {
       bgmManager.play("talk");
@@ -1599,6 +1608,15 @@
       settings: "",
       ...(state.producer || {})
     };
+    state.produceOptions = {
+      skipLessonTrainingAiStory: false,
+      ...(state.produceOptions || {})
+    };
+    if (state.produceOptions.skipTrainingAiStory) {
+      state.produceOptions.skipLessonTrainingAiStory = true;
+      delete state.produceOptions.skipTrainingAiStory;
+    }
+    state.produceOptions.skipLessonTrainingAiStory = Boolean(state.produceOptions.skipLessonTrainingAiStory);
     state.eventMode = state.eventMode || "none";
     state.choiceStep = Number.isInteger(state.choiceStep) ? state.choiceStep : 0;
     state.pendingChoiceRewards = Array.isArray(state.pendingChoiceRewards) ? state.pendingChoiceRewards : [];
@@ -2015,6 +2033,25 @@
     }
   }
 
+  function isSkipLessonTrainingAiStoryEnabled() {
+    return Boolean(state.produceOptions?.skipLessonTrainingAiStory);
+  }
+
+  function finalizeProduceActionWithoutAi(actionName, resultSummary) {
+    pendingAiRequestId = "";
+    state.pendingAiRequestId = "";
+    state.eventMode = "none";
+    state.choiceStep = 0;
+    state.lastStory = `${actionName}已完成（已跳过 AI 叙事）。\n\n${resultSummary}`;
+    state.lastEventTitle = actionName;
+    state.lastEventResult = resultSummary;
+    state.lastEventStory = state.lastStory;
+    state.lastDebug = `${actionName}：前端已结算并跳过 SillyTavern 叙事。`;
+    saveState();
+    render();
+    showToast("行动完成", `${actionName}已结算，已跳过 AI 叙事并进入下一轮。`, "info");
+  }
+
   function settleAction(action, attribute, actionContext = {}) {
     if (!state.idol) {
       showToast("需要担当偶像", "请先选择本次育成的担当。", "warn");
@@ -2040,6 +2077,11 @@
       } else {
         showToast("当前轮次不可用", "前三轮只开放上课、训练和休息；额外轮次开放外出、交流和信赖60后的亲密。", "warn");
       }
+      return;
+    }
+
+    if (action === "companion" && !String(actionContext.companionTopic || "").trim()) {
+      openCompanionOverlay();
       return;
     }
 
@@ -2083,7 +2125,7 @@
       const resultSummary = action === "outing" 
         ? `准备前往：${actionContext.destination || "散步"}` 
         : action === "companion"
-          ? `发起与${state.idol}的交流`
+          ? `交流主题：${actionContext.companionTopic || "日常闲聊"}`
           : isNsfwIntimacyActive()
             ? `与${state.idol}进行 NSFW 亲密互动`
             : `与${state.idol}进行普通亲密互动`;
@@ -2091,7 +2133,7 @@
       const story = action === "outing"
         ? `正在前往 ${actionContext.destination || "散步"}...`
         : action === "companion"
-          ? `正在准备与${state.idol}的对话主题...`
+          ? `正在围绕「${actionContext.companionTopic || "日常闲聊"}」与${state.idol}展开交流...`
           : isNsfwIntimacyActive()
             ? `正在准备与${state.idol}的 NSFW 亲密场景...`
             : `正在准备与${state.idol}的普通亲密场景...`;
@@ -2197,6 +2239,10 @@
     rollSpCandidates();
     saveState();
     render();
+    if (["lesson", "training"].includes(action) && isSkipLessonTrainingAiStoryEnabled()) {
+      finalizeProduceActionWithoutAi(actionName, resultSummary);
+      return;
+    }
     pendingAiRequestId = requestId;
     openEventOverlay(actionName, buildAiWaitingResult(resultSummary), buildAiWaitingStory(story));
     if (!requestHostPromptSend(prompt, requestId)) {
@@ -2375,6 +2421,16 @@ ${outputContract(narrativeLength)}
 - 剧情前半部分在抵达并展开活动、进入需要制作人表态或做选择的时刻停下。
 ` : "";
 
+    const companionTopicPrompt = action === "companion" && actionContext.companionTopic ? `
+制作人指定的交流内容：
+${actionContext.companionTopic}
+
+交流场景要求：
+- 前半段剧情必须围绕制作人指定的交流内容展开，不要擅自改成无关话题。
+- 选项必须是制作人对当前交流情境的四种不同回应方式，且应与指定内容相关。
+- 剧情前半部分在交流自然推进、进入需要制作人表态或做选择的时刻停下。
+` : "";
+
     const tierDescriptions = {
       20: "【完美回复/完美互动】：最契合你的隐藏心思或真实性格，展现出极强的默契，能让你感到非常受触动或心跳加速。",
       15: "【极佳回复/极佳互动】：优秀的互动回复，你感到非常开心，反应积极热切。",
@@ -2412,7 +2468,7 @@ ${actionStyle}
 
 ${buildProducerPromptSection()}
 
-${destinationPrompt}
+${destinationPrompt}${companionTopicPrompt}
 
 请为本次${actionName}生成【前半段剧情】并设计【4个互动分支选项】供制作人选择。
 ${action === "intimacy"
@@ -2726,6 +2782,9 @@ ${outputContract("请写一段 300 字以内的离开正文。")}`;
     const intimacyRule = action === "intimacy" && getIntimacyMode() !== "nsfw"
       ? "\n- 本次为普通亲密路线，只写温柔、安心、信任、撒娇、拥抱、牵手、摸头、靠肩等清水向内容。"
       : "";
+    const companionTopicLine = action === "companion" && actionContext.companionTopic
+      ? `\n- 本次交流由制作人指定主题为：「${actionContext.companionTopic}」。收尾应回扣这一主题，不要另起无关话题。`
+      : "";
     const dailySummarySection = actionContext.isDailyFinalAction
       ? `
 
@@ -2768,7 +2827,7 @@ ${outcomeLine}
 - 请以符合偶像性格的语调展开，根据选择的优劣档次表现出对应的反应。
 - 在本段剧情中完成事件的收束，结束当天的活动。
 - 限制在 600 字以内。
-${intimacyRule}
+${intimacyRule}${companionTopicLine}
 
 ${renderContract}`;
   }
@@ -6704,6 +6763,31 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     setElementHidden("outingOverlay", true);
   }
 
+  function openCompanionOverlay() {
+    document.getElementById("companionPhaseBadge").textContent = getPhase();
+    document.getElementById("companionTopicTextarea").value = "";
+    setElementHidden("companionOverlay", false);
+    document.getElementById("companionTopicTextarea").focus();
+  }
+
+  function closeCompanionOverlay() {
+    setElementHidden("companionOverlay", true);
+  }
+
+  function confirmCompanionTopic(topic) {
+    const companionTopic = String(topic || "").trim();
+    if (!companionTopic) {
+      showToast("还没有内容", "输入这次想与担当交流的话题或互动后再开始。", "warn");
+      return;
+    }
+    closeCompanionOverlay();
+    settleAction("companion", null, { companionTopic });
+  }
+
+  function submitCompanionTopic() {
+    confirmCompanionTopic(document.getElementById("companionTopicTextarea").value);
+  }
+
   const imeComposingInputs = {};
 
   function bindImeSafeTextInput(inputId, onSubmit) {
@@ -8708,7 +8792,8 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     const actionName = actionLabel(action, attribute);
     const resultText = formatDelta(delta);
     const locationText = action === "outing" && actionContext.destination ? `外出地点：${actionContext.destination}` : "";
-    const resultSummary = [locationText, resultText].filter(Boolean).join("，");
+    const companionText = action === "companion" && actionContext.companionTopic ? `交流主题：${actionContext.companionTopic}` : "";
+    const resultSummary = [locationText, companionText, resultText].filter(Boolean).join("，");
     
     state.log.unshift({ day: state.day, round: state.round, phase: getPhase(), action: actionName, result: resultSummary });
     state.log = state.log.slice(0, 24);
@@ -8843,7 +8928,8 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     const actionName = actionLabel(action, attribute);
     const resultText = formatDelta(delta);
     const locationText = action === "outing" && actionContext.destination ? `外出地点：${actionContext.destination}` : "";
-    const resultSummary = [locationText, resultText, ratingName].filter(Boolean).join("，");
+    const companionText = action === "companion" && actionContext.companionTopic ? `交流主题：${actionContext.companionTopic}` : "";
+    const resultSummary = [locationText, companionText, resultText, ratingName].filter(Boolean).join("，");
     state.log.unshift({ day: state.day, round: state.round, phase: getPhase(), action: actionName, result: resultSummary });
     state.log = state.log.slice(0, 24);
     
@@ -9310,6 +9396,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
           ["额外行动", "外出回复较多体力并增加信赖，交流增加更多信赖并回复少量体力；信赖 60 后可选择普通亲密，信赖 100 后解锁 NSFW 亲密。"],
           ["总结轮次", "完成四轮行动后进入。可查看今日总结，或通过左下角手机入口打开小手机，或进入下一天。"]
         ],
+        "育成选项": [],
         "制作人设定": [],
         "音频设置": [],
         "开发测试": []
@@ -9421,6 +9508,49 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     });
     const body = document.getElementById("modalBody");
     body.innerHTML = "";
+
+    if (activeModal === "system" && activeModalTab === "育成选项") {
+      const optionsPanel = document.createElement("div");
+      optionsPanel.className = "dev-panel-content";
+      optionsPanel.style.display = "flex";
+      optionsPanel.style.flexDirection = "column";
+      optionsPanel.style.gap = "14px";
+      optionsPanel.style.padding = "10px";
+      optionsPanel.style.width = "100%";
+      const skipLessonTrainingEnabled = isSkipLessonTrainingAiStoryEnabled();
+      optionsPanel.innerHTML = `
+        <style>
+          .produce-option-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 10px 0; border-bottom: 1px solid rgba(0, 0, 0, 0.05); }
+          .produce-option-row:last-child { border-bottom: none; }
+          .produce-option-label { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+          .produce-option-title { font-weight: bold; font-size: 15px; color: var(--ink); }
+          .produce-option-desc { font-size: 12px; color: var(--soft-ink); line-height: 1.5; }
+          .produce-option-toggle { padding: 8px 16px; font-size: 13px; font-weight: bold; border-radius: 8px; border: 2px solid rgba(0,0,0,0.1); background: #fff; color: var(--ink); cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+          .produce-option-toggle.active { background: var(--pink); color: #fff; border-color: var(--pink); }
+        </style>
+        <div class="produce-option-row">
+          <div class="produce-option-label">
+            <span class="produce-option-title">上课与训练跳过 AI 叙事</span>
+            <span class="produce-option-desc">开启后，上课与训练仍会正常结算数值并推进轮次，但不再打开事件界面，也不会向 SillyTavern 发送叙事提示词。</span>
+          </div>
+          <button id="skipLessonTrainingAiToggleBtn" type="button" class="produce-option-toggle ${skipLessonTrainingEnabled ? "active" : ""}">${skipLessonTrainingEnabled ? "已开启" : "已关闭"}</button>
+        </div>
+      `;
+      body.appendChild(optionsPanel);
+      document.getElementById("skipLessonTrainingAiToggleBtn")?.addEventListener("click", () => {
+        state.produceOptions.skipLessonTrainingAiStory = !isSkipLessonTrainingAiStoryEnabled();
+        saveState();
+        showToast(
+          state.produceOptions.skipLessonTrainingAiStory ? "已开启" : "已关闭",
+          state.produceOptions.skipLessonTrainingAiStory
+            ? "上课与训练将直接结算并进入下一轮，不再等待 AI 叙事。"
+            : "上课与训练恢复为正常 AI 叙事流程。",
+          "info"
+        );
+        renderModal();
+      });
+      return;
+    }
 
     if (activeModal === "system" && activeModalTab === "制作人设定") {
       const prodPanel = document.createElement("div");
@@ -9711,6 +9841,10 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       openOutingOverlay();
       return;
     }
+    if (button.dataset.action === "companion") {
+      openCompanionOverlay();
+      return;
+    }
     if (button.dataset.action === "intimacy") {
       openIntimacyOverlay();
       return;
@@ -9969,6 +10103,17 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   document.getElementById("outingOverlay").addEventListener("click", (event) => {
     if (event.target.id === "outingOverlay") closeOutingOverlay();
   });
+  document.getElementById("companionCancelBtn").addEventListener("click", closeCompanionOverlay);
+  document.getElementById("companionConfirmBtn").addEventListener("click", submitCompanionTopic);
+  document.getElementById("companionTopicTextarea").addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      submitCompanionTopic();
+    }
+  });
+  document.getElementById("companionOverlay").addEventListener("click", (event) => {
+    if (event.target.id === "companionOverlay") closeCompanionOverlay();
+  });
   document.getElementById("intimacyCancelBtn").addEventListener("click", closeIntimacyOverlay);
   document.getElementById("intimacyNormalBtn").addEventListener("click", () => confirmIntimacyMode("normal"));
   document.getElementById("intimacyNsfwBtn").addEventListener("click", () => confirmIntimacyMode("nsfw"));
@@ -10095,6 +10240,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       closeFreeChatOverlay();
       closeInteractionOverlay();
       closeOutingOverlay();
+      closeCompanionOverlay();
       if (activeModal) closeModal();
       closeNotebook();
     }
