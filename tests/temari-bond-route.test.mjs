@@ -192,10 +192,10 @@ test("Hiro has dedicated two-choice bond route seeds", () => {
   assert.match(routes[60].resolution, /常规训练/);
   assert.match(routes[80].canonAnchor, /明天开演唱会/);
 
-  const seeds = readObjectLiteral("affinityRouteSeeds")["篠泽广"];
+  const seeds = readObjectLiteral("affinityRouteSeeds")["筱泽广"];
   assert.match(seeds[0], /最不适合我的/);
   assert.match(seeds[100], /从今往后，每天都要在一起哦/);
 
   const routeSelector = readFunction("specialBondRoutesFor");
-  assert.match(routeSelector, /idolName === "篠泽广"[\s\S]*hiroBondRoutes/);
+  assert.match(routeSelector, /idolName === "筱泽广"[\s\S]*hiroBondRoutes/);
 });

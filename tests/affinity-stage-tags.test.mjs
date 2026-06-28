@@ -57,7 +57,7 @@ test("all playable idols have stable affinity tag codes", () => {
     "月村手毬": "TEMARI",
     "花海咲季": "SAKI",
     "花海祐芽": "UME",
-    "篠泽广": "HIRO",
+    "筱泽广": "HIRO",
     "十王星南": "SENA",
     "秦谷美铃": "MISUZU",
     "仓本千奈": "CHINA",

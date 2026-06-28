@@ -99,7 +99,8 @@ test("summary round UI and placeholder overlays are wired in the frontend", () =
   assert.match(html, /id="phoneLaunchBtn"/);
   assert.match(source, /function getIdolSchoolClass\(/);
   assert.match(source, /"藤田琴音": "1年1班"/);
-  assert.match(source, /"篠泽广": "1年2班"/);
+  assert.match(source, /"筱泽广": "1年2班"/);
+  assert.match(source, /"篠泽广": "筱泽广"/);
   assert.match(source, /"十王星南": "3年1班"/);
   assert.match(source, /"雨夜燕": "3年1班"/);
   assert.match(source, /function getDaySummaryDisplayLines\(/);
