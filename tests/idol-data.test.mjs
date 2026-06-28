@@ -140,3 +140,8 @@ test("葛城莉莉娅 uses concise worldbook-aligned affinity seeds", () => {
     100: "深层信赖：制作人是引导她走出黑暗的人。"
   });
 });
+
+test("雨夜燕 has a configured live video file", () => {
+  const idolVideoFiles = readObjectLiteral("idolVideoFiles");
+  assert.equal(idolVideoFiles["雨夜燕"], "amaya-tsubame-live.mp4");
+});

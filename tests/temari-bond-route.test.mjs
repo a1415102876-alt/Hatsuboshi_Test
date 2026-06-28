@@ -79,6 +79,7 @@ function makePromptBuilder() {
     },
     affinityNodes: readObjectLiteral("affinityNodes"),
     affinityRouteSeeds: readObjectLiteral("affinityRouteSeeds"),
+    hiroBondRoutes: readObjectLiteral("hiroBondRoutes"),
     seinaBondRoutes: readObjectLiteral("seinaBondRoutes"),
     kotoneBondRoutes: readObjectLiteral("kotoneBondRoutes"),
     temariBondRoutes: readObjectLiteral("temariBondRoutes"),
@@ -156,6 +157,12 @@ test("Amaya has dedicated two-choice bond route seeds", () => {
   assert.match(routes[60].resolution, /你要支撑着我/);
   assert.match(routes[80].canonAnchor, /战胜星南/);
 
+  const seeds = readObjectLiteral("affinityRouteSeeds")["雨夜燕"];
+  assert.match(seeds[80], /必须赢的门口/);
+  assert.doesNotMatch(seeds[80], /登台战胜星南夺第一/);
+  assert.match(seeds[100], /试镜上燕登台战胜星南夺第一/);
+  assert.match(seeds[100], /Live后的坦荡感谢与依赖/);
+
   const routeSelector = readFunction("specialBondRoutesFor");
   assert.match(routeSelector, /idolName === "雨夜燕"[\s\S]*amayaBondRoutes/);
 });
@@ -175,4 +182,20 @@ test("Seina has dedicated two-choice bond route seeds", () => {
 
   const routeSelector = readFunction("specialBondRoutesFor");
   assert.match(routeSelector, /idolName === "十王星南"[\s\S]*seinaBondRoutes/);
+});
+
+test("Hiro has dedicated two-choice bond route seeds", () => {
+  const routes = readObjectLiteral("hiroBondRoutes");
+  assert.deepEqual(Object.keys(routes).map(Number), [20, 40, 60, 80]);
+  assert.match(routes[20].canonAnchor, /HP1/);
+  assert.match(routes[40].objective, /兴趣/);
+  assert.match(routes[60].resolution, /常规训练/);
+  assert.match(routes[80].canonAnchor, /明天开演唱会/);
+
+  const seeds = readObjectLiteral("affinityRouteSeeds")["篠泽广"];
+  assert.match(seeds[0], /最不适合我的/);
+  assert.match(seeds[100], /从今往后，每天都要在一起哦/);
+
+  const routeSelector = readFunction("specialBondRoutesFor");
+  assert.match(routeSelector, /idolName === "篠泽广"[\s\S]*hiroBondRoutes/);
 });
