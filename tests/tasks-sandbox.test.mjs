@@ -25,6 +25,11 @@ function loadHatsuTasks() {
   return sandbox.globalThis.HatsuTasks;
 }
 
+function finishScoutFlow(HatsuTasks, state) {
+  HatsuTasks.onScoutInviteComplete(state);
+  HatsuTasks.completeScoutTemariOnLocationTalk(state);
+}
+
 function loadSideQuestPool() {
   const sandbox = { globalThis: {}, console };
   sandbox.globalThis = sandbox;
@@ -56,11 +61,22 @@ test("sandbox tasks module defines scout and temari personal quests", () => {
   assert.equal(state.tasks.main.temari_main_03.status, "locked");
 });
 
-test("scout invite complete unlocks parallel personal main quests", () => {
+test("scout invite complete activates scout quest without auto-completing it", () => {
   const HatsuTasks = loadHatsuTasks();
   const state = baseSandboxState();
   HatsuTasks.ensureTasksShape(state);
   const completed = HatsuTasks.onScoutInviteComplete(state);
+  assert.equal(completed.length, 0);
+  assert.equal(state.tasks.main.scout_temari.status, "active");
+  assert.equal(state.tasks.main.temari_main_01.status, "locked");
+});
+
+test("scout location talk completes scout and unlocks personal main quests", () => {
+  const HatsuTasks = loadHatsuTasks();
+  const state = baseSandboxState();
+  HatsuTasks.ensureTasksShape(state);
+  HatsuTasks.onScoutInviteComplete(state);
+  const completed = HatsuTasks.completeScoutTemariOnLocationTalk(state);
   assert.equal(completed.length, 1);
   assert.equal(completed[0], "scout_temari");
   assert.equal(state.tasks.main.scout_temari.status, "completed");
@@ -74,7 +90,8 @@ test("scout invite complete unlocks parallel personal main quests", () => {
 test("parses quest completion tags from AI reply", () => {
   const HatsuTasks = loadHatsuTasks();
   const state = baseSandboxState();
-  HatsuTasks.onScoutInviteComplete(state);
+  finishScoutFlow(HatsuTasks, state);
+  HatsuTasks.completeScoutTemariOnLocationTalk(state);
   const text = "【初星正文开始】<story><narration>和好。</narration></story>【初星任务完成】temari_main_02【初星正文结束】";
   const completed = HatsuTasks.applyQuestCompletionsFromReply(state, text);
   assert.equal(completed.length, 1);
@@ -85,7 +102,7 @@ test("parses quest completion tags from AI reply", () => {
 test("temari main 01 completes on stamina vo and outstage flag", () => {
   const HatsuTasks = loadHatsuTasks();
   const state = baseSandboxState();
-  HatsuTasks.onScoutInviteComplete(state);
+  finishScoutFlow(HatsuTasks, state);
   state.stamina = 90;
   state.Vo = 165;
   state.tasks.main.temari_main_01.flags.outstage_full_song = true;
@@ -97,7 +114,7 @@ test("temari main 01 completes on stamina vo and outstage flag", () => {
 test("temari main 03 completes on vi stress diet flags", () => {
   const HatsuTasks = loadHatsuTasks();
   const state = baseSandboxState();
-  HatsuTasks.onScoutInviteComplete(state);
+  finishScoutFlow(HatsuTasks, state);
   state.Vi = 120;
   state.stress = 20;
   state.tasks.main.temari_main_03.flags.diet_plan_active = true;
@@ -111,7 +128,7 @@ test("campus daily limit tracks lesson and training in sandbox", () => {
   const HatsuTasks = loadHatsuTasks();
   const state = baseSandboxState();
   state.freeMode = { postLiveDay: 2, clockMinutes: 480 };
-  HatsuTasks.onScoutInviteComplete(state);
+  finishScoutFlow(HatsuTasks, state);
 
   assert.equal(HatsuTasks.getCampusRemaining(state), 3);
   const first = HatsuTasks.recordCampusAction(state, { kind: "lesson", locationId: "idol_classroom", minutes: 60 });
@@ -133,7 +150,7 @@ test("campus counter resets when postLiveDay changes", () => {
   const HatsuTasks = loadHatsuTasks();
   const state = baseSandboxState();
   state.freeMode = { postLiveDay: 1, clockMinutes: 480 };
-  HatsuTasks.onScoutInviteComplete(state);
+  finishScoutFlow(HatsuTasks, state);
   HatsuTasks.recordCampusAction(state, { kind: "lesson", locationId: "idol_classroom", minutes: 60 });
   HatsuTasks.recordCampusAction(state, { kind: "lesson", locationId: "idol_classroom", minutes: 60 });
   assert.equal(HatsuTasks.getCampusRemaining(state), 1);
@@ -188,7 +205,7 @@ test("side quests refresh when postLiveDay changes", () => {
   const HatsuTasks = loadHatsuTasks();
   const state = baseSandboxState();
   state.freeMode = { postLiveDay: 1, clockMinutes: 480 };
-  HatsuTasks.onScoutInviteComplete(state);
+  finishScoutFlow(HatsuTasks, state);
   HatsuTasks.syncSideQuestDay(state);
   const firstIds = state.tasks.side.slots.map((slot) => slot.poolId);
 
@@ -204,7 +221,7 @@ test("side quest fail tier still grants consolation money", () => {
   const HatsuTasks = loadHatsuTasks();
   const state = baseSandboxState();
   state.freeMode = { postLiveDay: 1, clockMinutes: 480 };
-  HatsuTasks.onScoutInviteComplete(state);
+  finishScoutFlow(HatsuTasks, state);
   HatsuTasks.syncSideQuestDay(state);
   const result = HatsuTasks.applySideQuestTier(state, 0, "fail");
   assert.equal(result.ok, true);
@@ -218,7 +235,7 @@ test("diet side quest pass tier records healthy meal for main quest 03", () => {
   const HatsuTasks = loadHatsuTasks();
   const state = baseSandboxState();
   state.freeMode = { postLiveDay: 1, clockMinutes: 480 };
-  HatsuTasks.onScoutInviteComplete(state);
+  finishScoutFlow(HatsuTasks, state);
   HatsuTasks.syncSideQuestDay(state);
   const dietSlotIndex = state.tasks.side.slots.findIndex((slot) => slot.tag === "diet");
   assert.notEqual(dietSlotIndex, -1);
@@ -231,7 +248,7 @@ test("diet side quest pass tier records healthy meal for main quest 03", () => {
 test("map choice at dining hall can activate diet plan and healthy meal hooks", () => {
   const HatsuTasks = loadHatsuTasks();
   const state = baseSandboxState();
-  HatsuTasks.onScoutInviteComplete(state);
+  finishScoutFlow(HatsuTasks, state);
 
   const dietPlan = HatsuTasks.processSandboxMainQuestMapChoice(state, "dining_hall", "和营养师一起制定饮食方案");
   assert.ok(dietPlan.notices.includes("已制定饮食方案"));
@@ -245,7 +262,7 @@ test("map choice at dining hall can activate diet plan and healthy meal hooks", 
 test("map choice at outstage with sing keywords marks full song flag", () => {
   const HatsuTasks = loadHatsuTasks();
   const state = baseSandboxState();
-  HatsuTasks.onScoutInviteComplete(state);
+  finishScoutFlow(HatsuTasks, state);
 
   const result = HatsuTasks.processSandboxMainQuestMapChoice(state, "outstage", "让手毬试唱完整一首");
   assert.ok(result.notices.includes("已记录野外舞台完整试唱"));
@@ -255,7 +272,7 @@ test("map choice at outstage with sing keywords marks full song flag", () => {
 test("parses quest flag tags from AI reply", () => {
   const HatsuTasks = loadHatsuTasks();
   const state = baseSandboxState();
-  HatsuTasks.onScoutInviteComplete(state);
+  finishScoutFlow(HatsuTasks, state);
   const text = "正文【初星任务标记】diet_plan_active【初星正文结束】";
   const result = HatsuTasks.applyQuestFlagsFromReply(state, text);
   assert.ok(result.notices.includes("已制定饮食方案"));
@@ -266,7 +283,7 @@ test("sandbox main quest prompt mentions SyngUp at dining hall for main 02", () 
   const HatsuTasks = loadHatsuTasks();
   const state = baseSandboxState();
   state.sandbox = { openingComplete: true, inviteComplete: true };
-  HatsuTasks.onScoutInviteComplete(state);
+  finishScoutFlow(HatsuTasks, state);
   const block = HatsuTasks.buildSandboxMainQuestPromptBlock(state, "dining_hall");
   assert.match(block, /SyngUp/);
   assert.match(block, /秦谷美铃/);
@@ -275,7 +292,7 @@ test("sandbox main quest prompt mentions SyngUp at dining hall for main 02", () 
 test("main quest progress hints reference GKMS episodes", () => {
   const HatsuTasks = loadHatsuTasks();
   const state = baseSandboxState();
-  HatsuTasks.onScoutInviteComplete(state);
+  finishScoutFlow(HatsuTasks, state);
   const snapshot = HatsuTasks.getTaskPanelSnapshot(state);
   const main01 = snapshot.main.find((item) => item.id === "temari_main_01");
   const main02 = snapshot.main.find((item) => item.id === "temari_main_02");

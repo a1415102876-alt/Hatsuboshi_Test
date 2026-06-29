@@ -474,11 +474,21 @@ ${dietLine}
   function onScoutInviteComplete(state) {
     if (!isSandboxTasksActive(state)) return [];
     ensureTasksShape(state);
-    const completed = [];
+    activateScoutQuest(state);
+    return [];
+  }
+
+  function completeScoutTemariOnLocationTalk(state) {
+    if (!isSandboxTasksActive(state)) return [];
+    ensureTasksShape(state);
     const scout = state.tasks.main.scout_temari;
-    if (scout.status === "locked") scout.status = "active";
+    if (!scout || scout.status !== "active") return [];
+    const completed = [];
     if (completeMainQuest(state, "scout_temari")) completed.push("scout_temari");
-    activateTemariPersonalQuests(state);
+    if (completed.length) {
+      if (!state.tasks.baseline) captureBaseline(state);
+      activateTemariPersonalQuests(state);
+    }
     return completed;
   }
 
@@ -486,9 +496,6 @@ ${dietLine}
     if (!isSandboxTasksActive(state)) return [];
     ensureTasksShape(state);
     const completed = [];
-    if (state.sandbox?.inviteComplete && state.tasks.main.scout_temari.status !== "completed") {
-      completed.push(...onScoutInviteComplete(state));
-    }
     if (state.sandbox?.openingComplete && !state.sandbox?.inviteComplete) {
       activateScoutQuest(state);
     }
@@ -780,7 +787,7 @@ ${dietLine}
       return `参考 GKMS 1～3 话：饮食与体态 · Vi ${state.Vi}/${baseline.Vi + THRESHOLDS.temari_main_03.viGain} · 压力 ≤${THRESHOLDS.temari_main_03.stressMax} · 饮食方案 ${quest.flags.diet_plan_active ? "已制定" : "未制定"} · 健康餐 ${quest.flags.healthy_meal_count}/${THRESHOLDS.temari_main_03.healthyMealsMin}`;
     }
     if (id === "scout_temari") {
-      return "完成出发邀请剧情并进入学园地图";
+      return "在物色目标所在地点发起搭话并完成首次接触";
     }
     return "";
   }
@@ -868,6 +875,7 @@ ${dietLine}
     applySideQuestTier,
     activateScoutQuest,
     onScoutInviteComplete,
+    completeScoutTemariOnLocationTalk,
     syncSandboxQuestProgress,
     parseQuestCompletionsFromText,
     parseQuestFlagsFromText,

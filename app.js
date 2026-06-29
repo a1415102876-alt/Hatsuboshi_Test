@@ -1270,7 +1270,7 @@
         cast_first_live: {},
         kotone_seina_proxy: "pending",
         school_events: [],
-        broadcast: { today: null, history: [], pendingRequestId: "", autoFullScript: true },
+        broadcast: { today: null, history: [], pendingRequestId: "", autoFullScript: false },
         buzz: { items: [], buzzDayKey: "", hotTopic: "" }
       }
     },
@@ -1783,7 +1783,7 @@
       }
     };
     if (state.freeMode.world.broadcast.autoFullScript === undefined) {
-      state.freeMode.world.broadcast.autoFullScript = true;
+      state.freeMode.world.broadcast.autoFullScript = false;
     }
     if (state.freeMode.world.broadcast.pendingRequestId) {
       state.freeMode.world.broadcast.pendingRequestId = "";
@@ -2447,6 +2447,7 @@
 
   function canOpenHybridFacilityAt(locationId) {
     if (!isHybridCampusMode()) return false;
+    if (isSandboxScoutTalkAvailable(locationId)) return false;
     const facilityKind = getHybridFacilityKind(locationId);
     if (!facilityKind) return false;
     if (isSandboxScoutActive() && !state.sandbox?.inviteComplete) return false;
@@ -2523,7 +2524,6 @@
     } else {
       rollFreeModePresenceLegacy(true);
     }
-    maybeAutoRequestBroadcastFullScript("daily_tick");
   }
 
   function daysLeft() {
@@ -4740,8 +4740,8 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   }
 
   function isPhoneWorldFeedUnlocked() {
-    if (shouldShowLaunchStage()) return false;
-    return Boolean(state.launchMode || state.idol);
+    if (shouldShowLaunchStage() || shouldShowSelectionStage()) return false;
+    return Boolean(state.idol);
   }
 
   function getWorldFeedDayKey(sourceState = state) {
@@ -4815,6 +4815,13 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   function getSandboxScoutTargetAtLocation(locationId) {
     const entries = globalThis.HatsuWorld?.campusBehavior?.getInteractableIdolsAtLocation?.(locationId, state) || [];
     return entries[0]?.idolName || "";
+  }
+
+  function isSandboxScoutTalkAvailable(locationId) {
+    if (!isSandboxLaunch() || !isSandboxScoutActive()) return false;
+    const scoutStatus = state.tasks?.main?.scout_temari?.status;
+    if (scoutStatus !== "active") return false;
+    return Boolean(getSandboxScoutTargetAtLocation(locationId));
   }
 
   function isProduceLaunch() {
@@ -5466,6 +5473,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     const prompt = getMapExplorePrompt(locationId, { visitMode: normalizedVisitMode });
     state.lastPrompt = prompt;
     const scoutActive = isSandboxScoutActive();
+    const scoutTalkHere = isSandboxScoutTalkAvailable(locationId);
     const visitLabel = scoutActive
       ? "独自物色"
       : normalizedVisitMode === "alone"
@@ -5486,8 +5494,15 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     if (arrivalResult.hitDayEnd) {
       showToast("今日活动结束", "抵达后时间已到 22:00，请尽快返回大地图。", "info");
     }
-    const overlayTitle = scoutActive ? `${exploreLabel} · 物色搭话` : `${exploreLabel} · 探索`;
+    const overlayTitle = scoutTalkHere ? `${exploreLabel} · 物色搭话` : scoutActive ? `${exploreLabel} · 物色搭话` : `${exploreLabel} · 探索`;
     openEventOverlay(overlayTitle, "正在等待 AI 生成本次行动选项", buildAiWaitingStory(`正在等待 ${exploreLabel} 的场景与选项生成...`));
+    if (scoutTalkHere) {
+      const scoutCompleted = globalThis.HatsuTasks?.completeScoutTemariOnLocationTalk?.(state) || [];
+      if (scoutCompleted.length) {
+        saveState();
+        notifyQuestCompletions(scoutCompleted);
+      }
+    }
     if (!requestHostPromptSend(prompt, requestId)) {
       openAiPromptOverlay("当前页面未连接 SillyTavern。请编辑或复制地点探索提示词后手动发送。");
     }
@@ -6166,7 +6181,8 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
 
   function updateMapLocationEntryActions(locationId) {
     const facilityKind = canOpenHybridFacilityAt(locationId) ? getHybridFacilityKind(locationId) : null;
-    const scoutActive = isSandboxScoutActive() && !state.sandbox?.inviteComplete;
+    const scoutTalkHere = isSandboxScoutTalkAvailable(locationId);
+    const scoutActive = isSandboxScoutActive() && scoutTalkHere;
     const scoutTargetHere = scoutActive ? getSandboxScoutTargetAtLocation(locationId) : "";
     const campusExhausted = isSandboxCampusExhausted();
     const enterWithIdolBtn = document.getElementById("mapLocationEnterWithIdolBtn");
@@ -6283,7 +6299,8 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   function confirmMapLocationEntry(visitMode = "with_idol") {
     const locationId = document.getElementById("mapLocationOverlay")?.getAttribute("data-location-id");
     if (!locationId) return;
-    if (isSandboxScoutActive() && !state.sandbox?.inviteComplete) {
+    const scoutTalkHere = isSandboxScoutTalkAvailable(locationId);
+    if (scoutTalkHere) {
       const targetHere = getSandboxScoutTargetAtLocation(locationId);
       if (!targetHere) {
         showToast("目标不在这里", `${state.idol || "物色目标"} 今天不在这处地点，请到地图其他位置寻找。`, "warn");
@@ -7558,6 +7575,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
 
   function maybeAutoRequestBroadcastFullScript(reason = "auto") {
     if (!isPhoneWorldFeedUnlocked() || !isBroadcastAutoFullScriptEnabled()) return false;
+    if (isSandboxLaunch() && state.tasks?.main?.scout_temari?.status === "active") return false;
     syncBroadcastLoadingState();
     const episode = state.freeMode?.world?.broadcast?.today;
     if (!episode || episode.fullScript || broadcastScriptLoading || episode.scriptStatus === "generating") {
