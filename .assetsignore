@@ -16,6 +16,9 @@ extract-embedded-covers.cjs
 generate-playlist.cjs
 music-player-prototype.html
 playlist-data.js
+worker.js
+wrangler.toml
+_headers
 
 # 测试与文档（可选，减小上传体积）
 tests

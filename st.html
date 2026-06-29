@@ -21,15 +21,21 @@
   window.addEventListener('resize', updateHatsuViewportHeight);
   
   function resolveAssetBase() {
+    const override = String(window.HATSU_ASSET_BASE || "").trim();
+    if (override) {
+      return override.endsWith("/") ? override : `${override}/`;
+    }
     try {
       const pageUrl = new URL(window.location.href);
       if (pageUrl.protocol === "file:") {
         return new URL("./", pageUrl).href;
       }
       if (pageUrl.protocol === "http:" || pageUrl.protocol === "https:") {
-        if (!/hatsuboshi\.vercel\.app$/i.test(pageUrl.hostname)) {
+        const host = pageUrl.hostname;
+        if (/hatsuboshi\.vercel\.app$/i.test(host) || /\.workers\.dev$/i.test(host)) {
           return new URL("./", pageUrl).href;
         }
+        return new URL("./", pageUrl).href;
       }
     } catch (e) {
       console.warn("[Hatsu ST Loader] resolveAssetBase failed:", e);
