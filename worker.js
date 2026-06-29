@@ -15,12 +15,36 @@ function withCors(response) {
   });
 }
 
+function injectStHtmlAssetBase(html, origin) {
+  const base = origin.endsWith("/") ? origin : `${origin}/`;
+  const inject = `window.HATSU_ASSET_BASE = "${base}";`;
+  if (html.includes("window.HATSU_ASSET_BASE")) return html;
+  return html.replace(
+    "window.isHatsuLoaderST = true;",
+    `window.isHatsuLoaderST = true;\n  ${inject}`
+  );
+}
+
 export default {
   async fetch(request, env) {
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
-    const response = await env.ASSETS.fetch(request);
+    const url = new URL(request.url);
+    let response = await env.ASSETS.fetch(request);
+    const pathname = url.pathname.replace(/\/+$/, "") || "/";
+    const isStHtml = pathname.endsWith("/st.html") || pathname.endsWith("/st2.html");
+    if (isStHtml && response.ok) {
+      const contentType = response.headers.get("content-type") || "";
+      if (contentType.includes("html")) {
+        const html = injectStHtmlAssetBase(await response.text(), url.origin);
+        response = new Response(html, {
+          status: response.status,
+          statusText: response.statusText,
+          headers: response.headers
+        });
+      }
+    }
     return withCors(response);
   }
 };

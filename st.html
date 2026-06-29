@@ -45,11 +45,47 @@
 
   async function probeAssetBase(base) {
     try {
-      const res = await fetch(new URL("index.html", base), { cache: "no-store", method: "HEAD" });
-      return res.ok;
+      const url = new URL("index.html", base);
+      const res = await fetch(url, { cache: "no-store", method: "HEAD" });
+      if (res.ok) return true;
+      const getRes = await fetch(url, { cache: "no-store", method: "GET" });
+      return getRes.ok;
     } catch (e) {
       return false;
     }
+  }
+
+  function isHostedAssetPage() {
+    try {
+      const host = window.location.hostname;
+      return /hatsuboshi\.vercel\.app$/i.test(host) || /\.workers\.dev$/i.test(host);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  async function pickAssetBase() {
+    const normalize = (base) => base.endsWith("/") ? base : `${base}/`;
+    const override = String(window.HATSU_ASSET_BASE || "").trim();
+    const localEmbed = Boolean(window.isHatsuLoaderST) && !isHostedAssetPage();
+    if (override) {
+      const base = normalize(override);
+      if (await probeAssetBase(base)) return base;
+    }
+    if (isHostedAssetPage()) {
+      const base = resolveAssetBase();
+      if (base && await probeAssetBase(base)) return base;
+    }
+    if (!localEmbed) {
+      const base = resolveAssetBase();
+      if (base && await probeAssetBase(base)) return base;
+      const fallback = "https://hatsuboshi.vercel.app/";
+      if (override !== fallback && await probeAssetBase(fallback)) {
+        console.warn("[Hatsu ST Loader] 本地资源不可用，回退到 CDN：", fallback);
+        return fallback;
+      }
+    }
+    return null;
   }
 
   if (window.location.protocol === 'file:') {
@@ -57,17 +93,12 @@
     return;
   }
 
-  let BASE = resolveAssetBase();
-  if (!(await probeAssetBase(BASE))) {
-    const fallback = 'https://hatsuboshi.vercel.app/';
-    const canUseCdn = window.location.protocol === 'http:' || window.location.protocol === 'https:';
-    if (canUseCdn && BASE !== fallback && (await probeAssetBase(fallback))) {
-      console.warn('[Hatsu ST Loader] 本地资源不可用，回退到 CDN：', fallback);
-      BASE = fallback;
-    } else {
-      showError(new Error('无法加载本地 index.html。请确认 SillyTavern 已启动，并访问 http://127.0.0.1:8000/hatsu-produce-local/st.html'));
-      return;
-    }
+  const BASE = await pickAssetBase();
+  if (!BASE) {
+    showError(new Error(
+      "无法确定资源地址。酒馆内 $.load(st.html) 时请设置 window.HATSU_ASSET_BASE 为 Workers 地址，或改用 iframe。"
+    ));
+    return;
   }
   console.log('[Hatsu ST Loader] BASE =', BASE);
 
