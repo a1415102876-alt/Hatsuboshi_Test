@@ -25,6 +25,11 @@ test("worker injects asset base via marker, not a loose includes check", () => {
   assert.doesNotMatch(workerSource, /includes\("window\.HATSU_ASSET_BASE"\)/);
 });
 
+test("st.html embed loader falls back to known Workers asset base", () => {
+  assert.match(stSource, /hatsuboshitest\.a1415102876\.workers\.dev/);
+  assert.match(stSource, /酒馆内嵌使用默认资源根/);
+});
+
 test("injectStHtmlAssetBase sets HATSU_ASSET_BASE and data-asset-base", () => {
   const origin = "https://hatsuboshitest.a1415102876.workers.dev";
   const injected = injectStHtmlAssetBase(stSource, origin);

@@ -104,6 +104,19 @@
         return fallback;
       }
     }
+    if (localEmbed) {
+      const knownBases = ["https://hatsuboshitest.a1415102876.workers.dev/"];
+      for (const candidate of knownBases) {
+        const base = normalize(candidate);
+        if (await probeAssetBase(base)) {
+          console.warn("[Hatsu ST Loader] 酒馆内嵌使用已知资源根：", base);
+          return base;
+        }
+      }
+      const fallback = normalize(knownBases[0]);
+      console.warn("[Hatsu ST Loader] 酒馆内嵌使用默认资源根：", fallback);
+      return fallback;
+    }
     return null;
   }
 
