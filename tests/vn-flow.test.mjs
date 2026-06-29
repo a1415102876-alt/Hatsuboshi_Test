@@ -500,9 +500,13 @@ test("malformed choice fallback clears pending generation state", () => {
 });
 
 test("choice parser accepts story and option tags without an end marker", () => {
-  const extractChoicePayload = vm.runInNewContext(`(${readFunction("extractChoicePayload")})`, {
+  const sandbox = {
     cleanReplyText: (value) => String(value || "").replace(/<[^>]+>/g, "").trim()
-  });
+  };
+  vm.runInNewContext(`
+${readFunction("stripAiThinkingBlocks")}
+${readFunction("extractChoicePayload")}
+`, sandbox);
   const source = `【初星正文开始】
 <story>
 <narration>星南问制作人。</narration>
@@ -513,7 +517,7 @@ test("choice parser accepts story and option tags without an end marker", () => 
 <option3>“您缺的是允许自己不完美。”</option3>
 <option4>“您缺少的是让自己笨拙的勇气。”</option4>`;
 
-  const payload = extractChoicePayload(source);
+  const payload = sandbox.extractChoicePayload(source);
 
   assert.equal(payload.options.length, 4);
   assert.equal(payload.options[2], "“您缺的是允许自己不完美。”");
@@ -521,9 +525,13 @@ test("choice parser accepts story and option tags without an end marker", () => 
 });
 
 test("choice parser accepts multiline story and option tags from outing replies", () => {
-  const extractChoicePayload = vm.runInNewContext(`(${readFunction("extractChoicePayload")})`, {
+  const sandbox = {
     cleanReplyText: (value) => String(value || "").replace(/<[^>]+>/g, "").trim()
-  });
+  };
+  vm.runInNewContext(`
+${readFunction("stripAiThinkingBlocks")}
+${readFunction("extractChoicePayload")}
+`, sandbox);
   const source = `【初星正文开始】
 <story>
 <narration>游乐园入口广场的彩色气球在下午四点的风里左右摇晃。</narration>
@@ -536,7 +544,7 @@ test("choice parser accepts multiline story and option tags from outing replies"
 <option4>“48不是软弱的数字。”</option4>
 【初星正文结束】`;
 
-  const payload = extractChoicePayload(source);
+  const payload = sandbox.extractChoicePayload(source);
 
   assert.match(payload.story, /游乐园入口广场/);
   assert.equal(payload.options.length, 4);
@@ -545,14 +553,18 @@ test("choice parser accepts multiline story and option tags from outing replies"
 });
 
 test("choice parser recovers options when custom tags are stripped into plain text", () => {
-  const extractChoicePayload = vm.runInNewContext(`(${readFunction("extractChoicePayload")})`, {
+  const sandbox = {
     cleanReplyText: (value) => String(value || "").replace(/<[^>]+>/g, "").trim()
-  });
+  };
+  vm.runInNewContext(`
+${readFunction("stripAiThinkingBlocks")}
+${readFunction("extractChoicePayload")}
+`, sandbox);
   const source = `【初星正文开始】
 星南问制作人：“我缺少了什么？”
 “先休息一下吧。”“您已经足够完美了。”“您缺的是允许自己不完美。”“您缺少的是让自己笨拙的勇气。”`;
 
-  const payload = extractChoicePayload(source);
+  const payload = sandbox.extractChoicePayload(source);
 
   assert.equal(payload.options.length, 4);
   assert.equal(payload.options[0], "“先休息一下吧。”");

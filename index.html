@@ -38,6 +38,8 @@
     <symbol id="icon-shuffle" viewBox="0 0 24 24"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="M4 4l5 5"/></symbol>
     <symbol id="icon-repeat" viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></symbol>
     <symbol id="icon-dots" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></symbol>
+    <symbol id="icon-repost" viewBox="0 0 24 24"><path d="M4 6h10l-2-2M20 18H10l2 2M4 6l3 3M4 6v3M20 18l-3-3M20 18v-3"/></symbol>
+    <symbol id="icon-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.6-6.3"/><path d="M21 3v6h-6"/></symbol>
     <symbol id="icon-home" viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/></symbol>
   </svg>
 
@@ -64,7 +66,27 @@
   </div>
 
   <main class="produce-app">
-    <section class="select-screen" id="selectionStage" aria-labelledby="selectTitle">
+    <section class="launch-screen" id="launchStage" aria-label="选择游戏模式">
+      <div class="launch-visual">
+        <p class="ui-kicker">Hatsuboshi Gakuen</p>
+        <h1 id="launchTitle">初星学园</h1>
+        <p id="launchDesc">请选择本次游玩模式。育成模式走经典 22 天日程；沙盒模式从学园大地图开始自由行动。</p>
+      </div>
+      <div class="launch-mode-list" role="list">
+        <button id="launchProduceBtn" class="launch-mode-card" type="button" role="listitem">
+          <span class="launch-mode-kicker">Produce</span>
+          <strong>育成模式</strong>
+          <span class="launch-mode-desc">22 天 First Live 经典育成。选择担当、签署合约、完成开场剧情后进入日程推进。</span>
+        </button>
+        <button id="launchSandboxBtn" class="launch-mode-card is-sandbox" type="button" role="listitem">
+          <span class="launch-mode-kicker">Sandbox</span>
+          <strong>沙盒模式</strong>
+          <span class="launch-mode-desc">亚纱里老师开学指引后，物色担当并进入学园大地图。教学楼上课、体育馆训练，地图时间按小时推进。</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="select-screen is-hidden" id="selectionStage" aria-labelledby="selectTitle">
       <div class="select-visual">
         <div class="select-visual-bg" id="selectVisualBg"></div>
         <p class="ui-kicker" id="selectKicker">Hatsuboshi Produce</p>
@@ -75,6 +97,9 @@
           <span>1 次额外行动</span>
           <span>1 次总结轮次</span>
           <span>随机互动事件</span>
+        </div>
+        <div id="selectBootActions" class="select-boot-actions">
+          <button id="selectLaunchBackBtn" class="select-launch-back-btn" type="button">返回模式选择</button>
         </div>
         <div id="selectConfirmContainer" class="select-confirm-container" style="display: none;">
           <button id="confirmIdolBtn" class="confirm-idol-btn" type="button">
@@ -260,8 +285,16 @@
             <h2>初星学园</h2>
           </div>
           <button id="freeModeStatusBadge" class="free-mode-status-badge" type="button" aria-label="当前日期与时间">Live后1天 · 08:00</button>
+          <button id="hybridCampusExitBtn" class="free-mode-exit-btn" type="button" hidden>返回经典育成</button>
         </header>
         <p id="freeModeLocationBadge" class="free-mode-location-badge">点击地图上的地点开始探索</p>
+        <button id="freeModeTaskPanelBtn" class="free-mode-task-panel-btn" type="button" hidden>
+          <span>任务</span>
+        </button>
+        <button id="freeModeSideQuestBtn" class="free-mode-side-quest-btn" type="button" hidden>
+          <span>今日工作</span>
+          <span id="freeModeSideQuestBadge" class="free-mode-side-quest-badge"></span>
+        </button>
         <button id="freeModePhoneBtn" class="free-mode-phone-btn" type="button" aria-label="打开小手机">
           <svg aria-hidden="true"><use href="#icon-phone"></use></svg>
           <span>手机</span>
@@ -552,6 +585,7 @@
       <div id="mapLocationPresence" class="map-location-presence" hidden>
         <p class="map-location-presence-label">当前可能在场</p>
         <div id="mapLocationPresenceAvatars" class="map-location-presence-avatars"></div>
+        <div id="mapLocationPresenceList" class="map-location-presence-list" hidden></div>
       </div>
       <footer class="event-actions map-location-entry-actions">
         <button id="mapLocationBackBtn" class="event-button secondary" type="button">返回地图</button>
@@ -582,6 +616,93 @@
         <button id="freeModeOutingCancelBtn" class="event-button secondary" type="button">返回</button>
         <button id="freeModeOutingCustomConfirmBtn" class="event-button primary" type="button">前往自定义地点</button>
       </footer>
+    </article>
+  </section>
+
+  <section id="sideQuestOverlay" class="event-overlay side-quest-overlay" hidden aria-label="今日偶像工作">
+    <article class="event-panel side-quest-panel">
+      <header class="event-head side-quest-head">
+        <div>
+          <p class="ui-kicker">Side Work</p>
+          <h2 id="sideQuestOverlayTitle">今日偶像工作</h2>
+        </div>
+        <button id="sideQuestCloseBtn" class="icon-button event-panel-close-btn" type="button" aria-label="关闭今日工作">
+          <svg aria-hidden="true"><use href="#icon-close"></use></svg>
+        </button>
+      </header>
+      <div class="event-panel-body side-quest-body">
+        <p id="sideQuestOverlayHint" class="ai-prompt-note side-quest-hint">每天 3 条偶像工作。完成后自选表现档位领取报酬。</p>
+        <div id="sideQuestSlotList" class="side-quest-slot-list"></div>
+        <div id="sideQuestTierPanel" class="side-quest-tier-panel" hidden>
+          <h3 id="sideQuestTierTitle" class="side-quest-tier-title"></h3>
+          <p id="sideQuestTierDesc" class="side-quest-tier-desc"></p>
+          <div id="sideQuestTierButtons" class="side-quest-tier-buttons"></div>
+          <button id="sideQuestTierBackBtn" class="event-button secondary side-quest-tier-back" type="button">返回列表</button>
+        </div>
+        <details id="sideQuestApiPanel" class="side-quest-api-panel">
+          <summary>次 API 配置（支线生成，不写入角色卡对话）</summary>
+          <div class="side-quest-api-panel-body">
+            <label class="side-quest-api-field" for="sideQuestApiEnabled">
+              <input id="sideQuestApiEnabled" type="checkbox">
+              <span>启用次 API 生成本日 3 条工作</span>
+            </label>
+            <label class="side-quest-api-field" for="sideQuestApiBaseUrl">
+              <span>接口地址</span>
+              <input id="sideQuestApiBaseUrl" type="text" placeholder="https://api.openai.com/v1" spellcheck="false">
+            </label>
+            <label class="side-quest-api-field" for="sideQuestApiModel">
+              <span>模型</span>
+              <input id="sideQuestApiModel" type="text" placeholder="gpt-4o-mini" spellcheck="false">
+            </label>
+            <label class="side-quest-api-field" for="sideQuestApiKey">
+              <span>API Key（仅存浏览器本地）</span>
+              <input id="sideQuestApiKey" type="password" placeholder="sk-..." spellcheck="false">
+            </label>
+            <p id="sideQuestApiStatus" class="side-quest-api-status">未配置次 API 时将使用静态工作池。</p>
+            <button id="sideQuestApiSaveBtn" class="event-button secondary side-quest-api-save" type="button">保存次 API 配置</button>
+          </div>
+        </details>
+      </div>
+    </article>
+  </section>
+
+  <section id="taskPanelOverlay" class="event-overlay task-panel-overlay" hidden aria-label="任务面板">
+    <article class="event-panel task-panel">
+      <header class="event-head task-panel-head">
+        <div>
+          <p class="ui-kicker">Tasks</p>
+          <h2 id="taskPanelTitle">任务面板</h2>
+        </div>
+        <button id="taskPanelCloseBtn" class="icon-button event-panel-close-btn" type="button" aria-label="关闭任务面板">
+          <svg aria-hidden="true"><use href="#icon-close"></use></svg>
+        </button>
+      </header>
+      <div class="event-panel-body task-panel-body">
+        <p id="taskPanelSummary" class="task-panel-summary"></p>
+        <div class="task-panel-sections">
+        <section class="task-panel-section" aria-label="主线任务">
+          <div class="task-panel-section-head">
+            <h3>主线</h3>
+          </div>
+          <div id="taskPanelMainList" class="task-panel-main-list"></div>
+        </section>
+        <section class="task-panel-section" aria-label="今日偶像工作">
+          <div class="task-panel-section-head">
+            <h3>今日工作</h3>
+            <span id="taskPanelSideMeta" class="task-panel-section-meta"></span>
+          </div>
+          <div id="taskPanelSideList" class="task-panel-side-list"></div>
+          <button id="taskPanelOpenSideQuestBtn" class="event-button secondary task-panel-action" type="button">打开今日工作结算</button>
+        </section>
+        <section class="task-panel-section" aria-label="校园课与训练">
+          <div class="task-panel-section-head">
+            <h3>校园</h3>
+            <span id="taskPanelCampusMeta" class="task-panel-section-meta"></span>
+          </div>
+          <p id="taskPanelCampusHint" class="task-panel-hint"></p>
+        </section>
+      </div>
+      </div>
     </article>
   </section>
 
@@ -810,6 +931,81 @@
             </div>
           </div>
 
+          <div id="phoneBroadcastApp" class="broadcast-app" hidden>
+            <header class="broadcast-hero">
+              <div class="broadcast-hero-bg" aria-hidden="true"></div>
+              <div class="broadcast-hero-strip">
+                <span class="broadcast-onair"><span class="broadcast-onair-dot"></span>ON AIR</span>
+                <span class="broadcast-dept-en">HATSUBOSHI RADIO</span>
+              </div>
+              <div class="broadcast-cast-row">
+                <div class="broadcast-cast-slot broadcast-cast-host">
+                  <div id="phoneBroadcastHostAvatar" class="broadcast-avatar-frame"></div>
+                  <p class="broadcast-cast-name" id="phoneBroadcastHostName">真城优</p>
+                  <p class="broadcast-cast-roman" id="phoneBroadcastHostRoman">Mashiro Yu</p>
+                  <p class="broadcast-cast-role">部长 · 主持</p>
+                </div>
+                <div class="broadcast-cast-bridge" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><use href="#icon-mic"></use></svg>
+                </div>
+                <div class="broadcast-cast-slot broadcast-cast-guests">
+                  <div id="phoneBroadcastGuestAvatars" class="broadcast-guest-avatars"></div>
+                  <p class="broadcast-cast-guest-label">本期嘉宾</p>
+                  <p class="broadcast-cast-guest-names" id="phoneBroadcastGuestNames">—</p>
+                </div>
+              </div>
+              <div class="broadcast-episode-card">
+                <span id="phoneBroadcastCategory" class="broadcast-category-chip">学园广播</span>
+                <h1 id="phoneBroadcastTitle" class="broadcast-title">今日暂无节目</h1>
+                <p id="phoneBroadcastMeta" class="broadcast-meta">打开后将自动生成今日学园广播</p>
+              </div>
+            </header>
+            <nav id="phoneBroadcastTabs" class="broadcast-tabs" aria-label="广播内容">
+              <button type="button" class="broadcast-tab is-active" data-broadcast-tab="outline" aria-selected="true">提纲</button>
+              <button type="button" class="broadcast-tab" data-broadcast-tab="script" aria-selected="false">完整稿</button>
+              <button type="button" class="broadcast-tab" data-broadcast-tab="history" aria-selected="false">历史</button>
+            </nav>
+            <div class="broadcast-scroll">
+              <section class="broadcast-panel is-active" data-broadcast-panel="outline" aria-label="今日提纲">
+                <pre id="phoneBroadcastOutline" class="broadcast-outline">加载中…</pre>
+              </section>
+              <section class="broadcast-panel" data-broadcast-panel="script" hidden aria-label="完整稿">
+                <div id="phoneBroadcastScript" class="broadcast-script is-empty">完整稿尚未生成。</div>
+              </section>
+              <section class="broadcast-panel" data-broadcast-panel="history" hidden aria-label="历史节目">
+                <div id="phoneBroadcastHistory" class="broadcast-history"></div>
+              </section>
+            </div>
+            <footer class="broadcast-footer">
+              <p id="phoneBroadcastStatus" class="broadcast-status">提纲前端生成；完整稿于每日开始时自动请求。</p>
+              <button id="phoneBroadcastGenerateBtn" type="button" class="broadcast-generate-btn">生成完整广播稿</button>
+            </footer>
+          </div>
+
+          <div id="phoneSnsApp" class="sns-app" hidden>
+            <header class="sns-topbar">
+              <span class="sns-topbar-logo" aria-hidden="true"><svg><use href="#icon-star"></use></svg></span>
+              <h1 class="sns-title">初星圈</h1>
+              <button id="phoneSnsRefreshBtn" type="button" class="sns-refresh-btn" aria-label="刷新">
+                <svg aria-hidden="true"><use href="#icon-refresh"></use></svg>
+              </button>
+            </header>
+            <nav id="phoneSnsTabs" class="sns-tabs" aria-label="初星圈筛选">
+              <button type="button" class="sns-tab is-active" data-sns-tab="timeline" aria-selected="true">推荐</button>
+              <button type="button" class="sns-tab" data-sns-tab="hot" aria-selected="false">趋势</button>
+            </nav>
+            <div class="sns-scroll">
+              <section id="phoneSnsHotTopic" class="sns-trending" hidden aria-label="学园热议"></section>
+              <div id="phoneSnsLocked" class="sns-locked" hidden>
+                <p>签约并开始游戏后开放初星圈。</p>
+              </div>
+              <div id="phoneSnsEmpty" class="sns-empty" hidden>
+                <p>今天还没有新动态。学园也许正在酝酿八卦。</p>
+              </div>
+              <div id="phoneSnsFeed" class="sns-feed" aria-live="polite"></div>
+            </div>
+          </div>
+
           <nav id="phoneNavBar" class="phone-navbar" hidden aria-label="手机功能栏">
             <button id="phoneNavBackBtn" type="button" class="phone-nav-btn" aria-label="返回">
               <svg aria-hidden="true"><use href="#icon-chevron-left"></use></svg>
@@ -884,6 +1080,16 @@
     <div class="wipe-stripe" style="--i:4"></div>
   </div>
 
+  <script src="./world/cast-track.js"></script>
+  <script src="./world/events-pool.js"></script>
+  <script src="./world/buzz-pool.js"></script>
+  <script src="./world/campus-behavior.js"></script>
+  <script src="./world/injection.js"></script>
+  <script src="./world/daily-tick.js"></script>
+  <script src="./broadcast/prompts.js"></script>
+  <script src="./tasks/side-pool.js"></script>
+  <script src="./tasks/side-quest-api.js"></script>
+  <script src="./tasks/sandbox-tasks.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>

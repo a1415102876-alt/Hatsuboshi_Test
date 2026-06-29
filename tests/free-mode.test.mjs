@@ -31,6 +31,7 @@ test("free mode unlocks after First Live completion with entry overlay and world
   assert.doesNotMatch(readFunction("updateFreeModeTimeOverlayUI"), /overlay\.hidden/);
   assert.match(readFunction("applyFreeModeManualTimeAdvance"), /advanceFreeModeTime/);
   assert.match(readFunction("handleFreeModeAdvanceDay"), /advanceFreeModeToNextDay/);
+  assert.match(readFunction("advanceFreeModeToNextDay"), /runFreeModeWorldDailyTick/);
   assert.match(html, /id="freeModePhoneBtn"/);
   assert.doesNotMatch(html, /id="freeModeBackBtn"/);
 });
@@ -55,7 +56,7 @@ test("world map locations and free mode time rules are wired", () => {
   assert.doesNotMatch(source, /Gakuen_Midnight\.png/);
   assert.match(readFunction("getWorldMapImageForClock"), /WORLD_MAP_IMAGE_NIGHT/);
   assert.match(readFunction("renderFreeModeStage"), /updateWorldMapImage\(\)/);
-  assert.match(readFunction("rollFreeModePresence"), /FREE_MODE_PRESENCE_CHANCE/);
+  assert.match(readFunction("rollFreeModePresence"), /refreshWorldPresenceFromRules/);
   assert.match(source, /dataset\.action === "world_map"/);
 });
 
@@ -63,14 +64,16 @@ test("map location explore uses choice flow with return to map", () => {
   assert.match(source, /action === "map_location"/);
   assert.match(readFunction("beginMapLocationExploreSession"), /getMapExplorePrompt/);
   assert.match(readFunction("bindWorldMapHotspotInteractions"), /openMapLocationOverlay\(location\.id\)/);
-  assert.match(readFunction("confirmMapLocationEntry"), /startMapLocationExplore\(locationId, visitMode\)/);
+  assert.match(readFunction("confirmMapLocationEntry"), /isSandboxScoutActive/);
+  assert.match(readFunction("buildSandboxScoutExplorePrompt"), /物色搭话/);
   assert.match(html, /id="mapLocationEnterWithIdolBtn"/);
   assert.match(html, /和担当一起来/);
   assert.match(html, /id="mapLocationEnterAloneBtn"/);
   assert.match(html, /自己来/);
   assert.match(readFunction("buildMapLocationExplorePrompt"), /buildMapLocationVisitModeLine/);
   assert.match(html, /id="mapLocationPresenceAvatars"/);
-  assert.match(readFunction("openMapLocationOverlay"), /map-location-presence-avatar/);
+  assert.match(readFunction("openMapLocationOverlay"), /renderMapLocationPresence/);
+  assert.match(readFunction("renderMapLocationPresence"), /map-location-presence-avatar/);
   assert.match(readFunction("renderWorldMapIdolMarkers"), /profile\.avatar/);
   assert.match(readFunction("returnToFreeModeMap"), /activeLocationId = null/);
   assert.match(readFunction("handleMapLocationChoiceSelection"), /requestNextMapLocationOptions\(\)/);
@@ -111,6 +114,7 @@ test("map option time tags parse with 15 minute fallback", () => {
     cleanReplyText: (value) => String(value || "").replace(/<[^>]+>/g, "").trim()
   };
   vm.runInNewContext(`
+${readFunction("stripAiThinkingBlocks")}
 ${readFunction("parseMapOptionMinutes")}
 ${readFunction("resolveMapOptionMinutes")}
 ${readFunction("extractChoicePayload")}
@@ -148,6 +152,9 @@ test("choice reply source prefers a complete option payload over stale raw text"
     }
   };
   vm.runInNewContext(`
+${readFunction("decodeAiReplySource")}
+${readFunction("collectAiReplyCandidates")}
+${readFunction("stripAiThinkingBlocks")}
 ${readFunction("isChoicePromptAction")}
 ${readFunction("isChoicePromptMode")}
 ${readFunction("parseMapOptionMinutes")}

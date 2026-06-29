@@ -275,6 +275,9 @@
     "雨夜 燕": "雨夜燕",
     "燕": "雨夜燕"
   };
+  const vnStandees = {
+    "亚纱里老师": "./assets/novel-standees/asari-sensei.png"
+  };
   const selectBackgroundCodes = {
     "雨夜燕": "amaya"
   };
@@ -369,23 +372,42 @@
   const FREE_MODE_MAP_NIGHT_START_MINUTES = 20 * 60;
   const WORLD_MAP_LOCATIONS = [
     { id: "school_entrance", name: "学园正门", shortLabel: "正门", description: "初星学园的入口。新生、访客与偶像们每天经过这里。", x: 52.8, y: 96.8, image: "./assets/MAP/School_Entrance.png" },
-    { id: "club_room", name: "部室栋", shortLabel: "部室", description: "各社团与活动部室所在的楼栋，日常练习与准备常在这里进行。", x: 17.8, y: 39.6, image: "" },
+    { id: "club_room", name: "部室栋", shortLabel: "部室", description: "各社团与活动部室所在的楼栋；学生会办公室也在这里，日常练习与公务常在此进行。", x: 17.8, y: 39.6, image: "" },
     { id: "auditorium", name: "讲堂", shortLabel: "讲堂", description: "拥有圆顶的大型讲堂，学园重要集会与发表会在此举行。", x: 50.8, y: 33, image: "./assets/MAP/MeetingRoom.png" },
     { id: "outstage", name: "野外舞台", shortLabel: "野外", description: "学园右上角的公开舞台，适合排练、试演与小型演出。", x: 80.3, y: 13.7, image: "./assets/MAP/OutStage.png" },
     { id: "playground", name: "运动场", shortLabel: "操场", description: "带跑道与足球场的运动区，体能训练与户外练习的主要场地。", x: 26.3, y: 52.3, image: "./assets/MAP/PlayGround.png" },
     { id: "swimming_pool", name: "泳池", shortLabel: "泳池", description: "室内游泳设施，体能与恢复训练时会来到这里。", x: 37.5, y: 84.9, image: "./assets/MAP/SwimmingPool.png" },
     { id: "gymnasium", name: "体育馆", shortLabel: "体育馆", description: "学园中央的室内体育馆，各类体能与舞台基础训练在此进行。", x: 52.2, y: 63.7, image: "./assets/MAP/Gymnasium.png" },
     { id: "idol_classroom", name: "偶像科教室", shortLabel: "偶像", description: "偶像们上课、讨论与彼此较量的教室区域。", x: 82.3, y: 61.2, image: "./assets/MAP/Idol_Classroom_Detailed.png" },
-    { id: "special_education", name: "特别教育栋", shortLabel: "特教", description: "特别教育科所在的楼栋，藏着更多学园内幕与特殊课程。", x: 90, y: 55, image: "./assets/MAP/SpecialEducation_Detailed.png" },
+    { id: "special_education", name: "特别教育栋", shortLabel: "特教", description: "特别教育科与专用训练设施所在楼栋，藏着更多学园内幕。", x: 90, y: 55, image: "./assets/MAP/SpecialEducation_Detailed.png" },
     { id: "producer_classroom", name: "制作人科教室", shortLabel: "P科", description: "培育担当偶像的专属教室，也是日常育成的主舞台。", x: 84.5, y: 93.9, image: "./assets/MAP/Producer_Classroom_Detailed.png" },
     { id: "dining_hall", name: "食堂", shortLabel: "食堂", description: "学园内的用餐区，午餐、点心与偶像们的日常闲聊常在这里发生。", x: 87.2, y: 86.4, image: "./assets/MAP/Dining.png" },
     { id: "student_store", name: "小卖部", shortLabel: "小卖", description: "贩卖零食、文具与小物件的校内商店，适合短暂停留与偶遇。", x: 92.8, y: 85.6, image: "./assets/MAP/Student Store.png" }
   ];
   const WORLD_MAP_LAYOUT_VERSION = 1;
   const WORLD_MAP_LAYOUT_STORAGE_KEY = "hatsuProduceWorldMapLayout";
+  const SECONDARY_API_KEY_STORAGE_KEY = "hatsuProduceSecondaryApiKeyV1";
   const WORLD_MAP_LAYOUT_FILE = "./assets/MAP/world-map-layout.json";
   const FREE_MODE_DAY_START_MINUTES = 8 * 60;
   const FREE_MODE_DAY_END_MINUTES = 22 * 60;
+  const HYBRID_FACILITY_LESSON_LOCATIONS = ["idol_classroom", "producer_classroom"];
+  const HYBRID_FACILITY_TRAINING_LOCATIONS = ["gymnasium", "club_room", "special_education"];
+  const HYBRID_FACILITY_ACTION_MINUTES = 60;
+  const SANDBOX_SELECTABLE_IDOLS = ["月村手毬"];
+  const SANDBOX_ASARI_OPENING_STORY = `【初星正文开始】
+<story>
+<narration>制作人科的新生报到日。阳光透过窗户，在 Producer Class 的课桌上铺开一片暖色。</narration>
+<dialogue char="亚纱里老师">“欢迎来到初星学园，制作人科的一年级新生。”</dialogue>
+<dialogue char="亚纱里老师">“从今天起，你可以按自己的节奏熟悉这所学校——去教学楼上课，去训练室锻炼，在地图上的各处自由行动。”</dialogue>
+<narration>亚纱里老师把一张简易学园地图推到你的面前。上面标注着各处设施，以及今天可能在场的偶像位置。</narration>
+<dialogue char="亚纱里老师">“先把地图收好。选好想接触的偶像后，就去学园里找见她吧。”</dialogue>
+</story>
+【初星正文结束】`;
+  const SANDBOX_INVITE_STORY = `【初星正文开始】
+<story>
+<dialogue char="制作人">“已知情报就这些吗……好，去邀请吧。”</dialogue>
+</story>
+【初星正文结束】`;
   const FREE_MODE_MAP_ARRIVAL_MINUTES = 15;
   const FREE_MODE_MAP_CHOICE_MINUTES = 15;
   const FREE_MODE_MAP_MINUTES_MAX = 120;
@@ -412,6 +434,22 @@
       subtitle: "音乐",
       theme: "#1db954",
       iconText: "M",
+      installed: true
+    },
+    {
+      id: "broadcast",
+      name: "广播部",
+      subtitle: "学园广播",
+      theme: "#ff8a4c",
+      iconText: "B",
+      installed: true
+    },
+    {
+      id: "sns",
+      name: "初星圈",
+      subtitle: "学园动态",
+      theme: "linear-gradient(135deg, #ff6b8a, #f9c584)",
+      iconText: "星",
       installed: true
     }
   ];
@@ -1193,6 +1231,12 @@
   };
   const baseState = {
     uiVersion: UI_VERSION,
+    gameMode: "classic",
+    launchMode: null,
+    sandbox: {
+      openingComplete: false,
+      inviteComplete: false
+    },
     idol: null,
     day: 1,
     round: 1,
@@ -1218,7 +1262,17 @@
       clockMinutes: FREE_MODE_DAY_START_MINUTES,
       presenceSlotKey: "",
       presence: {},
-      activeLocationId: null
+      activeLocationId: null,
+      facilityKind: null,
+      facilityLocationId: null,
+      world: {
+        macro_phase: "first_live",
+        cast_first_live: {},
+        kotone_seina_proxy: "pending",
+        school_events: [],
+        broadcast: { today: null, history: [], pendingRequestId: "", autoFullScript: true },
+        buzz: { items: [], buzzDayKey: "", hotTopic: "" }
+      }
     },
     activeStoryNode: null,
     log: [],
@@ -1570,6 +1624,8 @@
     }, 1300);
   }
   let pendingAiRequestId = "";
+  let pendingSecondaryRequestId = "";
+  let pendingSecondaryMeta = null;
   let aiReplyRetryCount = 0;
   let phoneChatTypingVisible = false;
   let phoneChatDeliveryTimer = null;
@@ -1652,6 +1708,18 @@
   }
 
   function ensureStateShape() {
+    state.gameMode = state.gameMode === "hybrid" ? "hybrid" : "classic";
+    state.launchMode = ["produce", "sandbox"].includes(state.launchMode) ? state.launchMode : null;
+    state.sandbox = {
+      openingComplete: false,
+      inviteComplete: false,
+      ...(state.sandbox || {})
+    };
+    state.sandbox.openingComplete = Boolean(state.sandbox.openingComplete);
+    state.sandbox.inviteComplete = Boolean(state.sandbox.inviteComplete);
+    if (state.idol && !state.launchMode) {
+      state.launchMode = state.gameMode === "hybrid" ? "sandbox" : "produce";
+    }
     state.idol = state.idol ? canonicalIdolName(state.idol) : state.idol;
     state.affinity = {
       openingComplete: false,
@@ -1675,8 +1743,14 @@
       presenceSlotKey: "",
       presence: {},
       activeLocationId: null,
+      facilityKind: null,
+      facilityLocationId: null,
       ...(state.freeMode || {})
     };
+    if (!["lesson", "training"].includes(state.freeMode.facilityKind)) {
+      state.freeMode.facilityKind = null;
+      state.freeMode.facilityLocationId = null;
+    }
     if (!Number.isFinite(Number(state.freeMode.postLiveDay)) || state.freeMode.postLiveDay < 1) {
       state.freeMode.postLiveDay = 1;
     }
@@ -1692,6 +1766,44 @@
     delete state.freeMode.locationId;
     if (state.firstLive.completed && !state.freeMode.unlocked) {
       state.freeMode.unlocked = true;
+    }
+    const defaultWorld = globalThis.HatsuWorld?.dailyTick?.defaultWorldState?.() || {
+      macro_phase: "first_live",
+      cast_first_live: {},
+      kotone_seina_proxy: "pending",
+      school_events: [],
+      broadcast: { today: null, history: [], pendingRequestId: "", autoFullScript: true }
+    };
+    state.freeMode.world = {
+      ...defaultWorld,
+      ...(state.freeMode.world || {}),
+      broadcast: {
+        ...defaultWorld.broadcast,
+        ...(state.freeMode.world?.broadcast || {})
+      }
+    };
+    if (state.freeMode.world.broadcast.autoFullScript === undefined) {
+      state.freeMode.world.broadcast.autoFullScript = true;
+    }
+    if (state.freeMode.world.broadcast.pendingRequestId) {
+      state.freeMode.world.broadcast.pendingRequestId = "";
+    }
+    if (state.freeMode.world.broadcast.today?.scriptStatus === "generating") {
+      state.freeMode.world.broadcast.today.scriptStatus = "idle";
+    }
+    if (!["pending", "accepted", "rejected"].includes(state.freeMode.world.kotone_seina_proxy)) {
+      state.freeMode.world.kotone_seina_proxy = "pending";
+    }
+    if (!Array.isArray(state.freeMode.world.school_events)) {
+      state.freeMode.world.school_events = [];
+    }
+    const defaultBuzz = { items: [], buzzDayKey: "", hotTopic: "" };
+    state.freeMode.world.buzz = {
+      ...defaultBuzz,
+      ...(state.freeMode.world.buzz || {})
+    };
+    if (!Array.isArray(state.freeMode.world.buzz.items)) {
+      state.freeMode.world.buzz.items = [];
     }
     state.activeStoryNode = state.activeStoryNode || null;
     state.producer = {
@@ -1753,6 +1865,592 @@
     }
     if (!Number.isInteger(state.round) || state.round < 1) state.round = 1;
     if (state.round > SUMMARY_ROUND) state.round = SUMMARY_ROUND;
+    if (globalThis.HatsuTasks) {
+      globalThis.HatsuTasks.ensureTasksShape(state);
+    }
+  }
+
+  function notifyQuestCompletions(questIds) {
+    if (!questIds?.length || !globalThis.HatsuTasks) return;
+    questIds.forEach((id) => {
+      showToast("任务", globalThis.HatsuTasks.getQuestCompleteToast(id), "gold");
+    });
+  }
+
+  function processSandboxQuestFromReply(source, isFinal = true) {
+    if (!isFinal || !globalThis.HatsuTasks?.isSandboxTasksActive(state)) return;
+    const tagCompleted = globalThis.HatsuTasks.applyQuestCompletionsFromReply(state, source);
+    const flagResult = globalThis.HatsuTasks.applyQuestFlagsFromReply(state, source);
+    const numericCompleted = globalThis.HatsuTasks.evaluateNumericMainQuests(state);
+    const merged = [...new Set([...tagCompleted, ...flagResult.completions || [], ...numericCompleted])];
+    if (flagResult.notices?.length) {
+      flagResult.notices.forEach((notice) => showToast("主线进度", notice, "info"));
+    }
+    if (merged.length) {
+      saveState();
+      notifyQuestCompletions(merged);
+    }
+  }
+
+  function processSandboxMainQuestMapChoice(locationId, choiceText) {
+    if (!globalThis.HatsuTasks?.isSandboxTasksActive(state)) return;
+    const result = globalThis.HatsuTasks.processSandboxMainQuestMapChoice(state, locationId, choiceText);
+    if (result.notices?.length) {
+      result.notices.forEach((notice) => showToast("主线进度", notice, "info"));
+    }
+    if (result.completions?.length) {
+      saveState();
+      notifyQuestCompletions(result.completions);
+    } else if (result.notices?.length) {
+      saveState();
+    }
+    processSandboxQuestAfterSettlement();
+  }
+
+  function processSandboxQuestAfterSettlement() {
+    if (!globalThis.HatsuTasks?.isSandboxTasksActive(state)) return;
+    const completed = globalThis.HatsuTasks.evaluateNumericMainQuests(state);
+    if (completed.length) {
+      saveState();
+      notifyQuestCompletions(completed);
+    }
+  }
+
+  function getTaskPanelSnapshot() {
+    if (!globalThis.HatsuTasks) return null;
+    ensureStateShape();
+    return globalThis.HatsuTasks.getTaskPanelSnapshot(state);
+  }
+
+  function getSandboxCampusRemaining() {
+    if (!globalThis.HatsuTasks?.isSandboxTasksActive(state)) return null;
+    return globalThis.HatsuTasks.getCampusRemaining(state);
+  }
+
+  function isSandboxCampusExhausted() {
+    return Boolean(globalThis.HatsuTasks?.isSandboxTasksActive(state) && globalThis.HatsuTasks.isCampusDailyLimitReached(state));
+  }
+
+  function showSandboxCampusLimitToast() {
+    showToast("今日校园次数已用完", "上课与训练合计每天最多 3 次。明日可继续在教学楼或训练设施成长。", "warn");
+  }
+
+  function readSecondaryApiKeyStorage() {
+    try {
+      return String(localStorage.getItem(SECONDARY_API_KEY_STORAGE_KEY) || "");
+    } catch {
+      return "";
+    }
+  }
+
+  function writeSecondaryApiKeyStorage(apiKey) {
+    try {
+      if (apiKey) localStorage.setItem(SECONDARY_API_KEY_STORAGE_KEY, apiKey);
+      else localStorage.removeItem(SECONDARY_API_KEY_STORAGE_KEY);
+    } catch {
+      // ignore quota errors
+    }
+  }
+
+  function getSecondaryApiConfig() {
+    ensureStateShape();
+    const api = state.tasks?.secondaryApi || {};
+    return {
+      enabled: Boolean(api.enabled),
+      baseUrl: String(api.baseUrl || "").trim(),
+      model: String(api.model || "").trim(),
+      apiKey: readSecondaryApiKeyStorage(),
+      temperature: Number.isFinite(Number(api.temperature)) ? Number(api.temperature) : 0.7,
+      maxTokens: Number.isFinite(Number(api.maxTokens)) ? Number(api.maxTokens) : 1200
+    };
+  }
+
+  function isSecondaryApiConfigured() {
+    const cfg = getSecondaryApiConfig();
+    return cfg.enabled && cfg.baseUrl && cfg.model;
+  }
+
+  function saveSecondaryApiSettings(patch = {}) {
+    ensureStateShape();
+    state.tasks.secondaryApi = {
+      ...globalThis.HatsuTasks?.defaultTasksState?.().secondaryApi,
+      ...state.tasks.secondaryApi,
+      ...patch,
+      enabled: patch.enabled !== undefined ? Boolean(patch.enabled) : Boolean(state.tasks.secondaryApi.enabled),
+      baseUrl: String(patch.baseUrl ?? state.tasks.secondaryApi.baseUrl ?? "").trim(),
+      model: String(patch.model ?? state.tasks.secondaryApi.model ?? "").trim(),
+      temperature: Number.isFinite(Number(patch.temperature ?? state.tasks.secondaryApi.temperature))
+        ? Number(patch.temperature ?? state.tasks.secondaryApi.temperature)
+        : 0.7,
+      maxTokens: Number.isFinite(Number(patch.maxTokens ?? state.tasks.secondaryApi.maxTokens))
+        ? Number(patch.maxTokens ?? state.tasks.secondaryApi.maxTokens)
+        : 1200
+    };
+    if (patch.apiKey !== undefined) {
+      writeSecondaryApiKeyStorage(String(patch.apiKey || "").trim());
+    }
+    saveState();
+    updateSideQuestApiPanelUI();
+  }
+
+  function createSecondaryRequestId(kind) {
+    return `side-gen-${kind}-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+  }
+
+  function fallbackSideQuestToStatic(reason = "") {
+    if (!globalThis.HatsuTasks?.isSandboxTasksActive(state)) return;
+    globalThis.HatsuTasks.refreshSideQuestSlots(state);
+    globalThis.HatsuTasks.markSideQuestGenFailed(state);
+    saveState();
+    renderSideQuestOverlay();
+    if (reason) {
+      showToast("已改用静态工作池", reason, "warn");
+    }
+  }
+
+  async function runLocalSecondaryApiPrompt(prompt, requestId, apiConfig) {
+    const baseUrl = String(apiConfig.baseUrl || "").trim().replace(/\/$/, "");
+    const url = baseUrl.endsWith("/chat/completions") ? baseUrl : `${baseUrl}/chat/completions`;
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiConfig.apiKey || ""}`
+        },
+        body: JSON.stringify({
+          model: apiConfig.model,
+          messages: [{ role: "user", content: prompt }],
+          temperature: apiConfig.temperature,
+          max_tokens: apiConfig.maxTokens
+        })
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      const text = String(json?.choices?.[0]?.message?.content || "").trim();
+      handleSecondaryAiReply({
+        requestId,
+        text,
+        ok: Boolean(text),
+        error: text ? "" : "empty_response"
+      });
+    } catch (error) {
+      handleSecondaryAiReply({
+        requestId,
+        text: "",
+        ok: false,
+        error: String(error?.message || error)
+      });
+    }
+  }
+
+  function requestHostSecondaryPromptSend(prompt, requestId, meta = {}) {
+    const apiConfig = getSecondaryApiConfig();
+    if (!apiConfig.enabled || !apiConfig.baseUrl || !apiConfig.model) return false;
+    const promptText = String(prompt || "").trim();
+    if (!promptText) return false;
+    pendingSecondaryRequestId = String(requestId || createSecondaryRequestId(meta.kind || "misc"));
+    pendingSecondaryMeta = { ...(meta || {}) };
+    if (isSillyTavernHost()) {
+      window.parent.postMessage({
+        source: "hatsuboshi-produce",
+        type: "sendSecondaryPrompt",
+        requestId: pendingSecondaryRequestId,
+        prompt: promptText,
+        apiConfig
+      }, "*");
+      return true;
+    }
+    runLocalSecondaryApiPrompt(promptText, pendingSecondaryRequestId, apiConfig);
+    return true;
+  }
+
+  function maybeRequestSideQuestGeneration() {
+    if (!globalThis.HatsuTasks?.isSandboxTasksActive(state)) return;
+    if (!globalThis.HatsuTasks.shouldUseSecondarySideGen(state)) return;
+    const status = globalThis.HatsuTasks.getSideQuestGenStatus(state);
+    if (status !== "pending" && status !== "failed") return;
+    if (pendingSecondaryRequestId && pendingSecondaryMeta?.kind === "daily") return;
+    const dayKey = globalThis.HatsuTasks.getCampusDayKey(state);
+    const prompt = globalThis.HatsuSideQuestApi?.buildSideQuestDailyPrompt(state, dayKey);
+    if (!prompt) return;
+    const requestId = createSecondaryRequestId("daily");
+    globalThis.HatsuTasks.markSideQuestGenPending(state, requestId);
+    saveState();
+    renderSideQuestOverlay();
+    if (!requestHostSecondaryPromptSend(prompt, requestId, { kind: "daily", dayKey })) {
+      fallbackSideQuestToStatic("次 API 未配置完整，已回退静态池。");
+    }
+  }
+
+  function requestSideQuestTierGeneration(slotIndex) {
+    if (!globalThis.HatsuTasks?.shouldUseSecondarySideGen(state)) return;
+    const slot = state.tasks?.side?.slots?.[slotIndex];
+    if (!slot || slot.status === "done") return;
+    if (slot.tierHints || slot.tierGenStatus === "loading") return;
+    const prompt = globalThis.HatsuSideQuestApi?.buildSideQuestTierPrompt(state, slot);
+    if (!prompt) return;
+    const requestId = createSecondaryRequestId(`tier-${slotIndex}`);
+    globalThis.HatsuTasks.markSideQuestTierGenPending(state, slotIndex, requestId);
+    saveState();
+    renderSideQuestTierPanel(slotIndex, { keepOpen: true });
+    if (!requestHostSecondaryPromptSend(prompt, requestId, { kind: "tier", slotIndex })) {
+      slot.tierGenStatus = "idle";
+      saveState();
+    }
+  }
+
+  function handleSecondaryAiReply(payload) {
+    const requestId = String(payload?.requestId || "");
+    if (!requestId || requestId !== pendingSecondaryRequestId) return;
+    const text = String(payload?.text || "");
+    const ok = Boolean(payload?.ok) && Boolean(text);
+    const meta = pendingSecondaryMeta || {};
+    pendingSecondaryRequestId = "";
+    pendingSecondaryMeta = null;
+
+    if (!ok) {
+      if (meta.kind === "daily") {
+        fallbackSideQuestToStatic(payload?.error ? `次 API 失败：${payload.error}` : "次 API 无有效回复");
+      } else if (meta.kind === "tier" && Number.isFinite(Number(meta.slotIndex))) {
+        const slot = state.tasks?.side?.slots?.[meta.slotIndex];
+        if (slot) slot.tierGenStatus = "idle";
+        saveState();
+        renderSideQuestTierPanel(meta.slotIndex, { keepOpen: true });
+      }
+      return;
+    }
+
+    if (meta.kind === "daily") {
+      const parsed = globalThis.HatsuSideQuestApi?.parseSideQuestDailyResponse(
+        text,
+        meta.dayKey || globalThis.HatsuTasks.getCampusDayKey(state),
+        state.idol
+      );
+      if (!parsed || !globalThis.HatsuTasks.applyGeneratedSideQuests(state, parsed.quests, "secondary")) {
+        fallbackSideQuestToStatic("次 API 返回格式无效，已回退静态池。");
+        return;
+      }
+      saveState();
+      render();
+      renderSideQuestOverlay();
+      showToast("今日工作已生成", "次 API 已生成本日 3 条偶像工作。", "info");
+      return;
+    }
+
+    if (meta.kind === "tier" && Number.isFinite(Number(meta.slotIndex))) {
+      const hints = globalThis.HatsuSideQuestApi?.parseSideQuestTierResponse(text);
+      if (!hints) {
+        const slot = state.tasks?.side?.slots?.[meta.slotIndex];
+        if (slot) slot.tierGenStatus = "idle";
+        saveState();
+        renderSideQuestTierPanel(meta.slotIndex, { keepOpen: true });
+        return;
+      }
+      globalThis.HatsuTasks.applySideQuestTierHints(state, meta.slotIndex, hints);
+      saveState();
+      renderSideQuestTierPanel(meta.slotIndex, { keepOpen: true });
+    }
+  }
+
+  function updateSideQuestApiPanelUI() {
+    const enabled = document.getElementById("sideQuestApiEnabled");
+    const baseUrl = document.getElementById("sideQuestApiBaseUrl");
+    const model = document.getElementById("sideQuestApiModel");
+    const key = document.getElementById("sideQuestApiKey");
+    const status = document.getElementById("sideQuestApiStatus");
+    const cfg = getSecondaryApiConfig();
+    if (enabled) enabled.checked = cfg.enabled;
+    if (baseUrl) baseUrl.value = cfg.baseUrl;
+    if (model) model.value = cfg.model;
+    if (key) key.value = cfg.apiKey;
+    if (status) {
+      const source = state.tasks?.side?.source || "static";
+      const genStatus = state.tasks?.side?.genStatus || "idle";
+      status.textContent = cfg.enabled
+        ? `次 API 已启用 · 今日来源：${source} · 状态：${genStatus}${cfg.apiKey ? " · Key 已保存" : " · 未保存 Key"}`
+        : "未启用次 API 时将使用静态工作池。";
+    }
+  }
+
+  function saveSideQuestApiPanel() {
+    saveSecondaryApiSettings({
+      enabled: document.getElementById("sideQuestApiEnabled")?.checked,
+      baseUrl: document.getElementById("sideQuestApiBaseUrl")?.value,
+      model: document.getElementById("sideQuestApiModel")?.value,
+      apiKey: document.getElementById("sideQuestApiKey")?.value
+    });
+    showToast("次 API 配置已保存", isSecondaryApiConfigured() ? "下次刷新将尝试次 API 生成支线。" : "未启用或未填完整接口信息。", "info");
+    if (globalThis.HatsuTasks?.shouldUseSecondarySideGen(state)) {
+      globalThis.HatsuTasks.queueSideQuestRefresh(state);
+      saveState();
+      maybeRequestSideQuestGeneration();
+    }
+  }
+
+  let sideQuestOverlaySlotIndex = null;
+
+  function getSideQuestPoolApi() {
+    return globalThis.HatsuSideQuestPool || null;
+  }
+
+  function getSideQuestRemainingCount() {
+    if (!globalThis.HatsuTasks?.isSandboxTasksActive(state)) return null;
+    return globalThis.HatsuTasks.getSideQuestRemaining(state);
+  }
+
+  function canOpenSideQuestOverlay() {
+    return isSandboxLaunch() && state.sandbox?.inviteComplete && isFreeModeActive();
+  }
+
+  function formatSideQuestWalletLabel() {
+    ensureStateShape();
+    const money = Number(state.tasks?.wallet?.money) || 0;
+    return `${money} 初星币`;
+  }
+
+  function renderSideQuestOverlay() {
+    const pool = getSideQuestPoolApi();
+    const slotList = document.getElementById("sideQuestSlotList");
+    const tierPanel = document.getElementById("sideQuestTierPanel");
+    const hint = document.getElementById("sideQuestOverlayHint");
+    if (!slotList || !pool) return;
+
+    const snapshot = getTaskPanelSnapshot();
+    const slots = snapshot?.side?.slots || [];
+    const remaining = snapshot?.side?.remainingToday ?? 0;
+    const genStatus = snapshot?.side?.genStatus || "ready";
+
+    if (hint) {
+      const sourceLabel = snapshot?.side?.source === "secondary" ? "次 API" : "静态池";
+      const genStatus = snapshot?.side?.genStatus || "ready";
+      hint.textContent = `今日剩余 ${remaining}/3 条 · 钱包 ${formatSideQuestWalletLabel()} · 来源 ${sourceLabel} · ${genStatus === "loading" || genStatus === "pending" ? "生成中…" : "完成后自选档位领取报酬"}`;
+    }
+
+    if (sideQuestOverlaySlotIndex === null || !slots[sideQuestOverlaySlotIndex]) {
+      sideQuestOverlaySlotIndex = null;
+      if (tierPanel) tierPanel.hidden = true;
+      const apiPanel = document.getElementById("sideQuestApiPanel");
+      if (apiPanel) apiPanel.hidden = false;
+      slotList.hidden = false;
+      slotList.innerHTML = "";
+      slots.forEach((slot, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "side-quest-slot-button";
+        button.disabled = slot.status === "done" || slot.loading || genStatus === "loading" || genStatus === "pending";
+        const tagLabel = pool.getTagLabel(slot.tag);
+        const statusLabel = slot.status === "done"
+          ? `已结算 · ${pool.SIDE_TIER_META[slot.resultTier]?.label || slot.resultTier || "完成"}`
+          : "待结算";
+        button.innerHTML = `<strong>${slot.title}</strong><span class="side-quest-slot-tag">${tagLabel}</span><span class="side-quest-slot-status">${statusLabel}</span><span class="side-quest-slot-desc">${slot.desc}</span>`;
+        button.addEventListener("click", () => openSideQuestTierPanel(index));
+        slotList.appendChild(button);
+      });
+      return;
+    }
+
+    openSideQuestTierPanel(sideQuestOverlaySlotIndex, { keepOpen: true });
+  }
+
+  function openSideQuestTierPanel(slotIndex, options = {}) {
+    const pool = getSideQuestPoolApi();
+    const slotList = document.getElementById("sideQuestSlotList");
+    const tierPanel = document.getElementById("sideQuestTierPanel");
+    const titleEl = document.getElementById("sideQuestTierTitle");
+    const descEl = document.getElementById("sideQuestTierDesc");
+    const buttonsEl = document.getElementById("sideQuestTierButtons");
+    if (!pool || !tierPanel || !buttonsEl) return;
+
+    ensureStateShape();
+    globalThis.HatsuTasks?.syncSideQuestDay(state);
+    const slot = state.tasks?.side?.slots?.[slotIndex];
+    if (!slot || slot.status === "done") {
+      if (!options.keepOpen) {
+        sideQuestOverlaySlotIndex = null;
+        renderSideQuestOverlay();
+      }
+      return;
+    }
+
+    sideQuestOverlaySlotIndex = slotIndex;
+    if (slotList) slotList.hidden = true;
+    tierPanel.hidden = false;
+    const apiPanel = document.getElementById("sideQuestApiPanel");
+    if (apiPanel) apiPanel.hidden = true;
+    if (titleEl) titleEl.textContent = slot.title;
+    if (descEl) descEl.textContent = `${pool.getTagLabel(slot.tag)} · ${slot.desc}`;
+
+    buttonsEl.innerHTML = "";
+    pool.SIDE_TIER_IDS.forEach((tier) => {
+      const meta = pool.SIDE_TIER_META[tier] || {};
+      const hintText = slot.tierHints?.[tier] || meta.hint || "";
+      const loadingTier = slot.tierGenStatus === "loading";
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "side-quest-tier-button";
+      button.dataset.tier = tier;
+      button.disabled = loadingTier;
+      button.innerHTML = `<strong>${meta.label || tier}</strong><span>${loadingTier ? "次 API 生成档位文案中…" : hintText}</span><span class="side-quest-tier-reward">${pool.formatTierRewardSummary(tier)}</span>`;
+      button.addEventListener("click", () => applySideQuestTierChoice(slotIndex, tier));
+      buttonsEl.appendChild(button);
+    });
+    if (isSecondaryApiConfigured() && !slot.tierHints && slot.tierGenStatus !== "loading") {
+      requestSideQuestTierGeneration(slotIndex);
+    }
+  }
+
+  function applySideQuestTierChoice(slotIndex, tier) {
+    const pool = getSideQuestPoolApi();
+    const result = globalThis.HatsuTasks?.applySideQuestTier(state, slotIndex, tier);
+    if (!result?.ok) {
+      showToast("无法结算", "该工作已完成或档位无效。", "warn");
+      return;
+    }
+    saveState();
+    processSandboxQuestAfterSettlement();
+    render();
+    sideQuestOverlaySlotIndex = null;
+    renderSideQuestOverlay();
+    const taskPanelOverlay = document.getElementById("taskPanelOverlay");
+    if (taskPanelOverlay && !taskPanelOverlay.hidden) renderTaskPanelOverlay();
+    const tierLabel = pool?.SIDE_TIER_META[tier]?.label || tier;
+    const money = result.reward?.money || 0;
+    showToast("工作结算完成", `${tierLabel} · 获得 ${money} 初星币`, "gold");
+  }
+
+  function openSideQuestOverlay() {
+    if (!canOpenSideQuestOverlay()) {
+      showToast("尚未开放", "完成担当邀请剧情后可接今日偶像工作。", "warn");
+      return;
+    }
+    globalThis.HatsuTasks?.syncSideQuestDay(state);
+    sideQuestOverlaySlotIndex = null;
+    setElementHidden("sideQuestOverlay", false);
+    updateSideQuestApiPanelUI();
+    renderSideQuestOverlay();
+    maybeRequestSideQuestGeneration();
+  }
+
+  function closeSideQuestOverlay() {
+    sideQuestOverlaySlotIndex = null;
+    setElementHidden("sideQuestOverlay", true);
+  }
+
+  function canOpenTaskPanelOverlay() {
+    return isSandboxLaunch() && state.sandbox?.inviteComplete && isFreeModeActive();
+  }
+
+  function formatMainQuestStatusLabel(status) {
+    if (status === "completed") return "已完成";
+    if (status === "active") return "进行中";
+    return "未解锁";
+  }
+
+  function formatMainQuestStatusClass(status) {
+    if (status === "completed") return "is-completed";
+    if (status === "active") return "is-active";
+    return "is-locked";
+  }
+
+  function renderTaskPanelOverlay() {
+    const snapshot = getTaskPanelSnapshot();
+    if (!snapshot) return;
+    const pool = getSideQuestPoolApi();
+    const summary = document.getElementById("taskPanelSummary");
+    const mainList = document.getElementById("taskPanelMainList");
+    const sideList = document.getElementById("taskPanelSideList");
+    const sideMeta = document.getElementById("taskPanelSideMeta");
+    const campusMeta = document.getElementById("taskPanelCampusMeta");
+    const campusHint = document.getElementById("taskPanelCampusHint");
+    const openSideBtn = document.getElementById("taskPanelOpenSideQuestBtn");
+    if (!mainList || !sideList) return;
+
+    const wallet = Number(snapshot.wallet?.money) || 0;
+    const sideRemaining = snapshot.side?.remainingToday ?? 0;
+    const sideMax = snapshot.side?.maxPerDay ?? 3;
+    const campusRemaining = snapshot.campus?.remainingToday ?? 3;
+    const campusMax = snapshot.campus?.maxPerDay ?? 3;
+    const sideSource = snapshot.side?.source === "secondary" ? "次 API" : snapshot.side?.source === "static" ? "静态池" : "—";
+    const genStatus = snapshot.side?.genStatus || "idle";
+
+    if (summary) {
+      summary.textContent = `${snapshot.idol || "担当偶像"} · 初星币 ${wallet} · 今日工作剩余 ${sideRemaining}/${sideMax} · 校园剩余 ${campusRemaining}/${campusMax}`;
+    }
+    if (sideMeta) {
+      sideMeta.textContent = `剩 ${sideRemaining}/${sideMax} · ${sideSource}`;
+    }
+    if (campusMeta) {
+      campusMeta.textContent = `剩 ${campusRemaining}/${campusMax}`;
+    }
+    if (campusHint) {
+      campusHint.textContent = campusRemaining > 0
+        ? "在地图进入教学楼上课，或体育馆/部室栋/特教栋训练。上课与训练合计每日 3 次。"
+        : "今日校园次数已用完，明日可继续在教学楼或训练设施成长。";
+    }
+    if (openSideBtn) {
+      openSideBtn.disabled = !canOpenSideQuestOverlay() || genStatus === "loading" || genStatus === "pending";
+      openSideBtn.textContent = sideRemaining > 0 ? "打开今日工作结算" : "今日工作已全部结算";
+    }
+
+    mainList.innerHTML = "";
+    (snapshot.main || []).forEach((quest) => {
+      const item = document.createElement("article");
+      item.className = "task-panel-main-item";
+      const statusClass = formatMainQuestStatusClass(quest.status);
+      const statusLabel = formatMainQuestStatusLabel(quest.status);
+      const stepLine = quest.status === "active" && Number(quest.step) > 0 ? `阶段 ${quest.step}` : "";
+      const hint = quest.progressHint ? `<span>${quest.progressHint}</span>` : "";
+      const conflict = quest.conflict ? `<span>${quest.conflict}</span>` : "";
+      item.innerHTML = `<span class="task-panel-status ${statusClass}">${statusLabel}${stepLine ? ` · ${stepLine}` : ""}</span><strong>${quest.title || quest.id}</strong>${conflict}${hint}`;
+      mainList.appendChild(item);
+    });
+
+    sideList.innerHTML = "";
+    const slots = snapshot.side?.slots || [];
+    if (!slots.length) {
+      sideList.innerHTML = "<p class=\"task-panel-hint\">今日工作尚未刷新。</p>";
+    } else {
+      slots.forEach((slot, index) => {
+        const item = document.createElement("article");
+        item.className = "task-panel-side-item";
+        const tagLabel = pool?.getTagLabel?.(slot.tag) || slot.tag || "综合";
+        const statusLabel = slot.status === "done"
+          ? `已结算 · ${pool?.SIDE_TIER_META?.[slot.resultTier]?.label || slot.resultTier || "完成"}`
+          : slot.loading || genStatus === "loading" || genStatus === "pending"
+            ? "生成中"
+            : "待结算";
+        item.innerHTML = `<strong>${slot.title || `工作 ${index + 1}`}</strong><span>${tagLabel} · ${statusLabel}</span><span>${slot.desc || ""}</span>`;
+        sideList.appendChild(item);
+      });
+    }
+  }
+
+  function openTaskPanelOverlay() {
+    if (!canOpenTaskPanelOverlay()) {
+      showToast("尚未开放", "完成担当邀请剧情后可查看任务面板。", "warn");
+      return;
+    }
+    globalThis.HatsuTasks?.syncSideQuestDay(state);
+    setElementHidden("taskPanelOverlay", false);
+    renderTaskPanelOverlay();
+  }
+
+  function closeTaskPanelOverlay() {
+    setElementHidden("taskPanelOverlay", true);
+  }
+
+  function openSideQuestFromTaskPanel() {
+    closeTaskPanelOverlay();
+    openSideQuestOverlay();
+  }
+
+  function canOpenHybridFacilityAt(locationId) {
+    if (!isHybridCampusMode()) return false;
+    const facilityKind = getHybridFacilityKind(locationId);
+    if (!facilityKind) return false;
+    if (isSandboxScoutActive() && !state.sandbox?.inviteComplete) return false;
+    return true;
   }
 
   function clamp(value, min, max) {
@@ -1778,6 +2476,54 @@
     if (state.day <= 12) return "First Live 中期";
     if (state.day <= FINAL_LIVE_DAY - 1) return "First Live 后期";
     return "First Live 当日";
+  }
+
+  function getHatsuWorldHelpers() {
+    return {
+      canonicalIdolName,
+      idolNames: Object.keys(idols),
+      formatClock: formatFreeModeClock,
+      getPresenceSlotKey: getFreeModePresenceSlotKey,
+      getDayKey: (s) => globalThis.HatsuWorld?.dailyTick?.getDayKey?.(s) || `live+${s?.freeMode?.postLiveDay || 1}`,
+      isSandboxLaunch
+    };
+  }
+
+  function getSandboxScoutLocation(idolName) {
+    const resolver = globalThis.HatsuWorld?.campusBehavior?.getScoutTargetLocation;
+    if (typeof resolver !== "function") return "";
+    return resolver(idolName, getHatsuWorldHelpers()) || "";
+  }
+
+  function composeWorldSummaryBlock(scope = "produce", locationId = "") {
+    const composer = globalThis.HatsuWorld?.injection?.composeWorldSummary;
+    if (typeof composer !== "function") return "";
+    const block = composer(state, { scope, locationId }, getHatsuWorldHelpers());
+    return block ? `\n${block}\n` : "";
+  }
+
+  function refreshWorldPresenceFromRules(force = false) {
+    const slotKey = getFreeModePresenceSlotKey();
+    const campusActive = globalThis.HatsuWorld?.campusBehavior?.shouldUseCampusBehavior?.(state, getHatsuWorldHelpers());
+    if (!force && !campusActive && state.freeMode.presenceSlotKey === slotKey && Object.keys(state.freeMode.presence || {}).length) {
+      return;
+    }
+    const refresher = globalThis.HatsuWorld?.dailyTick?.refreshWorldPresence;
+    if (typeof refresher === "function") {
+      refresher(state, getHatsuWorldHelpers());
+      return;
+    }
+    rollFreeModePresenceLegacy(force);
+  }
+
+  function runFreeModeWorldDailyTick() {
+    const ticker = globalThis.HatsuWorld?.dailyTick?.runFreeModeDailyTick;
+    if (typeof ticker === "function") {
+      ticker(state, getHatsuWorldHelpers());
+    } else {
+      rollFreeModePresenceLegacy(true);
+    }
+    maybeAutoRequestBroadcastFullScript("daily_tick");
   }
 
   function daysLeft() {
@@ -1875,6 +2621,10 @@
   function getActionCostText(idolName, action) {
     const staminaDelta = getActionTuning(idolName, action).staminaDelta;
     return `体力${staminaDelta > 0 ? "+" : ""}${staminaDelta}`;
+  }
+
+  function getHybridFacilityCostText(idolName, action) {
+    return `+60分 · ${getActionCostText(idolName, action)}`;
   }
 
   function formatDelta(delta) {
@@ -2141,9 +2891,16 @@
     state.lastEventResult = resultSummary;
     state.lastEventStory = state.lastStory;
     state.lastDebug = `${actionName}：前端已结算并跳过 SillyTavern 叙事。`;
+    if (isHybridFacilityActive()) {
+      exitHybridFacility();
+    }
     saveState();
     render();
-    showToast("行动完成", `${actionName}已结算，已跳过 AI 叙事并进入下一轮。`, "info");
+    const toastDetail = isHybridCampusMode()
+      ? `${actionName}已结算 · +${HYBRID_FACILITY_ACTION_MINUTES}分 · ${formatFreeModeClock()}`
+      : `${actionName}已结算，已跳过 AI 叙事并进入下一轮。`;
+    showToast("行动完成", toastDetail, "info");
+    processSandboxQuestAfterSettlement();
   }
 
   function settleAction(action, attribute, actionContext = {}) {
@@ -2151,21 +2908,33 @@
       showToast("需要担当偶像", "请先选择本次育成的担当。", "warn");
       return;
     }
-    if (!state.affinity.openingComplete) {
+    const hybridFacility = isHybridFacilityActive();
+    if (hybridFacility) {
+      const kind = state.freeMode.facilityKind;
+      if ((kind === "lesson" && action !== "lesson") || (kind === "training" && action !== "training")) {
+        showToast("当前设施", kind === "lesson" ? "此处只能上课。" : "此处只能训练。", "warn");
+        return;
+      }
+      if (["lesson", "training"].includes(action) && isSandboxCampusExhausted()) {
+        showSandboxCampusLimitToast();
+        return;
+      }
+      if (!hasEnoughStaminaForAction(action)) {
+        showToast("体力不足", "当前体力不足以进行该行动。", "warn");
+        return;
+      }
+    } else if (!state.affinity.openingComplete) {
       recordDebugOpeningDispatch("行动拦截：openingComplete 为 false");
       triggerAffinityStory(0);
       return;
-    }
-    if (state.liveReady) {
+    } else if (state.liveReady) {
       startFirstLive();
       return;
-    }
-    if (isBondEventDay()) {
+    } else if (isBondEventDay()) {
       showToast("羁绊事件日", "今天需要先完成已解锁的羁绊事件。", "warn");
       triggerAffinityStory(pendingRequiredBondThreshold());
       return;
-    }
-    if (!isActionAvailable(action)) {
+    } else if (!isActionAvailable(action)) {
       if (isSummaryRound()) {
         showToast("总结轮次", "请选择今日总结或进入下一天。", "warn");
       } else {
@@ -2325,16 +3094,40 @@
     state.lastStory = story;
     state.lastPrompt = prompt;
     state.lastDebug = buildDebugText(actionName, delta, randomEvent, actionContext);
-    state.log.unshift({ day: state.day, round: state.round, phase: getPhase(), action: actionName, result: resultSummary, rawAction: action, rawAttribute: attribute });
-    state.log = state.log.slice(0, 24);
-
     refreshAffinityUnlocks();
-    advanceRound();
+    let hybridTimeResult = null;
+    if (hybridFacility) {
+      hybridTimeResult = advanceFreeModeTime(HYBRID_FACILITY_ACTION_MINUTES);
+      if (["lesson", "training"].includes(action) && globalThis.HatsuTasks?.isSandboxTasksActive(state)) {
+        globalThis.HatsuTasks.recordCampusAction(state, {
+          kind: action,
+          locationId: state.freeMode.facilityLocationId,
+          minutes: HYBRID_FACILITY_ACTION_MINUTES,
+          clock: formatFreeModeClock()
+        });
+      }
+      state.log.unshift({
+        day: state.freeMode.postLiveDay,
+        round: formatFreeModeClock(),
+        phase: "学园混合",
+        action: actionName,
+        result: `${resultSummary} · +${HYBRID_FACILITY_ACTION_MINUTES}分 · ${formatFreeModeClock()}`,
+        rawAction: action,
+        rawAttribute: attribute
+      });
+    } else {
+      state.log.unshift({ day: state.day, round: state.round, phase: getPhase(), action: actionName, result: resultSummary, rawAction: action, rawAttribute: attribute });
+      advanceRound();
+    }
+    state.log = state.log.slice(0, 24);
     rollSpCandidates();
     saveState();
     render();
     if (["lesson", "training"].includes(action) && isSkipLessonTrainingAiStoryEnabled()) {
       finalizeProduceActionWithoutAi(actionName, resultSummary);
+      if (hybridTimeResult?.hitDayEnd) {
+        showToast("今日活动结束", "时间已到 22:00。", "info");
+      }
       return;
     }
     pendingAiRequestId = requestId;
@@ -2342,7 +3135,11 @@
     if (!requestHostPromptSend(prompt, requestId)) {
       openAiPromptOverlay("当前页面未连接 SillyTavern。请编辑或复制提示词后手动发送。");
     }
+    if (hybridFacility && hybridTimeResult?.hitDayEnd) {
+      showToast("今日活动结束", "时间已到 22:00。", "info");
+    }
     showToast("行动结算完成", `${actionName}已经写入 P 手账。`, randomEvent ? "gold" : "info");
+    processSandboxQuestAfterSettlement();
   }
 
   function createRequestId() {
@@ -2485,6 +3282,7 @@ ${getAffinityStageLine(state.idol, state.trust)}
 角色核心：
 ${profile.core}
 ${buildProducerPromptSection()}
+${composeWorldSummaryBlock("produce")}
 
 本行动叙事规则：
 ${actionStyle}${destinationPrompt}${eventPrompt}
@@ -2599,6 +3397,12 @@ ${optionsPrompt}
 
   function buildMapLocationPresenceLine(locationId) {
     if (locationId === FREE_MODE_OUTING_LOCATION_ID) return "";
+    const campusLines = globalThis.HatsuWorld?.campusBehavior?.buildMapPresencePromptLines?.(
+      locationId,
+      state,
+      getHatsuWorldHelpers()
+    );
+    if (campusLines) return campusLines;
     const idolsHere = getIdolsPresentAtLocation(locationId);
     if (!idolsHere.length) return "当前该地点没有已确认到场的其他偶像。";
     return `当前该地点可能在场的偶像：${idolsHere.join("、")}。请自然写入剧情，但不要替前端重新决定她们是否在场。`;
@@ -2622,7 +3426,72 @@ ${optionsPrompt}
     return state.pendingActionContext?.actionContext?.visitMode === "alone" ? "alone" : "with_idol";
   }
 
+  function buildSandboxScoutExplorePrompt(locationId, options = {}) {
+    const { continuation = false } = options;
+    const location = getWorldMapLocation(locationId);
+    if (!location) return "";
+    const targetIdol = state.idol || "物色目标";
+    const presenceLine = buildMapLocationPresenceLine(locationId);
+    const sceneInstruction = continuation
+      ? `请承接下文摘要，写制作人继续留在 ${location.name}、与 ${targetIdol} 物色搭话的下一轮场景，并设计 4 个新的下一步行动选项。
+- 不要重复已经发生过的事件；从当前时间点自然续写。
+- 上文摘要（仅供衔接，不要原文复述）：
+${summarizeMapExploreContext()}`
+      : `请写制作人独自来到 ${location.name}，与 ${targetIdol} 初次接触、尝试邀请她成为担当的开场场景，并设计 4 个不同的下一步行动选项。
+- 这是沙盒物色期，不是已签约育成；不要写两人已是正式担当关系。
+- 重点写 ${targetIdol} 当前公开状态、对陌生人的距离感，以及制作人如何开口。`;
+    return `[初星育成系统：沙盒模式 · 物色搭话]
+
+物色目标：${targetIdol}
+绑定角色卡：${state.boundCharacter?.name || "未绑定，按物色目标写"}
+当前时间：${formatCampusDayLabel()} ${formatFreeModeClock()}
+地点：${location.name}
+地点说明：${location.description}
+
+到场方式：制作人独自前往物色，尚未与 ${targetIdol} 签约。
+${presenceLine ? `\n${presenceLine}\n` : ""}${composeWorldSummaryBlock("map", locationId)}
+
+${buildProducerPromptSection()}
+
+${sceneInstruction}
+- 抵达该地点时前端已推进 ${FREE_MODE_MAP_ARRIVAL_MINUTES} 分钟；玩家每选择一项 option 后，前端会按对应 time 标签推进分钟数（缺失时默认 ${FREE_MODE_MAP_CHOICE_MINUTES} 分钟），并立即进入下一轮选项。
+- 你只需写当前场景、4 个 option 与 4 个 time 标记，不要写选项被选中后的收尾或结算段落。
+- 不要结算或修改任何数值。
+- 选项必须是制作人第一人称口吻，风味不同，且都适合继续与 ${targetIdol} 接触。
+- 不要提供与其他偶像深聊的选项。
+
+选项耗时标记：
+- 请为每个 option 额外输出对应的 <time1> 到 <time4>，内容为纯整数分钟（建议 5-${FREE_MODE_MAP_MINUTES_MAX}）。
+
+${galgameRenderContract("choice")}
+
+地图选项输出示例：
+【初星正文开始】
+<story>...</story>
+<option1>...</option1>
+<time1>15</time1>
+<option2>...</option2>
+<time2>45</time2>
+<option3>...</option3>
+<time3>10</time3>
+<option4>...</option4>
+<time4>30</time4>
+【初星正文结束】
+
+==================================================
+⚠️⚠️【输出硬规则：违反本规则将导致整个游戏崩溃报错，请务必严格服从！】⚠️⚠️
+1. 你必须严格且完整地把所有输出包裹在【初星正文开始】与【初星正文结束】分隔符内。
+2. 分隔符之内，必须包含 <story>、<option1> 到 <option4>，以及 <time1> 到 <time4> 共 9 个 XML 标签。
+3. time 标签内只能是整数分钟；缺失或无效时前端默认 ${FREE_MODE_MAP_CHOICE_MINUTES} 分钟。
+4. 选项标签内部不要带“选项 1：”等系统前缀。
+5. 不要在标签外写任何思考、计划、规则复述或系统说明。
+==================================================`;
+  }
+
   function buildMapLocationExplorePrompt(locationId, options = {}) {
+    if (isSandboxScoutActive()) {
+      return buildSandboxScoutExplorePrompt(locationId, options);
+    }
     const { continuation = false } = options;
     const actionContext = options.actionContext || state.pendingActionContext?.actionContext || {};
     const location = resolveMapExploreLocation(locationId, actionContext);
@@ -2638,6 +3507,9 @@ ${summarizeMapExploreContext()}`
         ? `请写制作人独自来到 ${location.name} 刚到达时的开场场景，并设计 4 个不同的下一步行动选项。担当偶像 ${idol} 不在身边同行。`
         : `请写制作人与担当偶像 ${idol} 一起来到 ${location.name} 刚到达时的开场场景，并设计 4 个不同的下一步行动选项。`;
     const presenceLine = buildMapLocationPresenceLine(locationId);
+    const sandboxMainBlock = isSandboxLaunch() && state.sandbox?.inviteComplete
+      ? globalThis.HatsuTasks?.buildSandboxMainQuestPromptBlock?.(state, locationId) || ""
+      : "";
     return `[初星育成系统：自由模式 · 地点探索]
 
 担当偶像：${state.idol}
@@ -2649,6 +3521,8 @@ ${getAffinityStageLine(state.idol, state.trust)}
 
 ${buildMapLocationVisitModeLine(visitMode)}
 ${presenceLine ? `\n${presenceLine}` : ""}
+${composeWorldSummaryBlock("map", locationId)}
+${sandboxMainBlock ? `\n${sandboxMainBlock}\n` : ""}
 
 ${buildProducerPromptSection()}
 
@@ -3839,8 +4713,11 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   }
 
   function render() {
-    renderIdols();
+    normalizeBootFlowState();
+    renderLaunchStage();
+    if (shouldShowSelectionStage()) renderIdols();
     renderShellMode();
+    ensureIdolListRendered();
     if (!state.idol) return;
     renderHud();
     renderStatMeters();
@@ -3852,8 +4729,299 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     return Boolean(state.freeMode?.unlocked && state.firstLive?.completed);
   }
 
+  function isPhoneWorldFeedUnlocked() {
+    if (shouldShowLaunchStage()) return false;
+    return Boolean(state.launchMode || state.idol);
+  }
+
+  function getWorldFeedDayKey(sourceState = state) {
+    if (isFreeModeUnlocked()) {
+      return globalThis.HatsuWorld?.dailyTick?.getDayKey?.(sourceState)
+        || `live+${sourceState?.freeMode?.postLiveDay || 1}`;
+    }
+    if (Number.isFinite(Number(sourceState?.day)) && Number(sourceState.day) > 0) {
+      return `produce+${sourceState.day}`;
+    }
+    return `campus+${sourceState?.freeMode?.postLiveDay || 1}`;
+  }
+
+  function getWorldFeedPresenceSlotKey(sourceState = state) {
+    if (isFreeModeActive()) {
+      ensureFreeModeTimeDefaults();
+      return `${sourceState.freeMode.postLiveDay}@${sourceState.freeMode.clockMinutes}`;
+    }
+    const day = Number.isFinite(Number(sourceState?.day)) && Number(sourceState.day) > 0
+      ? Number(sourceState.day)
+      : (sourceState?.freeMode?.postLiveDay || 1);
+    const minutes = Number.isFinite(Number(sourceState?.freeMode?.clockMinutes))
+      ? Number(sourceState.freeMode.clockMinutes)
+      : FREE_MODE_DAY_START_MINUTES;
+    return `${day}@${minutes}`;
+  }
+
+  function formatWorldFeedDayLabel() {
+    if (isFreeModeUnlocked()) return formatFreeModeDayLabel();
+    if (Number.isFinite(Number(state.day)) && Number(state.day) > 0) {
+      return `育成第 ${state.day} 天`;
+    }
+    if (isSandboxLaunch()) return formatCampusDayLabel();
+    return `学园第 ${state.freeMode?.postLiveDay || 1} 天`;
+  }
+
+  function ensurePhoneWorldFeedReady() {
+    if (!isPhoneWorldFeedUnlocked()) return;
+    ensureStateShape();
+    const helpers = {
+      ...getHatsuWorldHelpers(),
+      getDayKey: (s) => getWorldFeedDayKey(s),
+      getPresenceSlotKey: (s) => getWorldFeedPresenceSlotKey(s)
+    };
+    const tick = globalThis.HatsuWorld?.dailyTick;
+    if (!tick) return;
+    if (!state.freeMode?.world?.campus?.slots) {
+      tick.refreshWorldPresence?.(state, helpers);
+    }
+    if (!state.freeMode?.world?.broadcast?.today) {
+      tick.rollDailyBroadcast?.(state, helpers);
+    }
+    tick.rollDailyBuzz?.(state, helpers);
+    saveState();
+  }
+
+  function isHybridCampusMode() {
+    return state.gameMode === "hybrid";
+  }
+
+  function isSandboxLaunch() {
+    return state.launchMode === "sandbox";
+  }
+
+  function isSandboxScoutActive() {
+    if (!isSandboxLaunch()) return false;
+    const helpers = getHatsuWorldHelpers();
+    return globalThis.HatsuWorld?.campusBehavior?.shouldUseCampusBehavior?.(state, helpers) === true;
+  }
+
+  function getSandboxScoutTargetAtLocation(locationId) {
+    const entries = globalThis.HatsuWorld?.campusBehavior?.getInteractableIdolsAtLocation?.(locationId, state) || [];
+    return entries[0]?.idolName || "";
+  }
+
+  function isProduceLaunch() {
+    return state.launchMode === "produce";
+  }
+
+  function shouldShowLaunchStage() {
+    return !state.idol && !state.launchMode;
+  }
+
+  function shouldShowSelectionStage() {
+    if (state.idol) return false;
+    if (state.launchMode === "produce") return true;
+    return state.launchMode === "sandbox" && Boolean(state.sandbox?.openingComplete);
+  }
+
+  function normalizeBootFlowState() {
+    if (state.idol) return;
+    if (state.launchMode === "sandbox" && !state.sandbox?.openingComplete) return;
+    if (!state.launchMode) return;
+    if (!shouldShowLaunchStage() && !shouldShowSelectionStage()) {
+      state.launchMode = null;
+      state.sandbox = { openingComplete: false, inviteComplete: false };
+    }
+  }
+
+  function ensureIdolListRendered() {
+    if (!shouldShowSelectionStage()) return;
+    const list = document.querySelector("#selectionStage #idolList") || document.getElementById("idolList");
+    if (!list) return;
+    if (list.childElementCount === 0) renderIdols();
+  }
+
+  function getLaunchSelectionCopy() {
+    if (isSandboxLaunch()) {
+      return {
+        kicker: "Sandbox",
+        title: "物色担当偶像",
+        desc: "亚纱里老师已介绍学园概况。先选一位今天要去接触的偶像，再到地图找她聊聊。",
+        rules: [
+          "沙盒开局暂仅开放月村手毬",
+          "选择后会在固定地点出现",
+          "可在地图上与在场偶像互动"
+        ],
+        confirmLabel: "前往学园",
+        producerStartLabel: "签署合约，开启星途"
+      };
+    }
+    return {
+      kicker: "Hatsuboshi Produce",
+      title: "选择担当偶像",
+      desc: "22 天 First Live 育成。羁绊事件独立成剧情日，LLM 负责把前端结果写成角色叙事。",
+      rules: null,
+      confirmLabel: "开始育成",
+      producerStartLabel: "签署合约，开启星途"
+    };
+  }
+
+  function renderLaunchStage() {
+    const stage = document.getElementById("launchStage");
+    if (!stage) return;
+    stage.classList.toggle("is-hidden", !shouldShowLaunchStage());
+  }
+
+  function chooseLaunchMode(mode) {
+    if (mode === "sandbox") {
+      startSandboxAsariOpening();
+      return;
+    }
+    if (mode !== "produce") return;
+    state.launchMode = "produce";
+    saveState();
+    render();
+    showToast("育成模式", "请选择担当偶像，开始经典育成流程。", "info");
+  }
+
+  function startSandboxAsariOpening(options = {}) {
+    const { resume = false } = options;
+    state.launchMode = "sandbox";
+    state.gameMode = "hybrid";
+    state.idol = null;
+    state.sandbox = { ...(state.sandbox || {}), openingComplete: false };
+    state.activeStoryNode = { type: "sandboxOpening", ready: true };
+    state.lastEventTitle = "沙盒模式 · 开学指引";
+    state.lastEventResult = "亚纱里老师向你说明沙盒学园的行动方式。";
+    state.lastEventStory = SANDBOX_ASARI_OPENING_STORY;
+    state.lastStory = state.lastEventStory;
+    state.lastDebug = "沙盒模式：亚纱里老师开学指引（占位文案，后续可替换）。";
+    globalThis.HatsuTasks?.activateScoutQuest(state);
+    saveState();
+    render();
+    if (resume) return;
+    openEventOverlay(state.lastEventTitle, state.lastEventResult, state.lastEventStory);
+  }
+
+  function finishSandboxOpeningToSelection() {
+    state.activeStoryNode = null;
+    state.sandbox = { ...(state.sandbox || {}), openingComplete: true, inviteComplete: false };
+    selectedIdol = null;
+    saveState();
+    render();
+    showToast("物色担当", "请选择今天要接触的偶像，然后前往学园大地图。", "info");
+  }
+
+  function startSandboxInviteStory(idolName, options = {}) {
+    const { resume = false } = options;
+    const canonical = canonicalIdolName(idolName);
+    applyIdolPreset(canonical, true);
+    state.sandbox = { ...(state.sandbox || {}), inviteComplete: false };
+    state.activeStoryNode = { type: "sandboxInvite", ready: true, idol: canonical };
+    const spawnLocationId = getSandboxScoutLocation(canonical);
+    const spawnLocationName = spawnLocationId ? getWorldMapLocation(spawnLocationId)?.name : "指定地点";
+    state.lastEventTitle = "沙盒模式 · 出发邀请";
+    state.lastEventResult = `前往 ${spawnLocationName}，尝试与 ${canonical} 接触。`;
+    state.lastEventStory = SANDBOX_INVITE_STORY;
+    state.lastStory = state.lastEventStory;
+    state.lastDebug = `沙盒模式：确认情报后前往邀请 ${canonical}。`;
+    saveState();
+    render();
+    if (resume) return;
+    openEventOverlay(state.lastEventTitle, state.lastEventResult, state.lastEventStory);
+  }
+
+  function enterSandboxCampusAfterOpening() {
+    ensureFreeModeTimeDefaults();
+    if (!state.freeMode.world) state.freeMode.world = {};
+    state.freeMode.world.macro_phase = "scout";
+    state.gameMode = "hybrid";
+    state.freeMode = {
+      ...(state.freeMode || {}),
+      active: true,
+      postLiveDay: 1,
+      clockMinutes: FREE_MODE_DAY_START_MINUTES,
+      facilityKind: null,
+      facilityLocationId: null
+    };
+    runFreeModeWorldDailyTick();
+    if (globalThis.HatsuTasks?.isSandboxTasksActive(state)) {
+      globalThis.HatsuTasks.syncSideQuestDay(state);
+    }
+    document.body.classList.add("is-free-mode-active");
+    saveState();
+    render();
+    const helpers = getHatsuWorldHelpers();
+    const slot = globalThis.HatsuWorld?.campusBehavior?.getIdolCampusSlot?.(state, state.idol, helpers);
+    const spawnLocationName = slot?.locationId ? getWorldMapLocation(slot.locationId)?.name : "";
+    const labelSuffix = slot?.publicLabel ? `（${slot.publicLabel}）` : "";
+    const presenceHint = state.idol && spawnLocationName ? `${state.idol} 今天在 ${spawnLocationName}${labelSuffix}。` : "";
+    showToast("沙盒模式", `${presenceHint}当前 ${formatCampusDayLabel()} ${formatFreeModeClock()}。`, "gold");
+  }
+
+  function resumeSandboxIfNeeded() {
+    if (!isSandboxLaunch()) return;
+    if (state.sandbox?.openingComplete && !state.idol) return;
+    if (state.sandbox?.openingComplete && state.idol && state.freeMode?.active) return;
+    if (state.sandbox?.openingComplete && state.idol && !state.sandbox?.inviteComplete) {
+      const overlay = document.getElementById("eventOverlay");
+      if (!overlay || overlay.hidden) {
+        startSandboxInviteStory(state.idol, { resume: false });
+      }
+      return;
+    }
+    if (state.sandbox?.openingComplete && state.idol && !state.freeMode?.active) {
+      enterSandboxCampusAfterOpening();
+      return;
+    }
+    const overlay = document.getElementById("eventOverlay");
+    if (!overlay || overlay.hidden) {
+      startSandboxAsariOpening({ resume: false });
+    }
+  }
+
+  function returnToLaunchMenu() {
+    worldMapLayoutState.editorActive = false;
+    worldMapLayoutState.drag = null;
+    closeMapLocationOverlay();
+    setElementHidden("eventOverlay", true);
+    state = clone(baseState);
+    selectedIdol = null;
+    document.body.classList.remove("is-free-mode-active", "is-hybrid-facility-active");
+    saveState();
+    render();
+    showToast("已返回主菜单", "请重新选择游戏模式。", "info");
+  }
+
+  function clearLaunchModeSelection() {
+    if (state.launchMode === "sandbox") {
+      state.sandbox = { openingComplete: false, inviteComplete: false };
+    }
+    state.launchMode = null;
+    selectedIdol = null;
+    saveState();
+    render();
+  }
+
+  function isHybridFacilityActive() {
+    return isHybridCampusMode() && Boolean(state.freeMode?.facilityKind);
+  }
+
+  function getHybridFacilityKind(locationId) {
+    if (HYBRID_FACILITY_LESSON_LOCATIONS.includes(locationId)) return "lesson";
+    if (HYBRID_FACILITY_TRAINING_LOCATIONS.includes(locationId)) return "training";
+    return null;
+  }
+
+  function formatCampusDayLabel() {
+    ensureFreeModeTimeDefaults();
+    return isHybridCampusMode()
+      ? `学园第 ${state.freeMode.postLiveDay} 天`
+      : formatFreeModeDayLabel();
+  }
+
   function isFreeModeActive() {
-    return Boolean(state.freeMode?.active && (isFreeModeUnlocked() || state.freeMode?.layoutEditBypass));
+    if (!state.freeMode?.active) return false;
+    if (state.freeMode.layoutEditBypass) return true;
+    if (isHybridCampusMode()) return true;
+    return isFreeModeUnlocked();
   }
 
   function roundMapCoord(value) {
@@ -3971,7 +5139,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     return state.freeMode.clockMinutes < FREE_MODE_DAY_END_MINUTES;
   }
 
-  function rollFreeModePresence(force = false) {
+  function rollFreeModePresenceLegacy(force = false) {
     ensureFreeModeTimeDefaults();
     const slotKey = getFreeModePresenceSlotKey();
     if (!force && state.freeMode.presenceSlotKey === slotKey) return;
@@ -3985,6 +5153,10 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     });
   }
 
+  function rollFreeModePresence(force = false) {
+    refreshWorldPresenceFromRules(force);
+  }
+
   function getIdolsPresentAtLocation(locationId) {
     ensureFreeModeTimeDefaults();
     return Object.entries(state.freeMode.presence || {})
@@ -3996,7 +5168,12 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     ensureFreeModeTimeDefaults();
     state.freeMode.postLiveDay += 1;
     state.freeMode.clockMinutes = FREE_MODE_DAY_START_MINUTES;
-    rollFreeModePresence(true);
+    if (globalThis.HatsuTasks?.isSandboxTasksActive(state)) {
+      globalThis.HatsuTasks.syncCampusDay(state);
+      globalThis.HatsuTasks.syncSideQuestDay(state);
+      maybeRequestSideQuestGeneration();
+    }
+    runFreeModeWorldDailyTick();
     closeFreeModeTimeOverlay();
     saveState();
     renderFreeModeStage();
@@ -4145,6 +5322,8 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     if (state.freeMode) {
       state.freeMode.activeLocationId = null;
       state.freeMode.activeOutingDestination = null;
+      state.freeMode.facilityKind = null;
+      state.freeMode.facilityLocationId = null;
     }
     closeVnChoicesOverlay();
     hideVnCustomChoicePanel();
@@ -4276,19 +5455,29 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     pendingAiRequestId = requestId;
     const prompt = getMapExplorePrompt(locationId, { visitMode: normalizedVisitMode });
     state.lastPrompt = prompt;
-    const visitLabel = normalizedVisitMode === "alone" ? "独自前往" : "与担当同来";
+    const scoutActive = isSandboxScoutActive();
+    const visitLabel = scoutActive
+      ? "独自物色"
+      : normalizedVisitMode === "alone"
+        ? "独自前往"
+        : "与担当同来";
     const exploreLabel = isOffCampus ? `外出 · ${location.name}` : location.name;
-    state.lastStory = isOffCampus
-      ? `正在与担当一起前往 ${location.name}（${visitLabel}）...`
-      : `正在前往 ${location.name}（${visitLabel}）...`;
-    state.lastDebug = `自由模式${isOffCampus ? "外出" : "地点"}探索：${exploreLabel} · ${visitLabel}，抵达 +15 分钟，当前 ${formatFreeModeClock()}，等待 AI 生成本次选项。`;
+    state.lastStory = scoutActive
+      ? `正在前往 ${location.name}，准备与 ${state.idol} 搭话...`
+      : isOffCampus
+        ? `正在与担当一起前往 ${location.name}（${visitLabel}）...`
+        : `正在前往 ${location.name}（${visitLabel}）...`;
+    state.lastDebug = scoutActive
+      ? `沙盒物色搭话：${exploreLabel} · 目标 ${state.idol}，抵达 +${FREE_MODE_MAP_ARRIVAL_MINUTES} 分钟，当前 ${formatFreeModeClock()}，等待 AI 生成本次选项。`
+      : `自由模式${isOffCampus ? "外出" : "地点"}探索：${exploreLabel} · ${visitLabel}，抵达 +${FREE_MODE_MAP_ARRIVAL_MINUTES} 分钟，当前 ${formatFreeModeClock()}，等待 AI 生成本次选项。`;
     saveState();
     render();
     renderFreeModeStage();
     if (arrivalResult.hitDayEnd) {
       showToast("今日活动结束", "抵达后时间已到 22:00，请尽快返回大地图。", "info");
     }
-    openEventOverlay(`${exploreLabel} · 探索`, "正在等待 AI 生成本次行动选项", buildAiWaitingStory(`正在等待 ${exploreLabel} 的场景与选项生成...`));
+    const overlayTitle = scoutActive ? `${exploreLabel} · 物色搭话` : `${exploreLabel} · 探索`;
+    openEventOverlay(overlayTitle, "正在等待 AI 生成本次行动选项", buildAiWaitingStory(`正在等待 ${exploreLabel} 的场景与选项生成...`));
     if (!requestHostPromptSend(prompt, requestId)) {
       openAiPromptOverlay("当前页面未连接 SillyTavern。请编辑或复制地点探索提示词后手动发送。");
     }
@@ -4351,6 +5540,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     const location = resolveMapExploreLocation(locationId, actionContext);
     const chosenOptionText = state.pendingOptionTexts[index] || "选择该选项";
     const chosenMinutes = resolveMapOptionMinutes(state.pendingOptionMinutes?.[index]);
+    processSandboxMainQuestMapChoice(locationId, chosenOptionText);
     const timeResult = advanceFreeModeTime(chosenMinutes);
     const chosenLine = `<narration>▶ 制作人的选择：${chosenOptionText}</narration>`;
     state.lastStory = state.lastStory ? `${state.lastStory}\n\n${chosenLine}` : chosenLine;
@@ -4393,6 +5583,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     const locationId = actionContext.locationId;
     const location = resolveMapExploreLocation(locationId, actionContext);
     const chosenMinutes = FREE_MODE_MAP_CHOICE_MINUTES;
+    processSandboxMainQuestMapChoice(locationId, producerAction);
     const timeResult = advanceFreeModeTime(chosenMinutes);
     const chosenLine = `<narration>▶ 制作人的选择：${producerAction}</narration>`;
     state.lastStory = state.lastStory ? `${state.lastStory}\n\n${chosenLine}` : chosenLine;
@@ -4741,8 +5932,8 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     ensureFreeModeTimeDefaults();
     const travelAllowed = isFreeModeTravelAllowed();
     const label = travelAllowed
-      ? `${formatFreeModeDayLabel()} · ${formatFreeModeClock()}`
-      : `${formatFreeModeDayLabel()} · ${formatFreeModeClock()} · 今日已结束`;
+      ? `${formatCampusDayLabel()} · ${formatFreeModeClock()}`
+      : `${formatCampusDayLabel()} · ${formatFreeModeClock()} · 今日已结束`;
     ["freeModeStatusBadge", "vnFreeModeClock"].forEach((id) => {
       const badge = document.getElementById(id);
       if (!badge) return;
@@ -4762,10 +5953,116 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     if (worldMapLayoutState.editorActive) return;
     const locationBadge = document.getElementById("freeModeLocationBadge");
     if (locationBadge) {
-      locationBadge.textContent = isFreeModeTravelAllowed()
-        ? "点击地图上的地点开始探索"
-        : "22:00 后不可外出，点击右上角时间管理进入下一天";
+      if (isHybridCampusMode()) {
+        locationBadge.textContent = isFreeModeTravelAllowed()
+          ? (isSandboxLaunch()
+            ? `今日校园课还剩 ${getSandboxCampusRemaining() ?? 3}/3 次 · 教学楼上课 · 体育馆/部室/特教训练`
+            : "教学楼可上课 · 体育馆/部室栋可训练")
+          : "22:00 后不可安排，点击右上角时间管理进入下一天";
+      } else {
+        locationBadge.textContent = isFreeModeTravelAllowed()
+          ? "点击地图上的地点开始探索"
+          : "22:00 后不可外出，点击右上角时间管理进入下一天";
+      }
     }
+    const hybridExitBtn = document.getElementById("hybridCampusExitBtn");
+    if (hybridExitBtn) {
+      hybridExitBtn.hidden = !isHybridCampusMode() || isHybridFacilityActive();
+      hybridExitBtn.textContent = isSandboxLaunch() ? "返回主菜单" : "返回经典育成";
+    }
+    const headKicker = document.querySelector("#freeModeStage .free-mode-head-copy .ui-kicker");
+    if (headKicker) {
+      headKicker.textContent = isSandboxLaunch() ? "Sandbox" : isHybridCampusMode() ? "Hybrid Campus" : "Free Explore";
+    }
+    const sideQuestBtn = document.getElementById("freeModeSideQuestBtn");
+    const sideQuestBadge = document.getElementById("freeModeSideQuestBadge");
+    if (sideQuestBtn) {
+      const showSideQuest = canOpenSideQuestOverlay();
+      sideQuestBtn.hidden = !showSideQuest;
+      if (showSideQuest && sideQuestBadge) {
+        const remaining = getSideQuestRemainingCount();
+        sideQuestBadge.textContent = remaining === null ? "" : `剩 ${remaining}`;
+      }
+    }
+    const taskPanelBtn = document.getElementById("freeModeTaskPanelBtn");
+    if (taskPanelBtn) {
+      taskPanelBtn.hidden = !canOpenTaskPanelOverlay();
+    }
+    const taskPanelOverlay = document.getElementById("taskPanelOverlay");
+    if (taskPanelOverlay && !taskPanelOverlay.hidden) {
+      renderTaskPanelOverlay();
+    }
+  }
+
+  function enterHybridCampus() {
+    if (!state.idol) {
+      showToast("需要担当偶像", "请先选择担当偶像。", "warn");
+      return;
+    }
+    if (!state.affinity.openingComplete && !isSandboxLaunch()) {
+      showToast("尚未签约", "请先完成开场剧情。", "warn");
+      return;
+    }
+    if (isSandboxLaunch() && !state.sandbox?.openingComplete) {
+      showToast("尚未完成指引", "请先听完亚纱里老师的开学说明。", "warn");
+      return;
+    }
+    if (isSandboxLaunch() && !state.idol) {
+      showToast("需要担当偶像", "请先物色并选择一位偶像。", "warn");
+      return;
+    }
+    ensureFreeModeTimeDefaults();
+    runFreeModeWorldDailyTick();
+    state.gameMode = "hybrid";
+    state.freeMode = {
+      ...(state.freeMode || {}),
+      active: true,
+      facilityKind: null,
+      facilityLocationId: null
+    };
+    document.body.classList.add("is-free-mode-active");
+    saveState();
+    render();
+    showToast(isSandboxLaunch() ? "沙盒模式" : "混合模式", `已进入学园地图。当前 ${formatCampusDayLabel()} ${formatFreeModeClock()}。`, "info");
+  }
+
+  function startSandboxSession() {
+    enterSandboxCampusAfterOpening();
+  }
+
+  function exitHybridCampus() {
+    if (isSandboxLaunch()) {
+      returnToLaunchMenu();
+      return;
+    }
+    state.gameMode = "classic";
+    exitFreeMode();
+  }
+
+  function openHybridFacility(facilityKind, locationId) {
+    if (!isHybridCampusMode() || !isFreeModeActive()) return;
+    if (!isFreeModeTravelAllowed()) {
+      showToast("今日已不能安排", "22:00 后无法进入上课/训练，请进入下一天。", "warn");
+      return;
+    }
+    if (isSandboxCampusExhausted()) {
+      showSandboxCampusLimitToast();
+      return;
+    }
+    const location = getWorldMapLocation(locationId);
+    if (!location) return;
+    state.freeMode.facilityKind = facilityKind;
+    state.freeMode.facilityLocationId = locationId;
+    saveState();
+    render();
+    const facilityLabel = facilityKind === "lesson" ? "上课" : "训练";
+    showToast(facilityLabel, `已进入 ${location.name}。每次${facilityLabel}推进 ${HYBRID_FACILITY_ACTION_MINUTES} 分钟。`, "info");
+  }
+
+  function exitHybridFacility() {
+    if (!state.freeMode) return;
+    state.freeMode.facilityKind = null;
+    state.freeMode.facilityLocationId = null;
   }
 
   function enterFreeMode() {
@@ -4775,8 +6072,14 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     }
     closeFreeModeEntryOverlay(true);
     ensureFreeModeTimeDefaults();
-    rollFreeModePresence(true);
-    state.freeMode = { ...(state.freeMode || {}), active: true };
+    runFreeModeWorldDailyTick();
+    state.gameMode = "classic";
+    state.freeMode = {
+      ...(state.freeMode || {}),
+      active: true,
+      facilityKind: null,
+      facilityLocationId: null
+    };
     document.body.classList.add("is-free-mode-active");
     saveState();
     render();
@@ -4790,11 +6093,105 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     state.freeMode.active = false;
     state.freeMode.layoutEditBypass = false;
     state.freeMode.activeLocationId = null;
+    state.freeMode.facilityKind = null;
+    state.freeMode.facilityLocationId = null;
     document.body.classList.remove("is-free-mode-active");
     closeMapLocationOverlay();
     returnToFreeModeMap({ cancelled: true });
     saveState();
     render();
+  }
+
+  function renderMapLocationPresence(locationId, idolsHere) {
+    const helpers = getHatsuWorldHelpers();
+    const presenceBlock = document.getElementById("mapLocationPresence");
+    const presenceAvatars = document.getElementById("mapLocationPresenceAvatars");
+    const presenceList = document.getElementById("mapLocationPresenceList");
+    const presenceLabel = presenceBlock?.querySelector(".map-location-presence-label");
+
+    if (presenceLabel) {
+      presenceLabel.textContent = isSandboxScoutActive() ? "当前在场" : "当前可能在场";
+    }
+    if (presenceList) {
+      presenceList.innerHTML = "";
+      presenceList.hidden = idolsHere.length === 0;
+    }
+    if (presenceBlock) {
+      presenceBlock.hidden = idolsHere.length === 0;
+    }
+    if (!presenceAvatars) return;
+
+    presenceAvatars.innerHTML = "";
+    idolsHere.forEach((idolName) => {
+      const profile = idols[idolName];
+      if (!profile) return;
+      const campusSlot = globalThis.HatsuWorld?.campusBehavior?.getIdolCampusSlot?.(state, idolName, helpers);
+      const avatar = document.createElement("span");
+      avatar.className = "map-location-presence-avatar idol-avatar";
+      if (campusSlot?.interactable) avatar.classList.add("is-interactable");
+      else if (campusSlot) avatar.classList.add("is-background");
+      avatar.style.setProperty("--avatar-color", profile.theme || "#8c73ff");
+      avatar.title = campusSlot?.publicLabel ? `${idolName}：${campusSlot.publicLabel}` : idolName;
+      avatar.innerHTML = `<b aria-hidden="true">${idolName.slice(0, 1)}</b><img src="${profile.avatar}" alt="" loading="lazy" decoding="async">`;
+      avatar.querySelector("img")?.addEventListener("error", (event) => {
+        event.currentTarget.classList.add("is-missing");
+      });
+      presenceAvatars.appendChild(avatar);
+
+      if (presenceList) {
+        const item = document.createElement("div");
+        item.className = "map-location-presence-item";
+        if (campusSlot?.interactable) item.classList.add("is-interactable");
+        else item.classList.add("is-background");
+        const statusText = campusSlot?.interactable ? "可搭话" : "仅远处可见";
+        item.innerHTML = `
+          <span class="map-location-presence-name">${idolName}</span>
+          <span class="map-location-presence-copy">${campusSlot?.publicLabel || "在场"}</span>
+          <span class="map-location-presence-status">${statusText}</span>
+        `;
+        presenceList.appendChild(item);
+      }
+    });
+  }
+
+  function updateMapLocationEntryActions(locationId) {
+    const facilityKind = canOpenHybridFacilityAt(locationId) ? getHybridFacilityKind(locationId) : null;
+    const scoutActive = isSandboxScoutActive() && !state.sandbox?.inviteComplete;
+    const scoutTargetHere = scoutActive ? getSandboxScoutTargetAtLocation(locationId) : "";
+    const campusExhausted = isSandboxCampusExhausted();
+    const enterWithIdolBtn = document.getElementById("mapLocationEnterWithIdolBtn");
+    const enterAloneBtn = document.getElementById("mapLocationEnterAloneBtn");
+    const enterOptions = document.querySelector(".map-location-enter-options");
+
+    if (enterWithIdolBtn) {
+      if (scoutActive) {
+        enterWithIdolBtn.textContent = scoutTargetHere ? `与 ${scoutTargetHere} 搭话` : "物色目标不在这里";
+        enterWithIdolBtn.disabled = !scoutTargetHere;
+      } else {
+        enterWithIdolBtn.disabled = false;
+        if (facilityKind && campusExhausted) {
+          enterWithIdolBtn.disabled = true;
+          enterWithIdolBtn.textContent = "今日校园次数已用完";
+        } else {
+          enterWithIdolBtn.textContent = facilityKind === "lesson"
+            ? "进入上课"
+            : facilityKind === "training"
+              ? "进入训练"
+              : "和担当一起来";
+        }
+      }
+    }
+    if (enterAloneBtn) {
+      if (scoutActive) {
+        enterAloneBtn.hidden = true;
+      } else {
+        enterAloneBtn.hidden = Boolean(facilityKind);
+        enterAloneBtn.disabled = false;
+      }
+    }
+    if (enterOptions) {
+      enterOptions.classList.toggle("is-scout-mode", scoutActive);
+    }
   }
 
   function openMapLocationOverlay(locationId) {
@@ -4807,25 +6204,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     const idolsHere = getIdolsPresentAtLocation(locationId);
     if (title) title.textContent = location.name;
     if (desc) desc.textContent = location.description;
-    const presenceBlock = document.getElementById("mapLocationPresence");
-    const presenceAvatars = document.getElementById("mapLocationPresenceAvatars");
-    if (presenceBlock && presenceAvatars) {
-      presenceAvatars.innerHTML = "";
-      presenceBlock.hidden = idolsHere.length === 0;
-      idolsHere.forEach((idolName) => {
-        const profile = idols[idolName];
-        if (!profile) return;
-        const avatar = document.createElement("span");
-        avatar.className = "map-location-presence-avatar idol-avatar";
-        avatar.style.setProperty("--avatar-color", profile.theme || "#8c73ff");
-        avatar.title = idolName;
-        avatar.innerHTML = `<b aria-hidden="true">${idolName.slice(0, 1)}</b><img src="${profile.avatar}" alt="" loading="lazy" decoding="async">`;
-        avatar.querySelector("img")?.addEventListener("error", (event) => {
-          event.currentTarget.classList.add("is-missing");
-        });
-        presenceAvatars.appendChild(avatar);
-      });
-    }
+    renderMapLocationPresence(locationId, idolsHere);
     const imagePath = String(location.image || "").trim();
     if (visual) visual.hidden = !imagePath;
     if (image) {
@@ -4841,7 +6220,8 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     }
     document.getElementById("mapLocationOverlay")?.setAttribute("data-location-id", location.id);
     const outingBtn = document.getElementById("mapLocationOutingBtn");
-    if (outingBtn) outingBtn.hidden = location.id !== "school_entrance";
+    if (outingBtn) outingBtn.hidden = location.id !== "school_entrance" || isSandboxScoutActive();
+    updateMapLocationEntryActions(location.id);
     setElementHidden("mapLocationOverlay", false);
   }
 
@@ -4893,6 +6273,24 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   function confirmMapLocationEntry(visitMode = "with_idol") {
     const locationId = document.getElementById("mapLocationOverlay")?.getAttribute("data-location-id");
     if (!locationId) return;
+    if (isSandboxScoutActive() && !state.sandbox?.inviteComplete) {
+      const targetHere = getSandboxScoutTargetAtLocation(locationId);
+      if (!targetHere) {
+        showToast("目标不在这里", `${state.idol || "物色目标"} 今天不在这处地点，请到地图其他位置寻找。`, "warn");
+        return;
+      }
+      closeMapLocationOverlay();
+      startMapLocationExplore(locationId, "alone");
+      return;
+    }
+    if (canOpenHybridFacilityAt(locationId)) {
+      const facilityKind = getHybridFacilityKind(locationId);
+      if (facilityKind) {
+        closeMapLocationOverlay();
+        openHybridFacility(facilityKind, locationId);
+        return;
+      }
+    }
     closeMapLocationOverlay();
     startMapLocationExplore(locationId, visitMode);
   }
@@ -4910,15 +6308,22 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
 
   function renderShellMode() {
     const hasIdol = Boolean(state.idol);
-    const canShowGame = hasIdol && state.affinity.openingComplete;
-    const inFreeMode = isFreeModeActive();
-    document.body.classList.toggle("is-free-mode-active", inFreeMode);
-    document.getElementById("selectionStage").classList.toggle("is-hidden", hasIdol);
-    document.getElementById("gameStage").classList.toggle("is-hidden", !canShowGame || inFreeMode);
+    const sandboxActive = isSandboxLaunch();
+    const canShowGame = hasIdol && (
+      (isProduceLaunch() && state.affinity.openingComplete)
+      || (sandboxActive && state.sandbox?.openingComplete && state.sandbox?.inviteComplete)
+    );
+    const inHybridFacility = isHybridFacilityActive();
+    const inCampusMap = isFreeModeActive() && !inHybridFacility;
+    document.body.classList.toggle("is-free-mode-active", isFreeModeActive());
+    document.body.classList.toggle("is-hybrid-facility-active", inHybridFacility);
+    document.getElementById("launchStage")?.classList.toggle("is-hidden", !shouldShowLaunchStage());
+    document.getElementById("selectionStage")?.classList.toggle("is-hidden", !shouldShowSelectionStage());
+    document.getElementById("gameStage").classList.toggle("is-hidden", !canShowGame || (isFreeModeActive() && !inHybridFacility));
     const freeModeStage = document.getElementById("freeModeStage");
     if (freeModeStage) {
-      freeModeStage.classList.toggle("is-hidden", !canShowGame || !inFreeMode);
-      if (inFreeMode) renderFreeModeStage();
+      freeModeStage.classList.toggle("is-hidden", !canShowGame || !inCampusMap);
+      if (inCampusMap) renderFreeModeStage();
     }
   }
 
@@ -5050,12 +6455,27 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     const rules = document.getElementById("selectRules");
     const confirmContainer = document.getElementById("selectConfirmContainer");
     const confirmBtn = document.getElementById("confirmIdolBtn");
+    const bootActions = document.getElementById("selectBootActions");
 
     if (!name) {
-      if (kicker) kicker.textContent = "Hatsuboshi Produce";
-      if (title) title.textContent = "选择担当偶像";
-      if (desc) desc.textContent = "22 天 First Live 育成。20/40/60/80 羁绊事件会占用专属剧情日，LLM 负责把前端结果写成角色叙事。";
-      if (rules) rules.style.display = "";
+      const copy = getLaunchSelectionCopy();
+      if (kicker) kicker.textContent = copy.kicker;
+      if (title) title.textContent = copy.title;
+      if (desc) desc.textContent = copy.desc;
+      if (rules) {
+        if (copy.rules) {
+          rules.style.display = "";
+          rules.innerHTML = copy.rules.map((item) => `<span>${item}</span>`).join("");
+        } else {
+          rules.style.display = "";
+          rules.innerHTML = `
+          <span>3 次普通行动</span>
+          <span>1 次额外行动</span>
+          <span>1 次总结轮次</span>
+          <span>随机互动事件</span>`;
+        }
+      }
+      if (bootActions) bootActions.hidden = !shouldShowSelectionStage();
       if (confirmContainer) {
         confirmContainer.style.display = "none";
         confirmContainer.classList.remove("is-visible");
@@ -5068,6 +6488,8 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       if (producerPanel) producerPanel.classList.add("is-hidden");
       return;
     }
+
+    if (bootActions) bootActions.hidden = true;
 
     const profile = idols[name];
     if (!profile) return;
@@ -5086,25 +6508,34 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     if (confirmBtn) {
       confirmBtn.style.backgroundColor = profile.theme;
       confirmBtn.style.boxShadow = `0 8px 24px ${profile.theme}66`;
+      const confirmLabel = confirmBtn.querySelector("span");
+      if (confirmLabel) confirmLabel.textContent = getLaunchSelectionCopy().confirmLabel;
     }
 
     const prodStartBtn = document.getElementById("producerStartBtn");
     if (prodStartBtn) {
       prodStartBtn.style.backgroundColor = profile.theme;
       prodStartBtn.style.boxShadow = `0 8px 24px ${profile.theme}66`;
+      const producerStartLabel = prodStartBtn.querySelector("span");
+      if (producerStartLabel) producerStartLabel.textContent = getLaunchSelectionCopy().producerStartLabel;
     }
 
     applySelectStageBackground(name);
   }
 
   function renderIdols() {
-    const list = document.getElementById("idolList");
+    const list = document.querySelector("#selectionStage #idolList") || document.getElementById("idolList");
+    if (!list) {
+      console.warn("[Hatsu] idolList 未找到，无法渲染担当列表");
+      return;
+    }
     list.innerHTML = "";
-    
+
     selectedIdol = null;
     updateSelectVisual(null);
 
     Object.entries(idols).forEach(([name, profile]) => {
+      if (isSandboxLaunch() && !SANDBOX_SELECTABLE_IDOLS.includes(name)) return;
       const button = document.createElement("button");
       button.type = "button";
       button.id = `idol-${name}`;
@@ -5116,9 +6547,12 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         </span>
         <span class="idol-card-copy"><strong>${name}</strong><span>${profile.tag}</span></span>
       `;
-      button.querySelector(".idol-avatar img").addEventListener("error", (event) => {
-        event.currentTarget.classList.add("is-missing");
-      });
+      const avatarImg = button.querySelector(".idol-avatar img");
+      if (avatarImg) {
+        avatarImg.addEventListener("error", (event) => {
+          event.currentTarget.classList.add("is-missing");
+        });
+      }
       
       button.addEventListener("click", () => {
         if (selectedIdol === name) return;
@@ -5208,7 +6642,16 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     if (targetVi) targetVi.textContent = state.threshold.Vi;
     document.getElementById("currentIdolLabel").textContent = "当前担当";
     document.getElementById("idolName").textContent = state.idol;
-    document.getElementById("phaseBadge").textContent = getPhase();
+    const phaseBadge = document.getElementById("phaseBadge");
+    if (phaseBadge) {
+      if (isHybridFacilityActive()) {
+        const location = getWorldMapLocation(state.freeMode.facilityLocationId);
+        const facilityLabel = state.freeMode.facilityKind === "lesson" ? "上课" : "训练";
+        phaseBadge.textContent = `${location?.name || "设施"} · ${facilityLabel} · ${formatCampusDayLabel()} ${formatFreeModeClock()}`;
+      } else {
+        phaseBadge.textContent = getPhase();
+      }
+    }
     const badge = document.getElementById("affinityPendingBadge");
     if (badge) badge.textContent = String(pendingAffinityCount());
   }
@@ -5268,6 +6711,39 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       document.getElementById("actionModeLabel").textContent = REQUIRED_BOND_THRESHOLDS.includes(Number(threshold))
         ? `羁绊事件日：${node?.title || "羁绊事件"}`
         : `羁绊事件：${node?.title || "羁绊事件"}`;
+      renderActionHighlights();
+      return;
+    }
+    if (isHybridFacilityActive()) {
+      const kind = state.freeMode.facilityKind;
+      const location = getWorldMapLocation(state.freeMode.facilityLocationId);
+      const facilityName = location?.name || "设施";
+      const campusRemaining = getSandboxCampusRemaining();
+      const campusExhausted = isSandboxCampusExhausted();
+      if (kind === "lesson") {
+        [
+          ["Vo公开课", "Vo"],
+          ["Da公开课", "Da"],
+          ["Vi公开课", "Vi"]
+        ].forEach(([label, attribute]) => {
+          const button = createActionButton(label, "lesson", attribute, statColors[attribute], getHybridFacilityCostText(state.idol, "lesson"));
+          if (campusExhausted) button.disabled = true;
+          container.appendChild(button);
+        });
+      } else if (kind === "training") {
+        [
+          ["Vo训练", "Vo"],
+          ["Da训练", "Da"],
+          ["Vi训练", "Vi"]
+        ].forEach(([label, attribute]) => {
+          const button = createActionButton(label, "training", attribute, statColors[attribute], getHybridFacilityCostText(state.idol, "training"));
+          if (campusExhausted) button.disabled = true;
+          container.appendChild(button);
+        });
+      }
+      container.appendChild(createActionButton("返回地图", "campus_map_return", null, "#8c73ff", ""));
+      const campusHint = campusRemaining !== null ? ` · 今日校园剩余 ${campusRemaining}/3` : "";
+      document.getElementById("actionModeLabel").textContent = `${facilityName} · ${kind === "lesson" ? "上课" : "训练"}（每次 +${HYBRID_FACILITY_ACTION_MINUTES} 分${campusHint}）`;
       renderActionHighlights();
       return;
     }
@@ -5342,6 +6818,15 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         button.disabled = Boolean(state.firstLive.completed);
       } else if (button.dataset.action === "world_map") {
         button.disabled = !isFreeModeUnlocked();
+      } else if (button.dataset.action === "campus_map_return") {
+        button.disabled = false;
+      } else if (isHybridFacilityActive()) {
+        const kind = state.freeMode.facilityKind;
+        if (button.dataset.action === "lesson") {
+          button.disabled = kind !== "lesson" || !hasEnoughStaminaForAction("lesson");
+        } else if (button.dataset.action === "training") {
+          button.disabled = kind !== "training" || !hasEnoughStaminaForAction("training");
+        }
       } else {
         button.disabled = Boolean(state.liveReady) || !isActionAvailable(button.dataset.action);
       }
@@ -5425,6 +6910,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   }
 
   let hostPromptSendSource = "general";
+  let hostPromptSendSilent = false;
 
   function resetPhoneChatPendingState() {
     state.phoneChat.isAwaitingReply = false;
@@ -5443,14 +6929,39 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     return sent;
   }
 
+  function sendBroadcastPromptToHost(promptText, requestId = pendingAiRequestId || createRequestId(), options = {}) {
+    const prevSource = hostPromptSendSource;
+    const prevSilent = hostPromptSendSilent;
+    hostPromptSendSource = "broadcast";
+    hostPromptSendSilent = Boolean(options.silent);
+    const sent = requestHostPromptSend(promptText, requestId);
+    hostPromptSendSilent = prevSilent;
+    hostPromptSendSource = prevSource;
+    return sent;
+  }
+
+  function resetBroadcastPendingState() {
+    if (state.freeMode?.world?.broadcast) {
+      state.freeMode.world.broadcast.pendingRequestId = "";
+    }
+  }
+
   function requestHostPromptSend(promptText, requestId = pendingAiRequestId || createRequestId()) {
     if (!isSillyTavernHost()) return false;
     const prompt = promptText || state.lastPrompt || document.getElementById("promptText").value || "";
     if (!prompt.trim()) return false;
-    const source = hostPromptSendSource === "phonechat" ? "phonechat" : "general";
+    const source = hostPromptSendSource === "phonechat"
+      ? "phonechat"
+      : hostPromptSendSource === "broadcast"
+        ? "broadcast"
+        : "general";
     if (source !== "phonechat" && state.activeStoryNode?.type === "phonechat") {
       state.activeStoryNode = null;
       resetPhoneChatPendingState();
+    }
+    if (source !== "broadcast" && state.activeStoryNode?.type === "broadcast") {
+      state.activeStoryNode = null;
+      resetBroadcastPendingState();
     }
     pendingAiRequestId = requestId;
     aiReplyRetryCount = 0;
@@ -5464,7 +6975,9 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       requestId,
       prompt
     }, "*");
-    showToast("已交给酒馆", "提示词已发送到 SillyTavern 当前对话。", "gold");
+    if (!hostPromptSendSilent) {
+      showToast("已交给酒馆", "提示词已发送到 SillyTavern 当前对话。", "gold");
+    }
     return true;
   }
 
@@ -5593,10 +7106,25 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     }).join(" ");
   }
 
-  function renderDaySummaryRadar() {
-    const grid = document.getElementById("daySummaryRadarGrid");
-    const labels = document.getElementById("daySummaryRadarLabels");
-    const shape = document.getElementById("daySummaryRadarShape");
+  const daySummaryViewIds = {
+    overlay: {
+      avatar: "daySummaryAvatar",
+      schedule: "daySummarySchedule",
+      name: "daySummaryName",
+      dayValue: "daySummaryDayValue",
+      radarGrid: "daySummaryRadarGrid",
+      radarLabels: "daySummaryRadarLabels",
+      radarShape: "daySummaryRadarShape",
+      notes: "daySummaryNotes",
+      radarFill: "daySummaryRadarFill"
+    }
+  };
+
+  function renderDaySummaryRadar(viewKey = "overlay") {
+    const ids = daySummaryViewIds[viewKey] || daySummaryViewIds.overlay;
+    const grid = document.getElementById(ids.radarGrid);
+    const labels = document.getElementById(ids.radarLabels);
+    const shape = document.getElementById(ids.radarShape);
     if (!grid || !labels || !shape) return;
 
     const cx = 160;
@@ -5610,6 +7138,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     }).join("");
 
     shape.setAttribute("points", radarPolygonPoints(values, cx, cy, maxRadius));
+    shape.setAttribute("fill", `url(#${ids.radarFill})`);
 
     labels.innerHTML = daySummaryRadarAxes.map((axis, index) => {
       const anchor = radarVertex(cx, cy, maxRadius + 22, index, daySummaryRadarAxes.length);
@@ -5640,18 +7169,21 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     ];
   }
 
-  function renderDaySummaryNotes(lines) {
-    const container = document.getElementById("daySummaryNotes");
+  function renderDaySummaryNotes(lines, viewKey = "overlay") {
+    const ids = daySummaryViewIds[viewKey] || daySummaryViewIds.overlay;
+    const container = document.getElementById(ids.notes);
     if (!container) return;
     const displayLines = Array.isArray(lines) ? lines : getDaySummaryDisplayLines();
     container.innerHTML = displayLines.map((line) => `<p class="day-summary-line">${line}</p>`).join("");
   }
 
-  function renderDaySummary() {
+  function renderDaySummaryView(viewKey = "overlay") {
+    const ids = daySummaryViewIds[viewKey] || daySummaryViewIds.overlay;
     const profile = idols[state.idol] || {};
-    const avatar = document.getElementById("daySummaryAvatar");
-    const schedule = document.getElementById("daySummarySchedule");
-    const name = document.getElementById("daySummaryName");
+    const avatar = document.getElementById(ids.avatar);
+    const schedule = document.getElementById(ids.schedule);
+    const name = document.getElementById(ids.name);
+    const dayValue = document.getElementById(ids.dayValue);
 
     if (avatar) {
       avatar.src = profile.avatar || "";
@@ -5660,7 +7192,6 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     if (schedule) {
       schedule.textContent = getIdolSchoolClass(state.idol);
     }
-    const dayValue = document.getElementById("daySummaryDayValue");
     if (dayValue) {
       dayValue.textContent = String(state.day || 1);
     }
@@ -5668,8 +7199,12 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       name.textContent = formatIdolDisplayName(state.idol || "未选择");
     }
 
-    renderDaySummaryRadar();
-    renderDaySummaryNotes();
+    renderDaySummaryRadar(viewKey);
+    renderDaySummaryNotes(undefined, viewKey);
+  }
+
+  function renderDaySummary() {
+    renderDaySummaryView("overlay");
   }
 
   function openDaySummaryOverlay() {
@@ -5719,6 +7254,8 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     bar.classList.toggle("is-home", mode === "home");
     bar.classList.toggle("is-line", mode === "line");
     bar.classList.toggle("is-music", mode === "music");
+    bar.classList.toggle("is-broadcast", mode === "broadcast");
+    bar.classList.toggle("is-sns", mode === "sns");
   }
 
   function setPhoneNavBarVisible(visible) {
@@ -5728,6 +7265,16 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
 
   // 底部功能栏“返回”：按当前所在的 app / 子视图逐级回退，最后回到主屏幕。
   function phoneNavBack() {
+    const snsApp = document.getElementById("phoneSnsApp");
+    if (snsApp && !snsApp.hidden) {
+      showPhoneHomeView();
+      return;
+    }
+    const broadcastApp = document.getElementById("phoneBroadcastApp");
+    if (broadcastApp && !broadcastApp.hidden) {
+      showPhoneHomeView();
+      return;
+    }
     const musicApp = document.getElementById("phoneMusicApp");
     if (musicApp && !musicApp.hidden) {
       const now = document.getElementById("phoneMusicNow");
@@ -5750,9 +7297,13 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   }
 
   function renderPhoneHomeAppIcon(app) {
+    const gradient = String(app.theme || "").includes("gradient");
+    const badgeStyle = gradient
+      ? `style="background: ${app.theme}"`
+      : `style="--app-color: ${app.theme}"`;
     return `
       <button type="button" class="phone-app-icon" data-phone-app="${app.id}" role="listitem">
-        <span class="phone-app-icon-badge" style="--app-color: ${app.theme}">${escapePhoneText(app.iconText)}</span>
+        <span class="phone-app-icon-badge" ${badgeStyle}>${escapePhoneText(app.iconText)}</span>
         <span class="phone-app-icon-label">${escapePhoneText(app.name)}</span>
       </button>
     `;
@@ -5780,6 +7331,8 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   function showPhoneLineAppShell() {
     setElementHidden("phoneHomeView", true);
     setElementHidden("phoneMusicApp", true);
+    setElementHidden("phoneBroadcastApp", true);
+    setElementHidden("phoneSnsApp", true);
     setElementHidden("phoneLineApp", false);
     setPhoneStatusBarMode("line");
     setPhoneNavBarVisible(true);
@@ -5791,6 +7344,8 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     state.phoneChat.activeThreadId = "";
     setElementHidden("phoneLineApp", true);
     setElementHidden("phoneMusicApp", true);
+    setElementHidden("phoneBroadcastApp", true);
+    setElementHidden("phoneSnsApp", true);
     setElementHidden("phoneHomeView", false);
     setPhoneStatusBarMode("home");
     setPhoneNavBarVisible(false);
@@ -5809,6 +7364,10 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       openPhoneLineApp();
     } else if (appId === "music") {
       openPhoneMusicApp();
+    } else if (appId === "broadcast") {
+      openPhoneBroadcastApp();
+    } else if (appId === "sns") {
+      openPhoneSnsApp();
     }
   }
 
@@ -5863,6 +7422,8 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   function openPhoneMusicApp() {
     setElementHidden("phoneHomeView", true);
     setElementHidden("phoneLineApp", true);
+    setElementHidden("phoneBroadcastApp", true);
+    setElementHidden("phoneSnsApp", true);
     setElementHidden("phoneMusicApp", false);
     setPhoneStatusBarMode("music");
     setPhoneNavBarVisible(true);
@@ -5872,6 +7433,590 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     }
     closeMusicNow();
     renderMusicLibrary();
+  }
+
+  // ===== 小手机 · 初星广播部 =====
+  const BROADCAST_HOST_NAME = "真城优";
+  const BROADCAST_HOST_ROMAN = "Mashiro Yu";
+  const BROADCAST_HOST_AVATAR = "./assets/avatars/mashiro-yu.png";
+  let broadcastScriptLoading = false;
+  let broadcastActiveTab = "outline";
+  let broadcastInited = false;
+
+  function broadcastAvatarInner(name, avatarPath, fallbackChar) {
+    if (avatarPath) {
+      return `<img class="broadcast-avatar-img" src="${escapePhoneText(avatarPath)}" alt="" loading="lazy" />`;
+    }
+    return `<span class="broadcast-avatar-fallback" aria-hidden="true">${escapePhoneText(fallbackChar || (name || "?").slice(0, 1))}</span>`;
+  }
+
+  function broadcastIdolAvatarPath(idolName) {
+    const canonical = canonicalIdolName(idolName);
+    const profile = idols[canonical] || idols[idolName] || {};
+    return profile.avatar || "";
+  }
+
+  function renderBroadcastHostAvatar() {
+    const slot = document.getElementById("phoneBroadcastHostAvatar");
+    const nameEl = document.getElementById("phoneBroadcastHostName");
+    const romanEl = document.getElementById("phoneBroadcastHostRoman");
+    if (nameEl) nameEl.textContent = BROADCAST_HOST_NAME;
+    if (romanEl) romanEl.textContent = BROADCAST_HOST_ROMAN;
+    if (!slot) return;
+    slot.innerHTML = broadcastAvatarInner(BROADCAST_HOST_NAME, BROADCAST_HOST_AVATAR, "优");
+    slot.classList.add("is-host");
+  }
+
+  function renderBroadcastGuestAvatars(guests) {
+    const avatarsEl = document.getElementById("phoneBroadcastGuestAvatars");
+    const namesEl = document.getElementById("phoneBroadcastGuestNames");
+    const guestList = Array.isArray(guests) ? guests.filter(Boolean) : [];
+
+    if (namesEl) {
+      namesEl.textContent = guestList.length ? guestList.join("、") : "本期暂无来访嘉宾";
+    }
+    if (!avatarsEl) return;
+
+    if (!guestList.length) {
+      avatarsEl.innerHTML = `
+        <div class="broadcast-avatar-frame is-empty" title="暂无嘉宾">
+          ${broadcastAvatarInner("", "", "—")}
+        </div>`;
+      return;
+    }
+
+    avatarsEl.innerHTML = guestList.slice(0, 3).map((guest) => {
+      const path = broadcastIdolAvatarPath(guest);
+      return `
+        <div class="broadcast-avatar-frame is-guest" title="${escapePhoneText(guest)}">
+          ${broadcastAvatarInner(guest, path, guest.slice(0, 1))}
+        </div>`;
+    }).join("");
+  }
+
+  function setBroadcastActiveTab(tabId) {
+    broadcastActiveTab = tabId === "script" || tabId === "history" ? tabId : "outline";
+    document.querySelectorAll("#phoneBroadcastTabs .broadcast-tab").forEach((btn) => {
+      const active = btn.dataset.broadcastTab === broadcastActiveTab;
+      btn.classList.toggle("is-active", active);
+      btn.setAttribute("aria-selected", String(active));
+    });
+    document.querySelectorAll("#phoneBroadcastApp .broadcast-panel").forEach((panel) => {
+      const active = panel.dataset.broadcastPanel === broadcastActiveTab;
+      panel.classList.toggle("is-active", active);
+      panel.hidden = !active;
+    });
+  }
+
+  function bindPhoneBroadcastEvents() {
+    document.getElementById("phoneBroadcastTabs")?.addEventListener("click", (event) => {
+      const btn = event.target.closest("[data-broadcast-tab]");
+      if (!btn) return;
+      setBroadcastActiveTab(btn.dataset.broadcastTab);
+    });
+  }
+
+  function isBroadcastAutoFullScriptEnabled() {
+    return state.freeMode?.world?.broadcast?.autoFullScript !== false;
+  }
+
+  function syncBroadcastLoadingState() {
+    const pendingId = String(state.freeMode?.world?.broadcast?.pendingRequestId || "");
+    const episode = state.freeMode?.world?.broadcast?.today;
+    broadcastScriptLoading = Boolean(pendingId) && episode?.scriptStatus === "generating";
+  }
+
+  function maybeAutoRequestBroadcastFullScript(reason = "auto") {
+    if (!isPhoneWorldFeedUnlocked() || !isBroadcastAutoFullScriptEnabled()) return false;
+    syncBroadcastLoadingState();
+    const episode = state.freeMode?.world?.broadcast?.today;
+    if (!episode || episode.fullScript || broadcastScriptLoading || episode.scriptStatus === "generating") {
+      return false;
+    }
+    if (!isSillyTavernHost()) {
+      episode.scriptStatus = "skipped";
+      saveState();
+      return false;
+    }
+    return requestBroadcastFullScript({ silent: true, auto: true, reason });
+  }
+
+  function getBroadcastEpisode() {
+    ensureStateShape();
+    const world = state.freeMode?.world;
+    if (!world?.broadcast?.today && isPhoneWorldFeedUnlocked()) {
+      ensurePhoneWorldFeedReady();
+    }
+    return world?.broadcast?.today || null;
+  }
+
+  function openPhoneBroadcastApp() {
+    if (!isPhoneWorldFeedUnlocked()) {
+      showToast("尚未解锁", "请先选择游玩模式并开始游戏。", "warn");
+      return;
+    }
+    ensurePhoneWorldFeedReady();
+    maybeAutoRequestBroadcastFullScript("open_app");
+    setElementHidden("phoneHomeView", true);
+    setElementHidden("phoneLineApp", true);
+    setElementHidden("phoneMusicApp", true);
+    setElementHidden("phoneSnsApp", true);
+    setElementHidden("phoneBroadcastApp", false);
+    setPhoneStatusBarMode("broadcast");
+    setPhoneNavBarVisible(true);
+    if (!broadcastInited) {
+      broadcastInited = true;
+      bindPhoneBroadcastEvents();
+    }
+    renderBroadcastApp();
+  }
+
+  function renderBroadcastApp() {
+    syncBroadcastLoadingState();
+    const episode = getBroadcastEpisode();
+    const titleEl = document.getElementById("phoneBroadcastTitle");
+    const metaEl = document.getElementById("phoneBroadcastMeta");
+    const categoryEl = document.getElementById("phoneBroadcastCategory");
+    const outlineEl = document.getElementById("phoneBroadcastOutline");
+    const scriptEl = document.getElementById("phoneBroadcastScript");
+    const historyEl = document.getElementById("phoneBroadcastHistory");
+    const genBtn = document.getElementById("phoneBroadcastGenerateBtn");
+    const statusEl = document.getElementById("phoneBroadcastStatus");
+
+    renderBroadcastHostAvatar();
+    renderBroadcastGuestAvatars(episode?.guests || []);
+
+    if (categoryEl) {
+      categoryEl.textContent = episode?.categoryLabel || "学园广播";
+    }
+    if (titleEl) titleEl.textContent = episode?.title || "今日暂无节目";
+    if (metaEl) {
+      metaEl.textContent = episode
+        ? formatWorldFeedDayLabel()
+        : "打开后将自动生成今日学园广播";
+    }
+    if (outlineEl) {
+      outlineEl.textContent = episode?.outline || "今日广播提纲尚未生成。";
+    }
+    if (scriptEl) {
+      const script = String(episode?.fullScript || "").trim();
+      const waitingAuto = isBroadcastAutoFullScriptEnabled() && episode?.scriptStatus === "generating";
+      scriptEl.textContent = script
+        || (waitingAuto
+          ? "完整稿正在后台生成，稍后可刷新查看。"
+          : episode?.scriptStatus === "skipped"
+            ? "本地未连接 SillyTavern，完整稿未自动生成。可点击下方按钮手动请求。"
+            : "完整稿尚未生成。日初会自动请求，也可点击下方按钮手动生成。");
+      scriptEl.classList.toggle("is-empty", !script);
+    }
+    if (historyEl) {
+      const history = state.freeMode?.world?.broadcast?.history || [];
+      historyEl.innerHTML = history.length
+        ? history.map((item) => `
+          <button type="button" class="broadcast-history-item" data-broadcast-id="${escapePhoneText(item.id)}">
+            <span class="broadcast-history-title">${escapePhoneText(item.title || "广播")}</span>
+            <span class="broadcast-history-meta">${escapePhoneText((item.guests || []).join("、"))}</span>
+          </button>`).join("")
+        : `<p class="broadcast-empty">还没有历史节目。</p>`;
+    }
+    if (genBtn) {
+      const canRetry = episode?.scriptStatus === "failed" || episode?.scriptStatus === "skipped";
+      genBtn.disabled = broadcastScriptLoading || !episode || (Boolean(episode.fullScript) && !canRetry);
+      genBtn.textContent = broadcastScriptLoading
+        ? "生成中…"
+        : episode?.fullScript && !canRetry
+          ? "完整稿已生成"
+          : canRetry
+            ? "重新生成完整稿"
+            : "手动生成完整稿";
+    }
+    if (statusEl) {
+      statusEl.textContent = broadcastScriptLoading
+        ? "日初广播：完整稿生成中…"
+        : episode?.fullScript
+          ? "可朗读完整稿已就绪。"
+          : isBroadcastAutoFullScriptEnabled()
+            ? "提纲前端生成；完整稿于每日开始时自动请求（广播 channel）。"
+            : "提纲由前端自动生成；完整稿需手动请求。";
+    }
+    setBroadcastActiveTab(broadcastActiveTab);
+  }
+
+  function requestBroadcastFullScript(options = {}) {
+    const { silent = false, auto = false, reason = "manual" } = options;
+    const episode = getBroadcastEpisode();
+    if (!episode || broadcastScriptLoading) return false;
+    if (episode.fullScript && episode.scriptStatus !== "failed" && episode.scriptStatus !== "skipped") {
+      return false;
+    }
+
+    const builder = globalThis.HatsuWorld?.broadcastPrompts?.buildBroadcastScriptPrompt;
+    const prompt = typeof builder === "function"
+      ? builder(episode, state, getHatsuWorldHelpers())
+      : `[初星广播部]\n${episode.outline || ""}`;
+    const requestId = createRequestId();
+
+    state.activeStoryNode = { type: "broadcast", episodeId: episode.id, mode: "fullScript", ready: false };
+    state.lastPrompt = prompt;
+    state.freeMode.world.broadcast.pendingRequestId = requestId;
+    episode.scriptStatus = "generating";
+    episode.scriptRequestedAt = Date.now();
+    episode.scriptRequestReason = reason;
+    broadcastScriptLoading = true;
+    renderBroadcastApp();
+    saveState();
+
+    pendingAiRequestId = requestId;
+    if (!sendBroadcastPromptToHost(prompt, requestId, { silent: silent || auto })) {
+      broadcastScriptLoading = false;
+      episode.scriptStatus = auto ? "skipped" : "failed";
+      state.activeStoryNode = null;
+      resetBroadcastPendingState();
+      pendingAiRequestId = "";
+      renderBroadcastApp();
+      saveState();
+      if (!auto && !silent) {
+        openAiPromptOverlay("当前页面未连接 SillyTavern。请复制广播提示词后手动发送。");
+      }
+      return false;
+    }
+    if (auto && reason === "daily_tick") {
+      showToast("今日广播", "完整稿已在后台开始生成。", "info");
+    }
+    return true;
+  }
+
+  function extractBroadcastReply(source) {
+    const text = String(source || "").trim();
+    if (!text) return { complete: false, script: "" };
+    const startMatches = [...text.matchAll(/[【\[]\s*初星正文开始\s*[】\]]/g)];
+    let body = text;
+    if (startMatches.length) {
+      const last = startMatches[startMatches.length - 1];
+      body = text.slice(last.index + last[0].length);
+      body = body.replace(/[【\[]\s*初星正文结束\s*[】\]][\s\S]*$/u, "");
+    }
+    body = cleanReplyText(body).trim();
+    return { complete: Boolean(body), script: body };
+  }
+
+  function handleBroadcastAiReply(source, requestId, isFinal) {
+    const pendingId = String(state.freeMode?.world?.broadcast?.pendingRequestId || "");
+    if (!isFinal) {
+      sendAiReplyAck(requestId, true, false, false);
+      return;
+    }
+
+    const parsed = extractBroadcastReply(source);
+    if (!parsed.complete) {
+      if (aiReplyRetryCount < 2) {
+        aiReplyRetryCount += 1;
+        sendAiReplyAck(requestId, false, true);
+        return;
+      }
+      aiReplyRetryCount = 0;
+      broadcastScriptLoading = false;
+      pendingAiRequestId = "";
+      resetBroadcastPendingState();
+      const episode = getBroadcastEpisode();
+      if (episode) episode.scriptStatus = "failed";
+      if (state.activeStoryNode?.type === "broadcast") state.activeStoryNode.ready = true;
+      renderBroadcastApp();
+      saveState();
+      showToast("广播稿异常", "未找到有效正文，请重试。", "warn");
+      sendAiReplyAck(requestId, false, false);
+      return;
+    }
+
+    aiReplyRetryCount = 0;
+    broadcastScriptLoading = false;
+    pendingAiRequestId = "";
+    resetBroadcastPendingState();
+    const episode = getBroadcastEpisode();
+    if (episode) {
+      episode.fullScript = parsed.script;
+      episode.heard = true;
+      episode.scriptStatus = "ready";
+    }
+    if (state.activeStoryNode?.type === "broadcast") state.activeStoryNode.ready = true;
+    renderBroadcastApp();
+    saveState();
+    showToast("广播稿就绪", "完整节目稿已写入今日广播。", "info");
+    sendAiReplyAck(requestId, true, false, true);
+  }
+
+  // ===== 小手机 · 初星圈 SNS =====
+  let snsActiveTab = "timeline";
+  let snsInited = false;
+  let snsRefreshing = false;
+
+  function getBuzzState() {
+    ensureStateShape();
+    return state.freeMode?.world?.buzz || { items: [], buzzDayKey: "", hotTopic: "" };
+  }
+
+  function ensureDailyBuzz() {
+    if (!isPhoneWorldFeedUnlocked()) return [];
+    ensurePhoneWorldFeedReady();
+    return getBuzzState().items || [];
+  }
+
+  function getBuzzItemsForTab(tab = snsActiveTab) {
+    const items = getBuzzState().items || [];
+    const sorted = [...items].sort((a, b) => {
+      const dayCmp = String(b.dayKey || "").localeCompare(String(a.dayKey || ""));
+      if (dayCmp !== 0) return dayCmp;
+      return String(b.id || "").localeCompare(String(a.id || ""));
+    });
+    if (tab === "hot") {
+      return sorted.filter((item) => item.heat === "high" || (item.flags || []).includes("misread_risk"));
+    }
+    return sorted;
+  }
+
+  function snsOfficialAvatarChar(item) {
+    const key = item?.officialKey || "";
+    if (key === "student_council") return "学";
+    if (key === "cafeteria") return "食";
+    if (key === "broadcast_club") return "播";
+    return (item?.author || "官").slice(0, 1);
+  }
+
+  function snsAuthorAvatar(item) {
+    if (item?.official) {
+      return { type: "official", char: snsOfficialAvatarChar(item) };
+    }
+    if (item?.anonymous || !item?.author) {
+      return { type: "anon", char: "匿" };
+    }
+    const profile = idols[item.author] || idols[canonicalIdolName(item.author)] || {};
+    if (profile.avatar) {
+      return { type: "img", src: profile.avatar, alt: item.author };
+    }
+    return { type: "anon", char: (item.author || "?").slice(0, 1) };
+  }
+
+  function snsScopeLabel(scope) {
+    if (scope === "net") return "全网";
+    if (scope === "fanclub") return "粉丝站";
+    return "";
+  }
+
+  function snsAuthorHandle(item) {
+    if (item?.official) {
+      const map = {
+        student_council: "初星学生会",
+        cafeteria: "初星食堂",
+        broadcast_club: "初星广播部"
+      };
+      const name = map[item.officialKey] || item.author || "官方";
+      return `@${name}`;
+    }
+    if (item?.anonymous || !item?.author) return "@匿名同学";
+    return `@${item.author}`;
+  }
+
+  function snsEngagementStats(item) {
+    const comments = Number(item.comments) || 0;
+    const reposts = Number(item.reposts) || 0;
+    const heat = item.heat || "normal";
+    const likes = heat === "high"
+      ? comments * 2 + reposts + 12
+      : heat === "low"
+        ? Math.max(0, Math.floor(comments * 0.4))
+        : comments + reposts;
+    const views = (comments + reposts + likes) * 6 + 48;
+    return { comments, reposts, likes, views };
+  }
+
+  function snsActionHtml(kind, count, hot = false) {
+    const icons = {
+      reply: "icon-chat",
+      repost: "icon-repost",
+      like: "icon-heart",
+      view: "icon-visual"
+    };
+    const labels = {
+      reply: "回复",
+      repost: "转帖",
+      like: "喜欢",
+      view: "浏览"
+    };
+    const countText = count > 0 ? String(count) : "";
+    return `
+      <span class="sns-action sns-action-${kind}${hot ? " is-hot" : ""}" aria-label="${labels[kind]} ${countText}">
+        <svg aria-hidden="true"><use href="#${icons[kind]}"></use></svg>
+        ${countText ? `<span class="sns-action-count">${countText}</span>` : ""}
+      </span>`;
+  }
+
+  function buildSnsPostHtml(item) {
+    const avatar = snsAuthorAvatar(item);
+    const authorName = item.anonymous || !item.author ? "匿名同学" : item.author;
+    const handle = snsAuthorHandle(item);
+    const heat = item.heat || "normal";
+    const stats = snsEngagementStats(item);
+    const scopeLabel = snsScopeLabel(item.scope);
+    const classes = [
+      "sns-post",
+      item.deleted ? "is-deleted" : "",
+      item.official ? "is-official" : "",
+      item.anonymous || !item.author ? "is-anonymous" : "",
+      heat === "high" ? "is-hot" : ""
+    ].filter(Boolean).join(" ");
+
+    let avatarHtml = "";
+    if (avatar.type === "img") {
+      avatarHtml = `<img class="sns-post-avatar" src="${escapePhoneText(avatar.src)}" alt="" />`;
+    } else {
+      avatarHtml = `<span class="sns-post-avatar sns-post-avatar-fallback" aria-hidden="true">${escapePhoneText(avatar.char)}</span>`;
+    }
+
+    const contextParts = [];
+    if (item.broadcastHint) {
+      contextParts.push(`<span class="sns-post-context-line">· 今日广播：${escapePhoneText(item.broadcastHint)}</span>`);
+    }
+    if (scopeLabel) {
+      contextParts.push(`<span class="sns-post-context-line sns-post-scope sns-post-scope-${escapePhoneText(item.scope || "campus")}">${escapePhoneText(scopeLabel)}</span>`);
+    }
+    if (item.deleted) {
+      contextParts.push(`<span class="sns-post-context-line sns-post-deleted-badge">已删除（缓存）</span>`);
+    }
+    if (item.official) {
+      contextParts.push(`<span class="sns-post-context-line sns-post-badge">官号</span>`);
+    }
+    const contextHtml = contextParts.length
+      ? `<div class="sns-post-context">${contextParts.join("")}</div>`
+      : "";
+
+    return `
+      <article class="${classes}" data-heat="${escapePhoneText(heat)}" aria-label="${escapePhoneText(authorName)} 的帖子">
+        <div class="sns-post-layout">
+          <div class="sns-post-avatar-col">${avatarHtml}</div>
+          <div class="sns-post-main">
+            <div class="sns-post-header">
+              <div class="sns-post-names">
+                <span class="sns-post-author">${escapePhoneText(authorName)}</span>
+                <span class="sns-post-handle">${escapePhoneText(handle)}</span>
+                <span class="sns-post-dot" aria-hidden="true">·</span>
+                <span class="sns-post-time">${escapePhoneText(item.timeLabel || "刚刚")}</span>
+              </div>
+              <span class="sns-post-more" aria-hidden="true"><svg><use href="#icon-dots"></use></svg></span>
+            </div>
+            ${contextHtml}
+            <p class="sns-post-body">${escapePhoneText(item.text || "")}</p>
+            <div class="sns-post-actions" aria-label="互动数据">
+              ${snsActionHtml("reply", stats.comments)}
+              ${snsActionHtml("repost", stats.reposts, heat === "high")}
+              ${snsActionHtml("like", stats.likes, heat === "high")}
+              ${snsActionHtml("view", stats.views)}
+            </div>
+          </div>
+        </div>
+      </article>`;
+  }
+
+  function renderSnsApp() {
+    const feedEl = document.getElementById("phoneSnsFeed");
+    const hotTopicEl = document.getElementById("phoneSnsHotTopic");
+    const emptyEl = document.getElementById("phoneSnsEmpty");
+    const lockedEl = document.getElementById("phoneSnsLocked");
+    const tabsEl = document.getElementById("phoneSnsTabs");
+    const refreshBtn = document.getElementById("phoneSnsRefreshBtn");
+
+    if (!feedEl) return;
+
+    if (!isPhoneWorldFeedUnlocked()) {
+      if (lockedEl) lockedEl.hidden = false;
+      if (emptyEl) emptyEl.hidden = true;
+      feedEl.innerHTML = "";
+      if (hotTopicEl) {
+        hotTopicEl.hidden = true;
+        hotTopicEl.innerHTML = "";
+      }
+      return;
+    }
+
+    if (lockedEl) lockedEl.hidden = true;
+    ensureDailyBuzz();
+
+    const buzz = getBuzzState();
+    const items = getBuzzItemsForTab(snsActiveTab);
+    if (hotTopicEl) {
+      if (buzz.hotTopic) {
+        hotTopicEl.hidden = false;
+        hotTopicEl.innerHTML = `
+          <span class="sns-trending-label">学园热议 · 正在发生</span>
+          <p class="sns-trending-topic">${escapePhoneText(buzz.hotTopic)}</p>`;
+      } else {
+        hotTopicEl.hidden = true;
+        hotTopicEl.innerHTML = "";
+      }
+    }
+
+    if (tabsEl) {
+      tabsEl.querySelectorAll("[data-sns-tab]").forEach((btn) => {
+        btn.classList.toggle("is-active", btn.dataset.snsTab === snsActiveTab);
+        btn.setAttribute("aria-selected", String(btn.dataset.snsTab === snsActiveTab));
+      });
+    }
+
+    if (refreshBtn) {
+      refreshBtn.classList.toggle("is-spinning", snsRefreshing);
+      refreshBtn.disabled = snsRefreshing;
+    }
+
+    if (!items.length) {
+      feedEl.innerHTML = "";
+      if (emptyEl) emptyEl.hidden = false;
+      return;
+    }
+
+    if (emptyEl) emptyEl.hidden = true;
+    feedEl.innerHTML = items.map(buildSnsPostHtml).join("");
+  }
+
+  function refreshSnsFeed() {
+    if (snsRefreshing) return;
+    snsRefreshing = true;
+    renderSnsApp();
+    window.setTimeout(() => {
+      snsRefreshing = false;
+      renderSnsApp();
+    }, 360);
+  }
+
+  function openPhoneSnsApp() {
+    if (!isPhoneWorldFeedUnlocked()) {
+      showToast("尚未解锁", "请先选择游玩模式并开始游戏。", "warn");
+      return;
+    }
+    ensureStateShape();
+    setElementHidden("phoneHomeView", true);
+    setElementHidden("phoneLineApp", true);
+    setElementHidden("phoneMusicApp", true);
+    setElementHidden("phoneBroadcastApp", true);
+    setElementHidden("phoneSnsApp", false);
+    setPhoneStatusBarMode("sns");
+    setPhoneNavBarVisible(true);
+    if (!snsInited) {
+      snsInited = true;
+      bindPhoneSnsEvents();
+    }
+    renderSnsApp();
+  }
+
+  function bindPhoneSnsEvents() {
+    document.getElementById("phoneSnsTabs")?.addEventListener("click", (event) => {
+      const btn = event.target.closest("[data-sns-tab]");
+      if (!btn) return;
+      snsActiveTab = btn.dataset.snsTab === "hot" ? "hot" : "timeline";
+      renderSnsApp();
+    });
+    document.getElementById("phoneSnsRefreshBtn")?.addEventListener("click", () => {
+      saveState();
+      refreshSnsFeed();
+    });
   }
 
   function renderMusicLibrary() {
@@ -7092,6 +9237,8 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       const button = document.getElementById(id);
       if (button) button.disabled = !enabled;
     });
+    const debugBtn = document.getElementById("vnBtnDebug");
+    if (debugBtn) debugBtn.disabled = false;
   }
 
   function buildChoiceContinuationDisplayStory(intro, chosenLine, reply) {
@@ -7344,6 +9491,9 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   function getSceneBackground() {
     const node = state.activeStoryNode;
     if (node) {
+      if (node.type === "sandboxOpening" || node.type === "sandboxInvite") {
+        return "./assets/scenes/Producer_Class.png";
+      }
       if (node.type === "firstLivePre" || node.type === "firstLivePost") {
         return "./assets/scenes/campus.png";
       }
@@ -7484,6 +9634,8 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         let standeeSrc = "";
         if (isProducer) {
           standeeSrc = "./assets/novel-standees/producer.png";
+        } else if (vnStandees[slide.speaker] || vnStandees[speakerCanonical]) {
+          standeeSrc = vnStandees[slide.speaker] || vnStandees[speakerCanonical];
         } else if (idols[speakerCanonical] && idols[speakerCanonical].background) {
           const baseName = idols[speakerCanonical].background.split("/").pop();
           standeeSrc = `./assets/novel-standees/${baseName}`;
@@ -8171,8 +10323,155 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     return issues;
   }
 
+  const DEBUG_SKIP_PLACEHOLDER = "（本地调试跳过 AI 等待）此处为占位叙事。数值已由前端结算，可点击确定继续流程。";
+  const DEBUG_SKIP_OPTIONS = ["继续看看周围", "和担当说句话", "稍作休息调整", "换一件事做"];
+
+  function isAiWaitActive() {
+    if (pendingAiRequestId) return true;
+    if (state.phoneChat?.isAwaitingReply) return true;
+    if (broadcastScriptLoading) return true;
+    if (state.freeMode?.world?.broadcast?.pendingRequestId) return true;
+    const overlay = document.getElementById("eventOverlay");
+    if (!overlay || overlay.hidden) return false;
+    const confirm = document.getElementById("eventConfirmBtn");
+    if (confirm?.disabled && /生成|等待/.test(String(confirm.textContent || ""))) return true;
+    const story = String(state.lastEventStory || state.lastStory || "");
+    return /等待角色卡|等待 AI|等待 SillyTavern|正在等待|正在生成|正在后台|正在重新生成/.test(story);
+  }
+
+  function forceSkipPhoneChatWait() {
+    if (!state.phoneChat?.isAwaitingReply && !state.phoneChat?.pendingRequestId) return false;
+    const threadId = state.phoneChat.activeThreadId || "idol";
+    resetPhoneChatPendingState();
+    setPhoneChatTyping(false);
+    setPhoneChatComposerEnabled(true);
+    appendPhoneChatMessage(threadId, "idol", "（调试跳过：未收到真实回复。）");
+    if (state.activeStoryNode?.type === "phonechat") {
+      state.activeStoryNode.ready = true;
+      state.activeStoryNode = null;
+    }
+    updatePhoneChatRetryUi();
+    if (state.phoneChat.activeView === "chat") {
+      renderPhoneChatMessages(threadId);
+    }
+    return true;
+  }
+
+  function forceSkipBroadcastWait() {
+    if (!broadcastScriptLoading && !state.freeMode?.world?.broadcast?.pendingRequestId) return false;
+    broadcastScriptLoading = false;
+    resetBroadcastPendingState();
+    const episode = getBroadcastEpisode();
+    if (episode && !episode.fullScript) {
+      episode.fullScript = "（调试跳过）占位广播稿。";
+      episode.scriptStatus = "ready";
+    }
+    if (state.activeStoryNode?.type === "broadcast") {
+      state.activeStoryNode.ready = true;
+      state.activeStoryNode = null;
+    }
+    renderBroadcastApp();
+    return true;
+  }
+
+  function forceSkipEventOverlayWait() {
+    const node = state.activeStoryNode;
+    pendingAiRequestId = "";
+    state.pendingAiRequestId = "";
+    aiReplyRetryCount = 0;
+
+    if (node?.type === "affinity" && Number(node.threshold) === 0 && !state.affinity.openingComplete) {
+      skipPendingOpening();
+      setElementHidden("eventOverlay", true);
+      return "opening";
+    }
+
+    if (isChoiceResolutionMode()) {
+      const chosenLine = `<narration>▶ 制作人的选择：${state.selectedChoiceText || "（调试跳过）"}</narration>`;
+      const displayStory = buildChoiceContinuationDisplayStory(state.lastStory, chosenLine, DEBUG_SKIP_PLACEHOLDER);
+      state.lastStory = displayStory;
+      if (state.log[0]) state.log[0].aiReply = DEBUG_SKIP_PLACEHOLDER;
+      if (node?.type === "affinity") node.ready = true;
+      clearIntimacyRoute();
+      state.eventMode = "none";
+      state.choiceStep = 0;
+      state.pendingOptionTexts = [];
+      const title = currentChoiceActionTitle();
+      openEventOverlay(title, "（调试跳过）已注入占位反应", displayStory);
+      return "choice_resolution";
+    }
+
+    if (isChoicePromptMode() || (state.eventMode === "choice_prompt" && state.pendingOptionTexts.length < 4)) {
+      state.pendingOptionTexts = DEBUG_SKIP_OPTIONS.slice();
+      if (state.pendingActionContext?.action === "map_location") {
+        state.pendingOptionMinutes = [15, 15, 15, 15];
+      }
+      state.eventMode = "choice_prompt";
+      state.choiceStep = 1;
+      state.lastStory = DEBUG_SKIP_PLACEHOLDER;
+      openEventOverlay(currentChoiceActionTitle(), "（调试跳过）已注入占位选项", DEBUG_SKIP_PLACEHOLDER);
+      return "choice_prompt";
+    }
+
+    if (node?.type === "affinity") node.ready = true;
+    if (node?.type === "firstLivePre" || node?.type === "firstLivePost") node.ready = true;
+    if (node?.type === "freechat" || node?.type === "interaction") node.ready = true;
+
+    state.eventMode = "none";
+    state.choiceStep = 0;
+    state.pendingOptionTexts = [];
+    state.selectedChoiceText = "";
+    state.selectedChoiceRating = "";
+    state.lastStory = DEBUG_SKIP_PLACEHOLDER;
+    if (state.log[0]) state.log[0].aiReply = DEBUG_SKIP_PLACEHOLDER;
+
+    const title = node?.type === "affinity"
+      ? `好感度 ${node.threshold}：${affinityNodes[node.threshold]?.title || "羁绊事件"}`
+      : node?.type === "firstLivePre"
+        ? "First Live 登台前准备"
+        : node?.type === "firstLivePost"
+          ? "First Live 演后记"
+          : node?.type === "freechat"
+            ? "担当闲聊"
+            : node?.type === "interaction"
+              ? "偶像互动"
+              : (state.lastEventTitle || state.log[0]?.action || "行动事件");
+    openEventOverlay(title, "（调试跳过）已注入占位叙事", DEBUG_SKIP_PLACEHOLDER);
+    return "event";
+  }
+
+  function forceSkipAiWait() {
+    const phoneSkipped = forceSkipPhoneChatWait();
+    const broadcastSkipped = forceSkipBroadcastWait();
+    let eventSkipped = false;
+    let eventKind = "";
+
+    if (isAiWaitActive() || (document.getElementById("eventOverlay") && !document.getElementById("eventOverlay").hidden)) {
+      eventKind = forceSkipEventOverlayWait();
+      eventSkipped = Boolean(eventKind);
+    }
+
+    if (!phoneSkipped && !broadcastSkipped && !eventSkipped) {
+      showToast("无需跳过", "当前没有检测到 AI 等待状态。", "info");
+      refreshVnDebugView();
+      return;
+    }
+
+    saveState();
+    render();
+    refreshVnDebugView();
+
+    const detail = [
+      phoneSkipped ? "私聊" : "",
+      broadcastSkipped ? "广播" : "",
+      eventSkipped ? (eventKind === "opening" ? "开场" : eventKind === "choice_prompt" ? "选项" : "事件") : ""
+    ].filter(Boolean).join(" / ");
+    showToast("调试跳过", `已强制结束等待（${detail || "流程"}），可继续操作。`, "warn");
+  }
+
   function buildDebugDiagnosisHtml() {
     const issues = buildDebugDiagnoses();
+    const canForceSkip = isAiWaitActive();
     return `
       <section class="vn-debug-card vn-debug-card-full vn-debug-diagnosis">
         <h3>自动诊断</h3>
@@ -8183,6 +10482,12 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
             </li>
           `).join("")}
         </ul>
+        <div class="vn-debug-actions">
+          <p class="vn-debug-actions-hint">本地无 SillyTavern / 无 AI 回复时，可注入占位叙事并解除等待。</p>
+          <button id="vnDebugForceSkipBtn" type="button" class="vn-debug-force-skip-btn" ${canForceSkip ? "" : "disabled"}>
+            强制跳过 AI 等待
+          </button>
+        </div>
       </section>
     `;
   }
@@ -8436,6 +10741,35 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       clearInterval(vnTypewriterTimer);
       vnTypewriterTimer = 0;
     }
+    if (isHybridFacilityActive()) {
+      exitHybridFacility();
+      saveState();
+      render();
+      setElementHidden("eventOverlay", true);
+      return;
+    }
+    if (state.activeStoryNode?.type === "sandboxOpening") {
+      triggerWipeTransition(() => {
+        setElementHidden("eventOverlay", true);
+        finishSandboxOpeningToSelection();
+      });
+      return;
+    }
+    if (state.activeStoryNode?.type === "sandboxInvite") {
+      state.activeStoryNode = null;
+      state.sandbox = { ...(state.sandbox || {}), inviteComplete: true };
+      const scoutQuestCompleted = globalThis.HatsuTasks?.onScoutInviteComplete(state) || [];
+      if (scoutQuestCompleted.length) saveState();
+      if (globalThis.HatsuTasks?.queueSideQuestRefresh(state) === "api") {
+        maybeRequestSideQuestGeneration();
+      }
+      triggerWipeTransition(() => {
+        enterSandboxCampusAfterOpening();
+        setElementHidden("eventOverlay", true);
+        notifyQuestCompletions(scoutQuestCompleted);
+      });
+      return;
+    }
     if (isFreeModeActive() && (isMapLocationExploreActive() || state.freeMode?.activeLocationId)) {
       returnToFreeModeMap({ cancelled: !isChoiceResolutionMode() });
       return;
@@ -8540,26 +10874,100 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     document.getElementById("closeModal").focus();
   }
 
+  function isWeakRawFallbackText(text) {
+    const compact = String(text || "").replace(/\s+/g, "");
+    return !compact || compact.length < 12 || isJunkReply(text) || /^生成中/.test(compact);
+  }
+
+  function isTagStripMetaFallback(text) {
+    const value = String(text || "").trim();
+    if (!value || isWeakRawFallbackText(value)) return false;
+    if (isNarrativeFallbackText(value)) return false;
+    return /初星正文(?:开始|结束)/.test(value)
+      || /(?:分析|检查表|样例|提示词|thinking|planning)/i.test(value);
+  }
+
+  function isNarrativeFallbackText(text) {
+    const value = String(text || "").trim();
+    if (!value) return false;
+    if (/<(?:dialogue|narration|story)\b/i.test(value)) return true;
+    if (/[「“]/.test(value)) return true;
+    const compact = value.replace(/\s+/g, "");
+    if (compact.length < 12) return false;
+    if (/(?:初星正文(?:开始|结束)|(?:规则|检查表|样例|提示词)(?:复述|检查)?)/.test(value)) return false;
+    return /[\u4e00-\u9fff]/.test(value);
+  }
+
   function extractReplyText(candidates) {
-    const results = candidates
-      .map((candidate) => extractReplyCandidate(candidate))
+    const slots = Array.isArray(candidates) ? candidates : [];
+    const rawCandidate = String(slots[0] || "");
+    const textCandidate = String(slots[1] || "");
+    const renderedCandidate = String(slots[2] || "");
+    if (!rawCandidate.trim() && !textCandidate.trim() && !renderedCandidate.trim()) return "";
+    if (!rawCandidate.trim()) return "";
+
+    const indexed = [
+      { index: 0, candidate: rawCandidate },
+      { index: 1, candidate: textCandidate },
+      { index: 2, candidate: renderedCandidate }
+    ].filter((entry) => entry.candidate.trim());
+
+    const results = indexed
+      .map(({ index, candidate }) => ({
+        index,
+        candidate,
+        ...extractReplyCandidate(candidate)
+      }))
       .filter((result) => result.text);
-    const delimited = results.find((result) => result.method === "hatsu")
-      || results.find((result) => result.method === "maintext");
-    if (delimited) return delimited.text;
-    return results
-      .filter((result) => result.text.replace(/\s+/g, "").length >= 12 && !isJunkReply(result.text))
-      .sort((a, b) => b.text.length - a.text.length)[0]?.text || "";
+
+    const rawResult = results.find((result) => result.index === 0);
+    const secondaryDelimited = results.find(
+      (result) => result.index > 0 && (result.method === "hatsu" || result.method === "maintext")
+    );
+
+    if (rawResult?.method === "hatsu" || rawResult?.method === "maintext") {
+      return rawResult.text;
+    }
+
+    if (rawResult && isNarrativeFallbackText(rawResult.text) && !isWeakRawFallbackText(rawResult.text)) {
+      return rawResult.text;
+    }
+
+    if (rawResult?.text && isTagStripMetaFallback(rawResult.text) && secondaryDelimited) {
+      return secondaryDelimited.text;
+    }
+
+    if (rawResult?.text && !isWeakRawFallbackText(rawResult.text)) {
+      return rawResult.text;
+    }
+
+    return "";
   }
 
   function stripAiThinkingBlocks(value) {
     const thinkTags = "thinking|think|details|summary|sum|vars|analysis|planning|plan|konatan_planning|bginfo|bginfor|draft_notes|bginfor";
     const closedRegex = new RegExp("<(" + thinkTags + ")\\b[^>]*>[\\s\\S]*?<\\/\\1>", "gi");
     const unclosedRegex = new RegExp("<(" + thinkTags + ")\\b[^>]*>[\\s\\S]*$", "gi");
+    const redactedPrefix = "redacted" + "_";
+    const redactedMismatchedRegex = new RegExp(
+      "<" + redactedPrefix + "thinking(?:\\s[^>]*)?>[\\s\\S]*?</" + redactedPrefix + "reasoning>",
+      "gi"
+    );
+    const redactedClosedRegex = new RegExp(
+      "<" + redactedPrefix + "(?:thinking|reasoning)(?:\\s[^>]*)?>[\\s\\S]*?</" + redactedPrefix + "(?:thinking|reasoning)>",
+      "gi"
+    );
+    const redactedUnclosedRegex = new RegExp(
+      "<" + redactedPrefix + "(?:thinking|reasoning)(?:\\s[^>]*)?>[\\s\\S]*$",
+      "gi"
+    );
 
     return String(value || "")
       .replace(/^[\s\S]*?<!--\s*end_of_Subtext_think\s*-->/gi, "")
       .replace(/<!--[\s\S]*?-->/g, "")
+      .replace(redactedMismatchedRegex, "")
+      .replace(redactedClosedRegex, "")
+      .replace(redactedUnclosedRegex, "")
       .replace(closedRegex, "")
       .replace(unclosedRegex, "");
   }
@@ -8579,18 +10987,22 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       const lastStartMatch = startMatches[startMatches.length - 1];
       const startIndex = lastStartMatch.index + lastStartMatch[0].length;
       let content = withoutThinking.slice(startIndex);
-      
+
       // 剥离结束符及其后面的所有内容 (包括 HatsuStatus 等状态块)
       content = content.replace(/[【\[]\s*初星正文结束\s*[】\]][\s\S]*$/u, "");
+      const storyMatches = [...content.matchAll(/<story\b[^>]*>([\s\S]*?)<\/story>/gi)];
+      if (storyMatches.length > 0) {
+        content = storyMatches[storyMatches.length - 1][1];
+      }
       return { method: "hatsu", text: cleanReplyText(content) };
     }
 
-  const mainMatches = [...withoutThinking.matchAll(/<maintext\b[^>]*>([\s\S]*)/gi)];
-  if (mainMatches.length > 0) {
-    const lastMainMatch = mainMatches[mainMatches.length - 1];
-    const content = lastMainMatch[1].replace(/<\/maintext>[\s\S]*$/gi, "");
-    return { method: "maintext", text: cleanReplyText(content) };
-  }
+    const mainMatches = [...withoutThinking.matchAll(/<maintext\b[^>]*>([\s\S]*)/gi)];
+    if (mainMatches.length > 0) {
+      const lastMainMatch = mainMatches[mainMatches.length - 1];
+      const content = lastMainMatch[1].replace(/<\/maintext>[\s\S]*$/gi, "");
+      return { method: "maintext", text: cleanReplyText(content) };
+    }
 
     return { method: "fallback", text: cleanReplyText(withoutThinking) };
   }
@@ -8599,15 +11011,35 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     const thinkTags = "thinking|think|details|summary|sum|vars|analysis|planning|plan|konatan_planning|bginfo|bginfor|draft_notes|bginfor";
     const closedRegex = new RegExp("<(" + thinkTags + ")\\b[^>]*>[\\s\\S]*?<\\/\\1>", "gi");
     const unclosedRegex = new RegExp("<(" + thinkTags + ")\\b[^>]*>[\\s\\S]*$", "gi");
+    const redactedPrefix = "redacted" + "_";
+    const redactedMismatchedRegex = new RegExp(
+      "<" + redactedPrefix + "thinking(?:\\s[^>]*)?>[\\s\\S]*?</" + redactedPrefix + "reasoning>",
+      "gi"
+    );
+    const redactedClosedRegex = new RegExp(
+      "<" + redactedPrefix + "(?:thinking|reasoning)(?:\\s[^>]*)?>[\\s\\S]*?</" + redactedPrefix + "(?:thinking|reasoning)>",
+      "gi"
+    );
+    const redactedUnclosedRegex = new RegExp(
+      "<" + redactedPrefix + "(?:thinking|reasoning)(?:\\s[^>]*)?>[\\s\\S]*$",
+      "gi"
+    );
 
     return String(value || "")
       .replace(/<!--[\s\S]*?-->/g, "")
+      .replace(redactedMismatchedRegex, "")
+      .replace(redactedClosedRegex, "")
+      .replace(redactedUnclosedRegex, "")
       .replace(closedRegex, "")
       .replace(unclosedRegex, "")
       .replace(/<(?!dialogue|narration|\/dialogue|\/narration)\/?[a-zA-Z_][\w:-]*\b[^>]*>/gi, "")
       .replace(/\[\s*\{[\s\S]*?\}\s*\]\s*$/g, "")
       .replace(/^\s*\*{1,2}\s*/gm, "")
       .replace(/\s*\*{1,2}\s*$/gm, "")
+      .replace(/【初星任务完成】\s*[a-z0-9_]+/gi, "")
+      .replace(/<quest_complete\b[^>]*\/?>/gi, "")
+      .replace(/【初星任务标记】\s*[a-z0-9_]+/gi, "")
+      .replace(/<quest_flag\b[^>]*\/?>/gi, "")
       .replace(/\n{3,}/g, "\n\n")
       .trim();
   }
@@ -8673,11 +11105,11 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   }
 
   function extractChoicePayload(value) {
-    let content = String(value || "")
+    let content = stripAiThinkingBlocks(String(value || "")
       .replace(/&lt;/g, "<")
       .replace(/&gt;/g, ">")
       .replace(/&amp;/g, "&")
-      .replace(/\u200b/g, "");
+      .replace(/\u200b/g, ""));
 
     const startMatches = [...content.matchAll(/[【\[]\s*初星正文开始\s*[】\]]/g)];
     if (startMatches.length > 0) {
@@ -8747,16 +11179,25 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     };
   }
 
-  function selectAiReplySource(text, rawText = "", renderedText = "") {
-    const decodeSource = (value) => String(value || "")
+  function decodeAiReplySource(value) {
+    return String(value || "")
       .replace(/&lt;/g, "<")
       .replace(/&gt;/g, ">")
       .replace(/&amp;/g, "&")
       .replace(/\u200b/g, "")
       .trim();
-    const candidates = [rawText, text, renderedText]
-      .map(decodeSource)
-      .filter(Boolean);
+  }
+
+  function collectAiReplyCandidates(text = "", rawText = "", renderedText = "") {
+    return [
+      decodeAiReplySource(rawText),
+      decodeAiReplySource(text),
+      decodeAiReplySource(renderedText)
+    ];
+  }
+
+  function selectAiReplySource(text, rawText = "", renderedText = "") {
+    const candidates = collectAiReplyCandidates(text, rawText, renderedText);
     const pendingAction = state.pendingActionContext?.action;
     const expectsChoicePayload = isChoicePromptMode()
       || (state.eventMode === "choice_prompt" && ["outing", "companion", "intimacy", "bond", "map_location"].includes(pendingAction));
@@ -9080,7 +11521,8 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       sendAiReplyAck(requestId, false, false);
       return;
     }
-    // 普通剧情仍优先使用 rawText；选项剧情会优先使用能解析出完整 story + 四个 option 的候选文本。
+    const replyCandidates = collectAiReplyCandidates(text, rawText, renderedText);
+    // 选项/任务等仍优先选能解析出完整 payload 的候选；正文提取会对全部候选做合并解析。
     const source = selectAiReplySource(text, rawText, renderedText);
     recordAiReplyDebug({ text, rawText, renderedText, requestId, isFinal, source, accepted: true });
 
@@ -9094,12 +11536,24 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       return;
     }
 
+    const broadcastPendingRequestId = String(state.freeMode?.world?.broadcast?.pendingRequestId || "");
+    const shouldRouteToBroadcast = state.activeStoryNode?.type === "broadcast"
+      && Boolean(broadcastPendingRequestId)
+      && requestId === broadcastPendingRequestId;
+    if (shouldRouteToBroadcast) {
+      handleBroadcastAiReply(source, requestId, isFinal);
+      return;
+    }
+
     const choiceFallbackPayload = (() => {
       if (state.eventMode !== "choice_prompt" || isChoicePromptMode()) return null;
       const pendingAction = state.pendingActionContext?.action;
       if (!["outing", "companion", "intimacy", "bond", "map_location"].includes(pendingAction)) return null;
-      const payload = extractChoicePayload(source);
-      return payload.story && payload.options.length === 4 ? payload : null;
+      for (const candidate of replyCandidates) {
+        const payload = extractChoicePayload(candidate);
+        if (payload.story && payload.options.length === 4) return payload;
+      }
+      return null;
     })();
 
     // ==========================================
@@ -9215,6 +11669,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         const actionsEl = document.getElementById("eventActions");
         if (actionsEl) actionsEl.style.display = "grid";
         
+        processSandboxQuestFromReply(source, true);
         sendAiReplyAck(requestId, true, false);
         return;
       }
@@ -9223,7 +11678,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         // 如果是流式传输，在标签完备前先显示部分纯文本
         const storyEl = document.getElementById("eventStory");
         if (storyEl) {
-          storyEl.innerHTML = formatStoryText(cleanReplyText(choiceContent));
+          storyEl.innerHTML = formatStoryText(cleanReplyText(stripAiThinkingBlocks(choiceContent)));
         }
         setEventActionsEnabled(false, true);
         sendAiReplyAck(requestId, true, false, false);
@@ -9232,7 +11687,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
 
       // 完结了但选项格式缺失，保留事件等待玩家重新生成
       console.warn("[Hatsu Choices] Choice prompt incomplete. Waiting for regeneration.");
-      const reply = cleanReplyText(choiceContent);
+      const reply = cleanReplyText(stripAiThinkingBlocks(choiceContent));
       pendingAiRequestId = "";
       state.eventMode = "choice_prompt";
       state.choiceStep = 1;
@@ -9249,7 +11704,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     // 交互式选项第二阶段：AI 反应与收尾剧情
     // ==========================================
     if (isChoiceResolutionMode()) {
-      const reply = extractReplyText([source]);
+      const reply = extractReplyText(replyCandidates);
       
       const storyEl = document.getElementById("eventStory");
       const isMapReturn = state.pendingActionContext?.action === "map_location"
@@ -9297,6 +11752,13 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       }
       if (state.pendingActionContext?.action === "map_location") {
         if (!isMapReturn) {
+          const locationId = state.pendingActionContext?.actionContext?.locationId;
+          if (locationId === "outstage" && globalThis.HatsuTasks?.markOutstageFullSong(state)) {
+            saveState();
+            notifyQuestCompletions(["temari_main_01"]);
+          }
+          processSandboxMainQuestMapChoice(locationId, state.selectedChoiceText || "");
+          processSandboxQuestFromReply(source, true);
           sendAiReplyAck(requestId, true, false);
           return;
         }
@@ -9327,6 +11789,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
 
       const actionName = currentChoiceActionTitle();
       openEventOverlay(actionName, "已收到 SillyTavern 角色回复", displayStory);
+      processSandboxQuestFromReply(source, true);
       sendAiReplyAck(requestId, true, false);
       return;
     }
@@ -9334,7 +11797,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     // ==========================================
     // 普通非选项行动（上课、训练、休息、羁绊剧情）
     // ==========================================
-    const reply = extractReplyText([source]);
+    const reply = extractReplyText(replyCandidates);
 
     if (reply) {
       const storyEl = document.getElementById("eventStory");
@@ -9415,10 +11878,12 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
               : (state.log[0]?.action || "AI 后续剧情");
     if (node?.type === "firstLivePost" && isLiveTheaterActive()) {
       deferredLivePostReply = { title, result: "已收到 SillyTavern 角色回复", story: reply };
+      processSandboxQuestFromReply(source, true);
       sendAiReplyAck(requestId, true, false);
       return;
     }
     openEventOverlay(title, "已收到 SillyTavern 角色回复", reply);
+    processSandboxQuestFromReply(source, true);
     sendAiReplyAck(requestId, true, false);
   }
 
@@ -9950,6 +12415,12 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       enterFreeMode();
       return;
     }
+    if (button.dataset.action === "campus_map_return") {
+      exitHybridFacility();
+      saveState();
+      render();
+      return;
+    }
     if (button.dataset.action === "bond") {
       const threshold = pendingAffinityActionThreshold();
       if (threshold) triggerAffinityStory(threshold);
@@ -9961,6 +12432,13 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   // Handle click on "开始育成" (Confirm Idol Selection)
   document.getElementById("confirmIdolBtn").addEventListener("click", () => {
     if (!selectedIdol) return;
+
+    if (isSandboxLaunch()) {
+      triggerWipeTransition(() => {
+        startSandboxInviteStory(selectedIdol);
+      });
+      return;
+    }
     
     triggerWipeTransition(() => {
       // UI Transitions: swap right panel to producer setup, update left description
@@ -10057,17 +12535,15 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     state.producer = { name, gender, personality, style, settings };
 
     triggerWipeTransition(() => {
-      // Start produce game
-      applyIdolPreset(selectedIdol, true);
-      startOpeningStory("签署合约");
-      saveState();
-
-      // Toggle panels back to default selection layout
       const selectPanel = document.getElementById("selectPanel");
       const producerPanel = document.getElementById("producerPanel");
       if (selectPanel) selectPanel.classList.remove("is-hidden");
       if (producerPanel) producerPanel.classList.add("is-hidden");
 
+      state.launchMode = "produce";
+      applyIdolPreset(selectedIdol, true);
+      startOpeningStory("签署合约");
+      saveState();
       showToast("合约签署完成", `制作人与 ${selectedIdol} 的专属育成正式开启！`, "gold");
     });
   });
@@ -10115,6 +12591,11 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   document.getElementById("closeClassicPanelBtn").addEventListener("click", closeVnLogView);
   document.getElementById("vnLogCloseBtn").addEventListener("click", closeVnLogView);
   document.getElementById("vnDebugCloseBtn").addEventListener("click", closeVnDebugView);
+  document.getElementById("vnDebugContent")?.addEventListener("click", (event) => {
+    const button = event.target.closest("#vnDebugForceSkipBtn");
+    if (!button || button.disabled) return;
+    forceSkipAiWait();
+  });
   document.getElementById("vnDebugOverlay").addEventListener("click", (event) => {
     if (event.target.id === "vnDebugOverlay") closeVnDebugView();
   });
@@ -10187,6 +12668,18 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     openPhoneThread(button.dataset.threadId);
   });
   document.getElementById("phoneChatForm").addEventListener("submit", submitPhoneChatMessage);
+  document.getElementById("phoneBroadcastGenerateBtn")?.addEventListener("click", () => {
+    requestBroadcastFullScript({ silent: false, auto: false, reason: "manual" });
+  });
+  document.getElementById("phoneBroadcastHistory")?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-broadcast-id]");
+    if (!button) return;
+    const id = button.dataset.broadcastId;
+    const history = state.freeMode?.world?.broadcast?.history || [];
+    const item = history.find((entry) => entry.id === id);
+    if (!item) return;
+    showToast(item.title || "历史节目", (item.guests || []).join("、") || "无嘉宾记录", "info");
+  });
   document.getElementById("interactionModeSpecified").addEventListener("click", () => setInteractionMode("specified"));
   document.getElementById("interactionModeAi").addEventListener("click", () => setInteractionMode("ai"));
   document.getElementById("interactionCancelBtn").addEventListener("click", closeInteractionOverlay);
@@ -10217,12 +12710,41 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   document.getElementById("intimacyOverlay").addEventListener("click", (event) => {
     if (event.target.id === "intimacyOverlay") closeIntimacyOverlay();
   });
+  document.getElementById("launchProduceBtn")?.addEventListener("click", () => chooseLaunchMode("produce"));
+  document.getElementById("launchSandboxBtn")?.addEventListener("click", () => chooseLaunchMode("sandbox"));
+  document.getElementById("selectLaunchBackBtn")?.addEventListener("click", clearLaunchModeSelection);
   document.getElementById("freeModeStayBtn")?.addEventListener("click", () => closeFreeModeEntryOverlay(true));
   document.getElementById("freeModeEnterBtn")?.addEventListener("click", enterFreeMode);
+  document.getElementById("hybridCampusExitBtn")?.addEventListener("click", exitHybridCampus);
   document.getElementById("freeModeEntryOverlay")?.addEventListener("click", (event) => {
     if (event.target.id === "freeModeEntryOverlay") closeFreeModeEntryOverlay(true);
   });
   document.getElementById("freeModePhoneBtn")?.addEventListener("click", openPhoneOverlay);
+  document.getElementById("freeModeTaskPanelBtn")?.addEventListener("click", openTaskPanelOverlay);
+  document.getElementById("taskPanelCloseBtn")?.addEventListener("click", closeTaskPanelOverlay);
+  document.getElementById("taskPanelOpenSideQuestBtn")?.addEventListener("click", openSideQuestFromTaskPanel);
+  document.getElementById("taskPanelOverlay")?.addEventListener("click", (event) => {
+    if (event.target.id === "taskPanelOverlay") closeTaskPanelOverlay();
+  });
+  document.getElementById("freeModeSideQuestBtn")?.addEventListener("click", openSideQuestOverlay);
+  document.getElementById("sideQuestCloseBtn")?.addEventListener("click", closeSideQuestOverlay);
+  document.getElementById("sideQuestTierBackBtn")?.addEventListener("click", () => {
+    sideQuestOverlaySlotIndex = null;
+    renderSideQuestOverlay();
+  });
+  document.getElementById("sideQuestOverlay")?.addEventListener("click", (event) => {
+    if (event.target.id === "sideQuestOverlay") closeSideQuestOverlay();
+  });
+  document.getElementById("sideQuestApiSaveBtn")?.addEventListener("click", saveSideQuestApiPanel);
+  document.getElementById("sideQuestApiPanel")?.addEventListener("toggle", (event) => {
+    if (!event.target.open) return;
+    const scrollBody = document.querySelector(".side-quest-body");
+    const saveBtn = document.getElementById("sideQuestApiSaveBtn");
+    if (!scrollBody || !saveBtn) return;
+    requestAnimationFrame(() => {
+      saveBtn.scrollIntoView({ block: "end", behavior: "smooth" });
+    });
+  });
   document.getElementById("freeModeStatusBadge")?.addEventListener("click", openFreeModeTimeOverlay);
   document.getElementById("vnFreeModeClock")?.addEventListener("click", openFreeModeTimeOverlay);
   document.getElementById("freeModeTimeCloseBtn")?.addEventListener("click", closeFreeModeTimeOverlay);
@@ -10291,6 +12813,10 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       applyHostCharacter(payload.character, payload.saveScope, payload.savedState, payload.hasSavedState);
       return;
     }
+    if (payload.type === "secondaryAiReply") {
+      handleSecondaryAiReply(payload);
+      return;
+    }
     if (shouldSkipCommittedReply(payload)) return;
     if (payload.type === "aiReply" || payload.type === "aiReplyCommitted") {
       applyAiReply(
@@ -10307,8 +12833,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   window.addEventListener("message", (event) => {
     const data = event.data || {};
     
-    // 安全校验：允许来自父窗口（跨域 iframe 模式）、相同窗口（同域直接载入模式）或同源的消息
-    const isFromParent = event.source === window.parent;
+    // 瀹夊叏鏍￠獙锛氬厑璁告潵鑷埗绐楀彛锛堣法鍩?iframe 妯″紡锛夈€佺浉鍚岀獥鍙ｏ紙鍚屽煙鐩存帴杞藉叆妯″紡锛夋垨鍚屾簮鐨勬秷鎭?    const isFromParent = event.source === window.parent;
     const isFromSelf = event.source === window || event.source === null;
     const isSameOrigin = event.origin === window.location.origin;
     
@@ -10347,7 +12872,31 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     if (!state.idol) return;
     const idolName = state.idol;
     triggerWipeTransition(() => {
+      if (isSandboxLaunch()) {
+        state.launchMode = "sandbox";
+        state.gameMode = "hybrid";
+        state.sandbox = { openingComplete: true, inviteComplete: true };
+        applyIdolPreset(idolName, true);
+        ensureFreeModeTimeDefaults();
+        if (!state.freeMode.world) state.freeMode.world = {};
+        state.freeMode.world.macro_phase = "scout";
+        refreshWorldPresenceFromRules(true);
+        state.freeMode = {
+          ...(state.freeMode || {}),
+          active: true,
+          postLiveDay: 1,
+          clockMinutes: FREE_MODE_DAY_START_MINUTES,
+          facilityKind: null,
+          facilityLocationId: null
+        };
+        document.body.classList.add("is-free-mode-active");
+        saveState();
+        render();
+        showToast("沙盒已重置", `保留 ${idolName}，学园时间回到第 1 天 08:00。`, "warn");
+        return;
+      }
       state = clone(baseState);
+      state.launchMode = "produce";
       applyIdolPreset(idolName, true);
       startOpeningStory("重置育成");
       showToast("育成已重置", "保留当前担当并重建第 1 天档案。", "warn");
@@ -10406,31 +12955,103 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     triggerLive: () => { state.liveReady = true; saveState(); render(); startFirstLive(); return "First Live started."; },
     openMapLayoutEditor: () => { openWorldMapLayoutEditor(); return "World map layout editor opened."; },
     exportMapLayout: () => { exportWorldMapLayout(); return buildWorldMapLayoutEnvelope(); },
-    getMapLayout: () => buildWorldMapLayoutEnvelope()
+    getMapLayout: () => buildWorldMapLayoutEnvelope(),
+    getTaskSnapshot: () => getTaskPanelSnapshot(),
+    resetBoot: () => {
+      state = clone(baseState);
+      selectedIdol = null;
+      ensureStateShape();
+      saveState();
+      render();
+      return "已重置到开局模式选择";
+    },
+    markDietPlan: () => {
+      if (!globalThis.HatsuTasks?.markDietPlanActive(state)) return "饮食方案未激活（需沙盒且主线③进行中）";
+      saveState();
+      processSandboxQuestAfterSettlement();
+      return "已标记饮食方案制定";
+    },
+    recordHealthyMeal: (count = 1) => {
+      if (!globalThis.HatsuTasks?.recordHealthyMeal(state, count)) return "健康餐未记录（需沙盒且主线③进行中）";
+      saveState();
+      processSandboxQuestAfterSettlement();
+      return `已记录健康餐 +${count}`;
+    },
+    setCampusUsed: (count = 0) => {
+      if (!globalThis.HatsuTasks?.isSandboxTasksActive(state)) return "仅沙盒模式可用";
+      globalThis.HatsuTasks.syncCampusDay(state);
+      state.tasks.campus.usedCount = Math.max(0, Math.min(3, Number(count) || 0));
+      saveState();
+      render();
+      return `校园次数已设为 ${state.tasks.campus.usedCount}/3`;
+    },
+    completeQuestTag: (id) => {
+      const completed = globalThis.HatsuTasks?.applyQuestCompletionsFromReply(state, `【初星任务完成】${id}`) || [];
+      if (!completed.length) return `任务 ${id} 未激活或已完成`;
+      saveState();
+      notifyQuestCompletions(completed);
+      return `任务 ${id} 已标记完成`;
+    },
+    refreshSideQuests: () => {
+      if (!globalThis.HatsuTasks?.isSandboxTasksActive(state)) return "仅沙盒模式可用";
+      const mode = globalThis.HatsuTasks.queueSideQuestRefresh(state);
+      saveState();
+      if (mode === "api") maybeRequestSideQuestGeneration();
+      render();
+      return getTaskPanelSnapshot()?.side;
+    },
+    getSecondaryApi: () => {
+      const cfg = getSecondaryApiConfig();
+      return { ...cfg, apiKey: cfg.apiKey ? "[已保存]" : "" };
+    },
+    setSecondaryApi: (patch = {}) => {
+      saveSecondaryApiSettings(patch);
+      return getSecondaryApiConfig();
+    },
+    forceSideQuestApi: () => {
+      if (!globalThis.HatsuTasks?.isSandboxTasksActive(state)) return "仅沙盒模式可用";
+      const mode = globalThis.HatsuTasks.queueSideQuestRefresh(state);
+      saveState();
+      maybeRequestSideQuestGeneration();
+      return { mode, side: getTaskPanelSnapshot()?.side };
+    },
+    applySideTier: (slotIndex, tier) => {
+      const result = globalThis.HatsuTasks?.applySideQuestTier(state, Number(slotIndex), tier);
+      if (!result?.ok) return `结算失败：${result?.reason || "未知"}`;
+      saveState();
+      processSandboxQuestAfterSettlement();
+      render();
+      return result;
+    }
   };
 
   ensureStateShape();
+  if (globalThis.HatsuTasks) {
+    notifyQuestCompletions(globalThis.HatsuTasks.syncSandboxQuestProgress(state));
+  }
   refreshAffinityUnlocks();
   hydrateWorldMapLayout().finally(() => {
     saveState();
     render();
+    requestAnimationFrame(() => {
+      ensureIdolListRendered();
+    });
     bgmManager.init();
     updateBgm();
     if (!isSillyTavernHost()) resumeOpeningIfNeeded();
+    resumeSandboxIfNeeded();
     requestHostCharacter();
   });
 
-  // ── Splash Screen 自动退出 ──
+  // Splash Screen 自动退出
   const splashEl = document.getElementById("splashScreen");
   if (splashEl) {
     const dismissSplash = () => {
       if (splashEl.classList.contains("is-dismissed")) return;
       splashEl.classList.add("is-dismissed");
     };
-    // 点击任意位置可跳过
     splashEl.style.pointerEvents = "auto";
     splashEl.addEventListener("click", dismissSplash, { once: true });
-    // 动画结束后自动从 DOM 中移除
     splashEl.addEventListener("animationend", (e) => {
       if (e.target === splashEl) {
         splashEl.remove();
@@ -10448,3 +13069,4 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     }
   });
 })();
+

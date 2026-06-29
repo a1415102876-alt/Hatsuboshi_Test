@@ -20,7 +20,50 @@
   window.visualViewport?.addEventListener('resize', updateHatsuViewportHeight);
   window.addEventListener('resize', updateHatsuViewportHeight);
   
-  const BASE = 'https://hatsuboshi.vercel.app/';
+  function resolveAssetBase() {
+    try {
+      const pageUrl = new URL(window.location.href);
+      if (pageUrl.protocol === "file:") {
+        return new URL("./", pageUrl).href;
+      }
+      if (pageUrl.protocol === "http:" || pageUrl.protocol === "https:") {
+        if (!/hatsuboshi\.vercel\.app$/i.test(pageUrl.hostname)) {
+          return new URL("./", pageUrl).href;
+        }
+      }
+    } catch (e) {
+      console.warn("[Hatsu ST Loader] resolveAssetBase failed:", e);
+    }
+    return "https://hatsuboshi.vercel.app/";
+  }
+
+  async function probeAssetBase(base) {
+    try {
+      const res = await fetch(new URL("index.html", base), { cache: "no-store", method: "HEAD" });
+      return res.ok;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  if (window.location.protocol === 'file:') {
+    showFileProtocolHelp();
+    return;
+  }
+
+  let BASE = resolveAssetBase();
+  if (!(await probeAssetBase(BASE))) {
+    const fallback = 'https://hatsuboshi.vercel.app/';
+    const canUseCdn = window.location.protocol === 'http:' || window.location.protocol === 'https:';
+    if (canUseCdn && BASE !== fallback && (await probeAssetBase(fallback))) {
+      console.warn('[Hatsu ST Loader] 本地资源不可用，回退到 CDN：', fallback);
+      BASE = fallback;
+    } else {
+      showError(new Error('无法加载本地 index.html。请确认 SillyTavern 已启动，并访问 http://127.0.0.1:8000/hatsu-produce-local/st.html'));
+      return;
+    }
+  }
+  console.log('[Hatsu ST Loader] BASE =', BASE);
 
   function abs(path) {
     return new URL(path, BASE).href;
@@ -34,12 +77,33 @@
       !/^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(url);
   }
 
+  function showFileProtocolHelp() {
+    const indexUrl = new URL('index.html', window.location.href).href;
+    const httpUrl = 'http://127.0.0.1:8000/hatsu-produce-local/st.html';
+    document.getElementById('hatsu-loader')?.remove();
+    document.body.innerHTML =
+      '<div style="max-width:560px;margin:40px auto;padding:24px 22px;color:#f5f5f7;background:#16161c;border:1px solid rgba(255,255,255,0.12);border-radius:16px;line-height:1.65;font:15px/1.65 system-ui,sans-serif;">' +
+      '<h2 style="margin:0 0 12px;font-size:22px;color:#ff8ab9;">无法用 file:// 打开 st.html</h2>' +
+      '<p style="margin:0 0 14px;color:rgba(255,255,255,0.82);">你当前是<strong>双击本地文件</strong>打开。st.html 需要用 <code style="color:#9fd4ff;">fetch</code> 加载 index.html、app.js 等模块，浏览器在 file:// 下会拦截，界面会空白、偶像列表不显示。</p>' +
+      '<p style="margin:0 0 8px;font-weight:700;color:#fff;">方式一：单机试玩（无酒馆桥接）</p>' +
+      '<p style="margin:0 0 14px;"><a href="' + indexUrl + '" style="color:#7ee0ff;">打开同目录 index.html</a></p>' +
+      '<p style="margin:0 0 8px;font-weight:700;color:#fff;">方式二：酒馆完整功能（推荐）</p>' +
+      '<p style="margin:0 0 6px;color:rgba(255,255,255,0.82);">先启动 SillyTavern，在地址栏打开：</p>' +
+      '<p style="margin:0 0 14px;"><code style="display:block;padding:10px 12px;background:rgba(0,0,0,0.35);border-radius:10px;color:#9fd4ff;word-break:break-all;">' + httpUrl + '</code></p>' +
+      '<p style="margin:0;color:rgba(255,255,255,0.55);font-size:13px;">不要用 <code>file:\\</code> 路径，也不要把本地路径和 http 地址拼在一起。</p>' +
+      '</div>';
+  }
+
   function showError(err) {
     console.error('[Hatsu ST Loader] 加载失败：', err);
+    const hint = String(window.location.protocol) === "file:"
+      ? "<p><strong>提示：</strong>请勿用 file:// 直接打开 st.html。请通过 SillyTavern 本地服务访问，或运行 <code>npx serve .</code> 后打开 <code>http://localhost:3000/st.html</code>；本地开发也可直接用 <code>index.html</code>。</p>"
+      : "<p>请确认 hatsu-produce-local 目录可通过 HTTP 访问，且 index.html / app.js 未被拦截。</p>";
     document.body.innerHTML =
       '<div style="padding:20px;color:#ff6666;background:#111;border-radius:12px;">' +
       '<h2>Hatsu 前端加载失败</h2>' +
       '<p>请打开 F12 控制台查看具体报错。</p>' +
+      hint +
       '<pre style="white-space:pre-wrap;">' + String(err && err.message ? err.message : err) + '</pre>' +
       '</div>';
   }
@@ -210,6 +274,32 @@
           max-width: 100vw !important;
           margin: 0 !important;
         }
+
+        #hatsu-fullscreen-overlay .produce-app {
+          width: 100% !important;
+          max-width: 1180px !important;
+        }
+
+        #hatsu-fullscreen-overlay .launch-screen:not(.is-hidden),
+        #hatsu-fullscreen-overlay .select-screen:not(.is-hidden) {
+          display: grid !important;
+          width: 100% !important;
+          min-height: min(var(--hatsu-viewport-height, 100dvh), 100%) !important;
+          box-sizing: border-box !important;
+        }
+
+        #hatsu-fullscreen-overlay .launch-mode-list {
+          display: flex !important;
+          flex-direction: column !important;
+          gap: 14px !important;
+          min-height: 220px !important;
+          overflow-y: auto !important;
+        }
+
+        #hatsu-fullscreen-overlay .select-panel .idol-list {
+          max-height: min(52vh, 520px) !important;
+          overflow-y: auto !important;
+        }
       }
 
     `;
@@ -228,7 +318,31 @@
       }
     });
 
-    // 读取 app.js，并修正里面的 ./assets/
+    // 读取 world / broadcast 模块与 app.js，并修正里面的 ./assets/
+    const WORLD_SCRIPTS = [
+      "world/cast-track.js",
+      "world/events-pool.js",
+      "world/buzz-pool.js",
+      "world/campus-behavior.js",
+      "world/injection.js",
+      "world/daily-tick.js",
+      "broadcast/prompts.js",
+      "tasks/side-pool.js",
+      "tasks/side-quest-api.js",
+      "tasks/sandbox-tasks.js"
+    ];
+
+    for (const rel of WORLD_SCRIPTS) {
+      const modRes = await fetch(abs(rel), { cache: "no-store" });
+      if (!modRes.ok) {
+        console.warn(`[Hatsu ST Loader] 世界观模块未找到，将降级：${rel} HTTP ${modRes.status}`);
+        continue;
+      }
+      const modScript = document.createElement("script");
+      modScript.textContent = await modRes.text();
+      page.appendChild(modScript);
+    }
+
     const jsRes = await fetch(abs('app.js'), { cache: 'no-store' });
     if (!jsRes.ok) {
       throw new Error('app.js 加载失败：HTTP ' + jsRes.status);
@@ -285,6 +399,10 @@
         if (data.type === 'sendPrompt') {
           const reqId = String(data.requestId || '');
           queuePromptTask(() => runTransactionalPrompt(data.prompt, reqId));
+        }
+        if (data.type === 'sendSecondaryPrompt') {
+          const reqId = String(data.requestId || '');
+          queuePromptTask(() => runSecondaryApiPrompt(data.prompt, reqId, data.apiConfig || {}));
         }
         if (data.type === 'regenerate') {
           const reqId = String(data.requestId || '');
@@ -845,6 +963,66 @@
       }
     }
 
+    function postSecondaryReply(requestId, text, options = {}) {
+      const payload = {
+        source: 'hatsuboshi-produce-host',
+        type: 'secondaryAiReply',
+        requestId: String(requestId || ''),
+        text: String(text || ''),
+        ok: options.ok !== false,
+        error: String(options.error || ''),
+        isFinal: true
+      };
+      window.postMessage(payload, '*');
+    }
+
+    async function runSecondaryApiPrompt(promptText, requestId, apiConfig = {}) {
+      const prompt = String(promptText || '').trim();
+      const reqId = String(requestId || '');
+      const baseUrl = String(apiConfig.baseUrl || '').trim().replace(/\/$/, '');
+      const apiKey = String(apiConfig.apiKey || '').trim();
+      const model = String(apiConfig.model || '').trim();
+      const temperature = Number.isFinite(Number(apiConfig.temperature)) ? Number(apiConfig.temperature) : 0.7;
+      const maxTokens = Number.isFinite(Number(apiConfig.maxTokens)) ? Number(apiConfig.maxTokens) : 1200;
+      if (!prompt || !reqId) {
+        postSecondaryReply(reqId, '', { ok: false, error: 'empty_prompt' });
+        return;
+      }
+      if (!baseUrl || !model) {
+        postSecondaryReply(reqId, '', { ok: false, error: 'missing_config' });
+        return;
+      }
+      const url = baseUrl.endsWith('/chat/completions') ? baseUrl : `${baseUrl}/chat/completions`;
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model,
+            messages: [{ role: 'user', content: prompt }],
+            temperature,
+            max_tokens: maxTokens
+          })
+        });
+        if (!res.ok) {
+          postSecondaryReply(reqId, '', { ok: false, error: `http_${res.status}` });
+          return;
+        }
+        const json = await res.json();
+        const text = String(json?.choices?.[0]?.message?.content || '').trim();
+        if (!text) {
+          postSecondaryReply(reqId, '', { ok: false, error: 'empty_response' });
+          return;
+        }
+        postSecondaryReply(reqId, text, { ok: true });
+      } catch (error) {
+        postSecondaryReply(reqId, '', { ok: false, error: String(error?.message || error) });
+      }
+    }
+
     async function runTransactionalViaTavernHelper(tavernHelper, promptText, reqId) {
       // 酒馆助手路径：先生成（此时聊天历史里还没有这条输入，避免提示词重复），
       // 拿到文本后再依次建 user / assistant 楼层。生成失败则不留任何孤儿楼层。
@@ -1084,14 +1262,11 @@
       const startIndex = Math.max(1, pendingPromptChatLength);
       const preferredIndex = Number(preferredId);
       if (Number.isInteger(preferredIndex) && preferredIndex >= startIndex) {
-        const preferredMessage = chat[preferredIndex];
-        if (preferredMessage && !preferredMessage.is_user && getMessageRawText(preferredMessage).trim()) {
-          return preferredIndex;
-        }
+        return preferredIndex;
       }
       for (let index = chat.length - 1; index >= startIndex; index -= 1) {
         const message = chat[index];
-        if (message && !message.is_user && getMessageRawText(message).trim()) return index;
+        if (message && !message.is_user) return index;
       }
       return preferredIndex;
     }
@@ -1239,6 +1414,7 @@
       pendingRequestId = '';
     }
   } catch (err) {
+    document.getElementById('hatsu-fullscreen-overlay')?.remove();
     showError(err);
   }
 })();
