@@ -56,12 +56,30 @@
     return "https://hatsuboshi.vercel.app/";
   }
 
+  function isDeprecatedRemoteBase(base) {
+    const normalized = String(base || "").trim().toLowerCase();
+    return normalized.includes("hatsuboshi.vercel.app");
+  }
+
   async function probeAssetBase(base) {
     try {
       const url = new URL("index.html", base);
       const res = await fetch(url, { cache: "no-store", method: "HEAD" });
       if (res.ok) return true;
       const getRes = await fetch(url, { cache: "no-store", method: "GET" });
+      return getRes.ok;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  async function probeEmbedAssetBase(base) {
+    if (!await probeAssetBase(base)) return false;
+    try {
+      const modUrl = new URL("world/cast-track.js", base);
+      const res = await fetch(modUrl, { cache: "no-store", method: "HEAD" });
+      if (res.ok) return true;
+      const getRes = await fetch(modUrl, { cache: "no-store", method: "GET" });
       return getRes.ok;
     } catch (e) {
       return false;
@@ -81,6 +99,11 @@
     const bases = [];
     try {
       const origin = window.location.origin;
+      const path = window.location.pathname || "";
+      const pathMatch = path.match(/^(.*\/hatsu-produce-local)\//i);
+      if (pathMatch) {
+        bases.push(`${origin}${pathMatch[1]}/`);
+      }
       bases.push(`${origin}/hatsu-produce-local/`);
       bases.push(`${origin}/public/hatsu-produce-local/`);
     } catch (e) {}
@@ -96,10 +119,18 @@
       if (override) window.HATSU_ASSET_BASE = override;
     }
     const localEmbed = Boolean(window.isHatsuLoaderST) && !isHostedAssetPage();
+    if (localEmbed && override && isDeprecatedRemoteBase(override)) {
+      console.warn("[Hatsu ST Loader] 酒馆内嵌忽略 Vercel 资源根，改用本地或 Workers：", override);
+      override = "";
+      window.HATSU_ASSET_BASE = "";
+    }
     if (override) {
       const base = normalize(override);
-      if (localEmbed) return base;
-      if (await probeAssetBase(base)) return base;
+      if (localEmbed) {
+        if (await probeEmbedAssetBase(base)) return base;
+      } else if (await probeAssetBase(base)) {
+        return base;
+      }
     }
     if (isHostedAssetPage()) {
       const base = resolveAssetBase();
@@ -109,20 +140,16 @@
       const base = resolveAssetBase();
       if (base && await probeAssetBase(base)) return base;
       const fallback = "https://hatsuboshi.vercel.app/";
-      if (override !== fallback && await probeAssetBase(fallback)) {
+      if (!isDeprecatedRemoteBase(override) && override !== fallback && await probeAssetBase(fallback)) {
         console.warn("[Hatsu ST Loader] 本地资源不可用，回退到 CDN：", fallback);
         return fallback;
       }
     }
     if (localEmbed) {
-      const localCandidates = [
-        resolveAssetBase(),
-        ...guessStLocalAssetBases()
-      ];
-      for (const candidate of localCandidates) {
+      for (const candidate of guessStLocalAssetBases()) {
         if (!candidate) continue;
         const base = normalize(candidate);
-        if (await probeAssetBase(base)) {
+        if (await probeEmbedAssetBase(base)) {
           console.warn("[Hatsu ST Loader] 酒馆内嵌使用本地资源：", base);
           return base;
         }
@@ -130,13 +157,13 @@
       const knownBases = ["https://hatsuboshitest.a1415102876.workers.dev/"];
       for (const candidate of knownBases) {
         const base = normalize(candidate);
-        if (await probeAssetBase(base)) {
-          console.warn("[Hatsu ST Loader] 酒馆内嵌使用已知资源根：", base);
+        if (await probeEmbedAssetBase(base)) {
+          console.warn("[Hatsu ST Loader] 酒馆内嵌使用 Workers 资源根：", base);
           return base;
         }
       }
       const fallback = normalize(knownBases[0]);
-      console.warn("[Hatsu ST Loader] 酒馆内嵌使用默认资源根：", fallback);
+      console.warn("[Hatsu ST Loader] 酒馆内嵌使用默认 Workers 资源根：", fallback);
       return fallback;
     }
     return null;

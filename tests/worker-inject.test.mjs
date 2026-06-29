@@ -30,9 +30,11 @@ test("st.html overlay shields idol list cards from host button resets", () => {
   assert.match(stSource, /display:\s*grid !important/);
 });
 
-test("st.html embed loader falls back to known Workers asset base", () => {
-  assert.match(stSource, /hatsuboshitest\.a1415102876\.workers\.dev/);
-  assert.match(stSource, /酒馆内嵌使用默认资源根/);
+test("st.html embed loader skips vercel and probes world modules", () => {
+  assert.match(stSource, /isDeprecatedRemoteBase/);
+  assert.match(stSource, /probeEmbedAssetBase/);
+  assert.match(stSource, /酒馆内嵌忽略 Vercel 资源根/);
+  assert.match(stSource, /world\/cast-track\.js/);
 });
 
 test("injectStHtmlAssetBase sets HATSU_ASSET_BASE and data-asset-base", () => {
