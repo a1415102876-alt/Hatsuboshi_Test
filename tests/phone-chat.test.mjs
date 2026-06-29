@@ -75,6 +75,9 @@ test("phone chat logic is wired in app.js", () => {
   assert.match(source, /function renderPhoneApp\(/);
   assert.match(source, /function openPhoneThread\(/);
   assert.match(source, /function buildPhoneChatScenarioRules\(/);
+  assert.match(source, /function buildPhoneChatOutputContract\(/);
+  assert.match(source, /【格式优先级】本条为「初星私聊」任务/);
+  assert.match(source, /### 正文[\s\S]*<content>[\s\S]*<初星私聊/);
   assert.doesNotMatch(source, /你明明就在我旁边/);
   assert.match(html, /id="phoneLaunchBtn"/);
   assert.match(html, /stress-pill/);
@@ -129,4 +132,23 @@ test("extractPhoneChatReply uses the last phone chat block and ignores thinking 
   assert.match(parsed.lines[0], /真正的第一条/);
   assert.match(parsed.lines[1], /真正的第二条/);
   assert.doesNotMatch(parsed.lines.join("\n"), /样例|分析文字/);
+});
+
+test("extractPhoneChatReply accepts ### 正文 and content wrapper from preset-aligned output", () => {
+  const context = makeContext();
+  const sample = `### 正文
+
+<content>
+<初星私聊 from="藤田琴音">
+哈？怎么还在说套餐的事啦！
+不过既然你觉得好吃，那我就放心啦！
+</初星私聊>
+</content>`;
+
+  const parsed = context.extractPhoneChatReply(sample);
+  assert.equal(parsed.complete, true);
+  assert.equal(parsed.from, "藤田琴音");
+  assert.equal(parsed.lines.length, 2);
+  assert.match(parsed.lines[0], /套餐/);
+  assert.match(parsed.lines[1], /好吃/);
 });

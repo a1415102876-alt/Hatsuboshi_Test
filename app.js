@@ -4213,6 +4213,33 @@ ${outputContract("请写一段 800 字以内的完整闲聊场景，在本次回
     ].join("\n");
   }
 
+  function buildPhoneChatOutputContract(contactName, lineExamples = "") {
+    const examples = lineExamples || [
+      "第一行对应第一条消息气泡",
+      "第二行对应第二条消息气泡",
+      "如有更多回复继续逐行写"
+    ].join("\n");
+    return `【格式优先级】本条为「初星私聊」任务，优先于全局育成正文格式。
+- 忽略【初星正文开始/结束】、dialogue/narration/option 等育成 XML 要求。
+- 与全局输出要求一致：先输出 \`### 正文\`，再用 \`<content>\` 包裹私聊块。
+
+输出格式（必须严格遵守）：
+### 正文
+
+<content>
+<初星私聊 from="${contactName}">
+${examples}
+</初星私聊>
+</content>
+
+输出硬规则：
+1. 只输出上述结构：标题 \`### 正文\`、一个 \`<content>\` 块、其中只含一个 \`<初星私聊>\`。
+2. 不要在 \`<content>\` 外额外写说明、列表或 Markdown。
+3. from 属性必须是 "${contactName}"。
+4. 标签内每行一条消息，一行一个气泡，不要空行，不要把多条消息写在同一行。
+5. 不要写制作人台词，不要写选项、数值或系统说明。`;
+  }
+
   function buildPhoneChatPrompt(userMessage, threadId = "idol") {
     const contactName = getPhoneThreadContactName(threadId);
     const profile = idols[contactName] || {};
@@ -4251,18 +4278,7 @@ ${buildPhoneChatScenarioRules()}
 - 用${contactName}的口吻回复制作人刚才的消息，可以分多条短消息发送。
 - 每条消息保持口语化，像真实聊天，不要写成完整小说段落。
 
-输出格式（必须严格遵守）：
-<初星私聊 from="${contactName}">
-第一行对应第一条消息气泡
-第二行对应第二条消息气泡
-如有更多回复继续逐行写
-</初星私聊>
-
-输出硬规则：
-1. 只能输出一个 <初星私聊> 标签块，不要在标签外写任何内容、说明或 Markdown。
-2. from 属性必须是 "${contactName}"。
-3. 标签内每行一条消息，一行一个气泡，不要空行，不要把多条消息写在同一行。
-4. 不要写制作人台词，不要写选项、数值或系统说明。`;
+${buildPhoneChatOutputContract(contactName)}`;
   }
 
   function buildPhoneAddFriendGreetingPrompt(friendName) {
@@ -4291,16 +4307,10 @@ ${profile.core || "按初星学园偶像设定自然发挥。"}
 - 不是育成行动，不改变任何数值，不推进日程。
 - 只写 ${friendName} 的问候，不要替制作人发言。
 
-输出格式（必须严格遵守）：
-<初星私聊 from="${friendName}">
-第一行对应第一条问候气泡
-第二行对应第二条问候气泡
-</初星私聊>
-
-输出硬规则：
-1. 只能输出一个 <初星私聊> 标签块，不要在标签外写任何内容、说明或 Markdown。
-2. from 属性必须是 "${friendName}"。
-3. 标签内每行一条消息，一行一个气泡，不要空行。`;
+${buildPhoneChatOutputContract(friendName, [
+      "第一行对应第一条问候气泡",
+      "第二行对应第二条问候气泡"
+    ].join("\n"))}`;
   }
 
   function buildIdolInteractionPrompt(selectedCharacters, plot, aiDecides) {
