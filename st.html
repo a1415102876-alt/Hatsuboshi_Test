@@ -1,4 +1,4 @@
-<div id="hatsu-loader" style="padding:20px;color:white;background:#111;border-radius:12px;">
+<div id="hatsu-loader" data-asset-base="" style="padding:20px;color:white;background:#111;border-radius:12px;">
   <h2>Hatsu 前端加载中……</h2>
   <p>如果一直停在这里，请打开控制台查看报错。</p>
 </div>
@@ -13,6 +13,14 @@
   });
 
   window.isHatsuLoaderST = true;
+
+  function absorbLoaderAssetBase() {
+    const loader = document.getElementById("hatsu-loader");
+    const fromAttr = String(loader?.getAttribute("data-asset-base") || "").trim();
+    if (fromAttr) window.HATSU_ASSET_BASE = fromAttr;
+  }
+  absorbLoaderAssetBase();
+
   document.documentElement.style.setProperty('--hatsu-viewport-height', `${window.visualViewport?.height || window.innerHeight}px`);
   function updateHatsuViewportHeight() {
     document.documentElement.style.setProperty('--hatsu-viewport-height', `${window.visualViewport?.height || window.innerHeight}px`);
@@ -65,12 +73,17 @@
   }
 
   async function pickAssetBase() {
+    absorbLoaderAssetBase();
     const normalize = (base) => base.endsWith("/") ? base : `${base}/`;
     const override = String(window.HATSU_ASSET_BASE || "").trim();
     const localEmbed = Boolean(window.isHatsuLoaderST) && !isHostedAssetPage();
     if (override) {
       const base = normalize(override);
       if (await probeAssetBase(base)) return base;
+      if (localEmbed) {
+        console.warn("[Hatsu ST Loader] 资源探测未通过，酒馆内嵌仍使用：", base);
+        return base;
+      }
     }
     if (isHostedAssetPage()) {
       const base = resolveAssetBase();

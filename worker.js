@@ -17,12 +17,20 @@ function withCors(response) {
 
 function injectStHtmlAssetBase(html, origin) {
   const base = origin.endsWith("/") ? origin : `${origin}/`;
-  const inject = `window.HATSU_ASSET_BASE = "${base}";`;
-  if (html.includes("window.HATSU_ASSET_BASE")) return html;
-  return html.replace(
-    "window.isHatsuLoaderST = true;",
-    `window.isHatsuLoaderST = true;\n  ${inject}`
-  );
+  let out = html;
+  if (!out.includes("window.HATSU_ASSET_BASE")) {
+    out = out.replace(
+      "window.isHatsuLoaderST = true;",
+      `window.isHatsuLoaderST = true;\n  window.HATSU_ASSET_BASE = "${base}";`
+    );
+  }
+  if (!out.includes("data-asset-base=\"" + base)) {
+    out = out.replace(
+      'data-asset-base=""',
+      `data-asset-base="${base}"`
+    );
+  }
+  return out;
 }
 
 export default {
