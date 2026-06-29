@@ -4843,7 +4843,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
 
   function ensureIdolListRendered() {
     if (!shouldShowSelectionStage()) return;
-    const list = document.querySelector("#selectionStage #idolList") || document.getElementById("idolList");
+    const list = getIdolListElement();
     if (!list) return;
     if (list.childElementCount === 0) renderIdols();
   }
@@ -6533,8 +6533,24 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     applySelectStageBackground(name);
   }
 
+  function getProduceDomRoot() {
+    const overlayPage = document.getElementById("hatsu-st-page");
+    if (overlayPage) {
+      return overlayPage.querySelector(".produce-app") || overlayPage;
+    }
+    return document.querySelector(".produce-app") || document;
+  }
+
+  function queryProduce(selector) {
+    return getProduceDomRoot().querySelector(selector);
+  }
+
+  function getIdolListElement() {
+    return queryProduce("#selectionStage #idolList") || queryProduce("#idolList");
+  }
+
   function renderIdols() {
-    const list = document.querySelector("#selectionStage #idolList") || document.getElementById("idolList");
+    const list = getIdolListElement();
     if (!list) {
       console.warn("[Hatsu] idolList 未找到，无法渲染担当列表");
       return;
@@ -6599,6 +6615,10 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
 
       list.appendChild(button);
     });
+
+    if (isSillyTavernHost()) {
+      console.log("[Hatsu] renderIdols 完成，条目数：", list.childElementCount, "容器：", list.closest("#selectPanel")?.id || list.id);
+    }
   }
 
   function applyIdolBackground(profile, gameStage) {

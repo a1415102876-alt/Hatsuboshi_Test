@@ -25,6 +25,11 @@ test("worker injects asset base via marker, not a loose includes check", () => {
   assert.doesNotMatch(workerSource, /includes\("window\.HATSU_ASSET_BASE"\)/);
 });
 
+test("st.html overlay shields idol list cards from host button resets", () => {
+  assert.match(stSource, /#hatsu-fullscreen-overlay \.idol-card/);
+  assert.match(stSource, /display:\s*grid !important/);
+});
+
 test("st.html embed loader falls back to known Workers asset base", () => {
   assert.match(stSource, /hatsuboshitest\.a1415102876\.workers\.dev/);
   assert.match(stSource, /酒馆内嵌使用默认资源根/);
