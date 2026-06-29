@@ -414,6 +414,31 @@
         visibility: visible !important;
       }
 
+      #hatsu-fullscreen-overlay .event-panel.task-panel,
+      #hatsu-fullscreen-overlay .event-panel.side-quest-panel {
+        display: flex !important;
+        flex-direction: column !important;
+        min-height: min(520px, calc(var(--hatsu-viewport-height, 100dvh) - 48px)) !important;
+        max-height: min(92svh, calc(var(--hatsu-viewport-height, 100dvh) - 36px)) !important;
+        overflow: hidden !important;
+      }
+
+      #hatsu-fullscreen-overlay .event-panel-body.task-panel-body,
+      #hatsu-fullscreen-overlay .event-panel-body.side-quest-body {
+        flex: 1 1 auto !important;
+        min-height: 280px !important;
+        overflow-y: auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+      }
+
+      #hatsu-fullscreen-overlay .task-panel-sections,
+      #hatsu-fullscreen-overlay .side-quest-slot-list {
+        flex: 1 1 auto !important;
+        min-height: 180px !important;
+        overflow-y: auto !important;
+      }
+
       @media (max-width: 560px) {
         #hatsu-floating-controls {
           top: 8px !important;

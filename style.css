@@ -5037,7 +5037,7 @@ body.is-free-mode-active {
 .task-panel {
   display: flex;
   flex-direction: column;
-  min-height: 0;
+  min-height: min(520px, calc(100svh - 48px));
   max-height: min(92svh, calc(100svh - 36px));
   overflow: hidden;
 }
@@ -5148,7 +5148,7 @@ body.is-free-mode-active {
 .side-quest-panel {
   display: flex;
   flex-direction: column;
-  min-height: 0;
+  min-height: min(520px, calc(100svh - 48px));
   max-height: min(92svh, calc(100svh - 36px));
   overflow: hidden;
 }
@@ -5158,12 +5158,12 @@ body.is-free-mode-active {
   display: flex;
   flex-direction: column;
   grid-template-rows: unset;
-  min-height: 0;
+  min-height: min(520px, calc(100svh - 48px));
 }
 
 .event-panel-body {
-  flex: 1 1 0;
-  min-height: 0;
+  flex: 1 1 auto;
+  min-height: 280px;
   overflow-x: hidden;
   overflow-y: auto;
   display: flex;
@@ -5175,6 +5175,13 @@ body.is-free-mode-active {
   scrollbar-color: rgba(111, 102, 128, 0.38) rgba(111, 102, 128, 0.1);
   padding-right: 4px;
   padding-bottom: 8px;
+}
+
+.task-panel-body .task-panel-sections,
+.side-quest-body .side-quest-slot-list {
+  flex: 1 1 auto;
+  min-height: 180px;
+  overflow-y: auto;
 }
 
 .event-panel-body::-webkit-scrollbar {

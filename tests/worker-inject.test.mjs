@@ -4,6 +4,7 @@ import test from "node:test";
 
 const workerSource = readFileSync(new URL("../worker.js", import.meta.url), "utf8");
 const stSource = readFileSync(new URL("../st.html", import.meta.url), "utf8");
+const styleSource = readFileSync(new URL("../style.css", import.meta.url), "utf8");
 
 function injectStHtmlAssetBase(html, origin) {
   const base = origin.endsWith("/") ? origin : `${origin}/`;
@@ -23,6 +24,11 @@ test("st.html exposes a unique worker injection marker", () => {
 test("worker injects asset base via marker, not a loose includes check", () => {
   assert.match(workerSource, /HATSU_WORKER_INJECT_ASSET_BASE/);
   assert.doesNotMatch(workerSource, /includes\("window\.HATSU_ASSET_BASE"\)/);
+});
+
+test("task panel overlay has scrollable body layout", () => {
+  assert.match(styleSource, /\.event-panel\.task-panel[\s\S]*min-height:\s*min\(520px/);
+  assert.match(styleSource, /\.task-panel-body \.task-panel-sections[\s\S]*min-height:\s*180px/);
 });
 
 test("st.html overlay shields idol list cards from host button resets", () => {
