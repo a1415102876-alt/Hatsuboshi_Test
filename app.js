@@ -12843,7 +12843,8 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   window.addEventListener("message", (event) => {
     const data = event.data || {};
     
-    // 瀹夊叏鏍￠獙锛氬厑璁告潵鑷埗绐楀彛锛堣法鍩?iframe 妯″紡锛夈€佺浉鍚岀獥鍙ｏ紙鍚屽煙鐩存帴杞藉叆妯″紡锛夋垨鍚屾簮鐨勬秷鎭?    const isFromParent = event.source === window.parent;
+    // 安全校验：允许来自父窗口（跨域 iframe）、同窗口（同域载入）或同源消息
+    const isFromParent = event.source === window.parent;
     const isFromSelf = event.source === window || event.source === null;
     const isSameOrigin = event.origin === window.location.origin;
     

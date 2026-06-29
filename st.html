@@ -77,6 +77,16 @@
     }
   }
 
+  function guessStLocalAssetBases() {
+    const bases = [];
+    try {
+      const origin = window.location.origin;
+      bases.push(`${origin}/hatsu-produce-local/`);
+      bases.push(`${origin}/public/hatsu-produce-local/`);
+    } catch (e) {}
+    return bases;
+  }
+
   async function pickAssetBase() {
     absorbLoaderAssetBase();
     const normalize = (base) => base.endsWith("/") ? base : `${base}/`;
@@ -105,6 +115,18 @@
       }
     }
     if (localEmbed) {
+      const localCandidates = [
+        resolveAssetBase(),
+        ...guessStLocalAssetBases()
+      ];
+      for (const candidate of localCandidates) {
+        if (!candidate) continue;
+        const base = normalize(candidate);
+        if (await probeAssetBase(base)) {
+          console.warn("[Hatsu ST Loader] 酒馆内嵌使用本地资源：", base);
+          return base;
+        }
+      }
       const knownBases = ["https://hatsuboshitest.a1415102876.workers.dev/"];
       for (const candidate of knownBases) {
         const base = normalize(candidate);
