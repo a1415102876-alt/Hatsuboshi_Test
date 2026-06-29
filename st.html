@@ -13,10 +13,15 @@
   });
 
   window.isHatsuLoaderST = true;
+  /* HATSU_WORKER_INJECT_ASSET_BASE */
+
+  function readLoaderAssetBaseAttr() {
+    const loader = document.getElementById("hatsu-loader");
+    return String(loader?.getAttribute("data-asset-base") || "").trim();
+  }
 
   function absorbLoaderAssetBase() {
-    const loader = document.getElementById("hatsu-loader");
-    const fromAttr = String(loader?.getAttribute("data-asset-base") || "").trim();
+    const fromAttr = readLoaderAssetBaseAttr();
     if (fromAttr) window.HATSU_ASSET_BASE = fromAttr;
   }
   absorbLoaderAssetBase();
@@ -75,15 +80,16 @@
   async function pickAssetBase() {
     absorbLoaderAssetBase();
     const normalize = (base) => base.endsWith("/") ? base : `${base}/`;
-    const override = String(window.HATSU_ASSET_BASE || "").trim();
+    let override = String(window.HATSU_ASSET_BASE || "").trim();
+    if (!override) {
+      override = readLoaderAssetBaseAttr();
+      if (override) window.HATSU_ASSET_BASE = override;
+    }
     const localEmbed = Boolean(window.isHatsuLoaderST) && !isHostedAssetPage();
     if (override) {
       const base = normalize(override);
+      if (localEmbed) return base;
       if (await probeAssetBase(base)) return base;
-      if (localEmbed) {
-        console.warn("[Hatsu ST Loader] 资源探测未通过，酒馆内嵌仍使用：", base);
-        return base;
-      }
     }
     if (isHostedAssetPage()) {
       const base = resolveAssetBase();

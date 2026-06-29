@@ -5,6 +5,8 @@ const CORS_HEADERS = {
   "Access-Control-Max-Age": "86400"
 };
 
+const ASSET_BASE_MARKER = "/* HATSU_WORKER_INJECT_ASSET_BASE */";
+
 function withCors(response) {
   const headers = new Headers(response.headers);
   Object.entries(CORS_HEADERS).forEach(([key, value]) => headers.set(key, value));
@@ -18,18 +20,13 @@ function withCors(response) {
 function injectStHtmlAssetBase(html, origin) {
   const base = origin.endsWith("/") ? origin : `${origin}/`;
   let out = html;
-  if (!out.includes("window.HATSU_ASSET_BASE")) {
+  if (out.includes(ASSET_BASE_MARKER)) {
     out = out.replace(
-      "window.isHatsuLoaderST = true;",
-      `window.isHatsuLoaderST = true;\n  window.HATSU_ASSET_BASE = "${base}";`
+      ASSET_BASE_MARKER,
+      `window.HATSU_ASSET_BASE = "${base}";`
     );
   }
-  if (!out.includes("data-asset-base=\"" + base)) {
-    out = out.replace(
-      'data-asset-base=""',
-      `data-asset-base="${base}"`
-    );
-  }
+  out = out.replaceAll('data-asset-base=""', `data-asset-base="${base}"`);
   return out;
 }
 
