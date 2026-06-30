@@ -1584,6 +1584,7 @@
       facilityLocationId: null,
       eveningJournal: null,
       atApartment: false,
+      apartmentCompanionIdol: "",
       world: {
         macro_phase: "first_live",
         cast_first_live: {},
@@ -2150,11 +2151,13 @@
       facilityLocationId: null,
       eveningJournal: null,
       atApartment: false,
+      apartmentCompanionIdol: "",
       eveningStayExtended: false,
       eveningGoHomeDeferred: false,
       ...(state.freeMode || {})
     };
     state.freeMode.atApartment = Boolean(state.freeMode.atApartment);
+    state.freeMode.apartmentCompanionIdol = String(state.freeMode.apartmentCompanionIdol || "").trim();
     state.freeMode.eveningStayExtended = Boolean(state.freeMode.eveningStayExtended);
     state.freeMode.eveningGoHomeDeferred = Boolean(state.freeMode.eveningGoHomeDeferred);
     if (state.freeMode.eveningJournal && typeof state.freeMode.eveningJournal !== "object") {
@@ -4291,7 +4294,7 @@ ${outputContract("请写 700 字以内的完整送礼场景，自然收束，不
   }
 
   function isChoicePromptAction(action) {
-    return action === "outing" || action === "companion" || action === "intimacy" || action === "bond" || action === "map_location";
+    return action === "outing" || action === "companion" || action === "intimacy" || action === "bond" || action === "map_location" || action === "apartment_companion";
   }
 
   function isChoicePromptMode() {
@@ -4309,6 +4312,10 @@ ${outputContract("请写 700 字以内的完整送礼场景，自然收束，不
       const location = resolveMapExploreLocation(actionContext.locationId, actionContext);
       const locationName = location?.name || actionContext.locationName || "地图探索";
       return `${locationName} · 探索`;
+    }
+    if (state.pendingActionContext?.action === "apartment_companion") {
+      const idol = state.pendingActionContext?.actionContext?.companionIdol || "偶像";
+      return `公寓 · ${idol}`;
     }
     if (state.pendingActionContext?.action === "bond") {
       const threshold = state.pendingActionContext.threshold;
@@ -7046,20 +7053,63 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     return state.pendingActionContext?.action === "map_location";
   }
 
-  function isProducerApartmentEvening() {
-    if (!isFreeModeActive()) return false;
-    if (isHybridFacilityActive()) return false;
-    if (worldMapLayoutState.editorActive) return false;
+  function isProducerApartmentNightVisual() {
+    if (!isFreeModeActive() || !state.freeMode?.atApartment) return false;
+    if (isHybridFacilityActive() || worldMapLayoutState.editorActive) return false;
     ensureFreeModeTimeDefaults();
-    return Boolean(state.freeMode.atApartment) && state.freeMode.clockMinutes >= FREE_MODE_DAY_END_MINUTES;
+    return state.freeMode.clockMinutes >= FREE_MODE_MAP_NIGHT_START_MINUTES;
+  }
+
+  function isProducerApartmentLateNight() {
+    if (!isFreeModeActive() || !state.freeMode?.atApartment) return false;
+    if (isHybridFacilityActive() || worldMapLayoutState.editorActive) return false;
+    ensureFreeModeTimeDefaults();
+    return state.freeMode.clockMinutes >= FREE_MODE_DAY_END_MINUTES;
+  }
+
+  function isProducerApartmentEvening() {
+    return isProducerApartmentLateNight();
   }
 
   function isProducerApartmentMorning() {
-    if (!isFreeModeActive()) return false;
-    if (isHybridFacilityActive()) return false;
-    if (worldMapLayoutState.editorActive) return false;
+    if (!isProducerApartmentActive()) return false;
     ensureFreeModeTimeDefaults();
-    return Boolean(state.freeMode.atApartment) && state.freeMode.clockMinutes < FREE_MODE_DAY_END_MINUTES;
+    return state.freeMode.clockMinutes < FREE_MODE_DAY_END_MINUTES;
+  }
+
+  function isApartmentCompanionSessionActive() {
+    return state.pendingActionContext?.action === "apartment_companion";
+  }
+
+  function getApartmentCompanionIdol() {
+    const raw = String(state.freeMode?.apartmentCompanionIdol || "").trim();
+    const canonical = canonicalIdolName(raw);
+    return canonical && idols[canonical] ? canonical : "";
+  }
+
+  function setApartmentCompanionIdol(idolName) {
+    if (!state.freeMode) return;
+    const canonical = canonicalIdolName(idolName);
+    state.freeMode.apartmentCompanionIdol = canonical && idols[canonical] ? canonical : "";
+  }
+
+  function resolveIdolStandeeSrc(idolName) {
+    const canonical = canonicalIdolName(idolName);
+    if (!canonical) return "";
+    if (vnStandees[canonical]) return vnStandees[canonical];
+    const profile = idols[canonical];
+    if (profile?.background) {
+      const baseName = profile.background.split("/").pop();
+      return `./assets/novel-standees/${baseName}`;
+    }
+    return profile?.avatar || "";
+  }
+
+  function getProducerApartmentSceneBackground() {
+    ensureFreeModeTimeDefaults();
+    return state.freeMode.clockMinutes >= FREE_MODE_MAP_NIGHT_START_MINUTES
+      ? PRODUCER_APARTMENT_SCENE
+      : PRODUCER_APARTMENT_DAY_SCENE;
   }
 
   function isProducerApartmentActive() {
@@ -7188,9 +7238,9 @@ ${idolLine}
       state.pendingOptionTexts = [];
       closeVnChoicesOverlay();
       setElementHidden("eventOverlay", true);
-      enterProducerApartmentIfNeeded({ toast: true });
-      saveState();
-      render();
+      triggerWipeTransition(() => {
+        enterProducerApartment({ companionIdol: "", toast: true });
+      });
       return;
     }
     if (choice === "带担当回家") {
@@ -7209,10 +7259,10 @@ ${idolLine}
       state.pendingOptionTexts = [];
       closeVnChoicesOverlay();
       setElementHidden("eventOverlay", true);
-      enterProducerApartmentIfNeeded({ toast: false });
-      saveState();
-      render();
-      startApartmentNsfwInvite(targetIdol);
+      triggerWipeTransition(() => {
+        enterProducerApartment({ companionIdol: targetIdol, toast: true });
+      });
+      return;
     }
   }
 
@@ -7433,18 +7483,22 @@ ${idolLine}
       state.freeMode.facilityKind = null;
       state.freeMode.facilityLocationId = null;
       state.freeMode.atApartment = true;
+      setApartmentCompanionIdol(options.companionIdol || "");
     }
     state.pendingActionContext = null;
     state.eventMode = "none";
-    if (isProducerApartmentEvening()) {
+    if (isProducerApartmentLateNight()) {
       ensureEveningJournal();
     }
     saveState();
     render();
     if (options.toast !== false) {
-      const message = isProducerApartmentEvening()
-        ? "今日学园活动已结束，制作人回到了自己的公寓。"
-        : "制作人回到了自己的公寓。";
+      const companion = getApartmentCompanionIdol();
+      const message = companion
+        ? `你和 ${companion} 一起回到了制作人公寓。`
+        : isProducerApartmentLateNight()
+          ? "今日学园活动已结束，制作人回到了自己的公寓。"
+          : "制作人回到了自己的公寓。";
       showToast("公寓", message, "info");
     }
     return true;
@@ -7454,14 +7508,109 @@ ${idolLine}
     return enterProducerApartment(options);
   }
 
+  function openApartmentGoHomeOverlay() {
+    if (!isFreeModeActive() || isHybridFacilityActive() || isProducerApartmentActive()) return;
+    if (pendingAiRequestId) {
+      showToast("请稍候", "等待当前剧情生成完成后再回公寓。", "warn");
+      return;
+    }
+    const badge = document.getElementById("apartmentGoHomePhaseBadge");
+    if (badge) badge.textContent = `${formatFreeModeDayLabel()} · ${formatFreeModeClock()}`;
+    setElementHidden("apartmentGoHomeOverlay", false);
+  }
+
+  function closeApartmentGoHomeOverlay() {
+    setElementHidden("apartmentGoHomeOverlay", true);
+  }
+
+  function openApartmentCompanionPickOverlay() {
+    const badge = document.getElementById("apartmentCompanionPickPhaseBadge");
+    if (badge) badge.textContent = `${formatFreeModeDayLabel()} · ${formatFreeModeClock()}`;
+    renderApartmentCompanionPickList();
+    setElementHidden("apartmentCompanionPickOverlay", false);
+  }
+
+  function closeApartmentCompanionPickOverlay() {
+    setElementHidden("apartmentCompanionPickOverlay", true);
+  }
+
+  function renderApartmentCompanionPickList() {
+    const list = document.getElementById("apartmentCompanionPickList");
+    const note = document.getElementById("apartmentCompanionPickNote");
+    if (!list) return;
+    const eligible = getApartmentNsfwEligibleIdols();
+    list.innerHTML = "";
+    if (note) {
+      note.textContent = eligible.length
+        ? `以下偶像对你的好感度已达 ${INTIMACY_NSFW_UNLOCK_TRUST}，可与你一起回家。`
+        : `尚无好感度达到 ${INTIMACY_NSFW_UNLOCK_TRUST} 的偶像。`;
+    }
+    if (!eligible.length) {
+      const empty = document.createElement("p");
+      empty.className = "ai-prompt-note";
+      empty.textContent = "暂无可同行对象。";
+      list.appendChild(empty);
+      return;
+    }
+    eligible.forEach((row) => {
+      const profile = idols[row.name] || {};
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "apartment-invite-item";
+      const roleLabel = row.isAssigned ? "担当偶像" : (idolSchoolClasses[row.name] || "偶像科");
+      const avatarHtml = profile.avatar
+        ? `<img src="${profile.avatar}" alt="" loading="lazy" decoding="async">`
+        : `<span>${escapePhoneText(row.name.slice(0, 1))}</span>`;
+      button.innerHTML = `<div class="apartment-invite-avatar" style="background:${profile.theme || "#c45cc4"}">${avatarHtml}</div><div class="apartment-invite-main"><strong>${escapePhoneText(row.name)}</strong><span>${roleLabel} · 好感满额</span></div><div class="apartment-invite-score"><b>${row.score}</b><span>/100</span></div>`;
+      button.addEventListener("click", () => confirmApartmentGoHomeWithIdol(row.name));
+      list.appendChild(button);
+    });
+  }
+
+  function confirmApartmentGoHomeWithIdol(idolName) {
+    const targetIdol = canonicalIdolName(idolName);
+    if (!targetIdol || getFreeModeRelationshipScore(targetIdol) < INTIMACY_NSFW_UNLOCK_TRUST) {
+      showToast("好感不足", `需要与偶像的好感度达到 ${INTIMACY_NSFW_UNLOCK_TRUST}。`, "warn");
+      return;
+    }
+    closeApartmentCompanionPickOverlay();
+    closeApartmentGoHomeOverlay();
+    triggerWipeTransition(() => {
+      enterProducerApartment({ companionIdol: targetIdol, toast: true });
+    });
+  }
+
+  function handleApartmentGoHomeAlone() {
+    closeApartmentGoHomeOverlay();
+    triggerWipeTransition(() => {
+      enterProducerApartment({ companionIdol: "", toast: true });
+    });
+  }
+
+  function handleApartmentGoHomeWithIdol() {
+    const eligible = getApartmentNsfwEligibleIdols();
+    if (!eligible.length) {
+      showToast("暂无同行对象", `需要与偶像的好感度达到 ${INTIMACY_NSFW_UNLOCK_TRUST}。`, "warn");
+      return;
+    }
+    closeApartmentGoHomeOverlay();
+    if (eligible.length === 1) {
+      confirmApartmentGoHomeWithIdol(eligible[0].name);
+      return;
+    }
+    openApartmentCompanionPickOverlay();
+  }
+
   function goToProducerApartmentFromMap() {
     if (!isFreeModeActive() || isHybridFacilityActive()) return;
     if (isProducerApartmentActive()) return;
-    enterProducerApartment({ toast: true });
+    openApartmentGoHomeOverlay();
   }
 
   function canReturnToCampusFromApartment() {
-    return isProducerApartmentMorning();
+    if (!isProducerApartmentActive()) return false;
+    ensureFreeModeTimeDefaults();
+    return state.freeMode.clockMinutes < FREE_MODE_DAY_END_MINUTES;
   }
 
   function syncProducerApartmentState() {
@@ -7473,11 +7622,12 @@ ${idolLine}
     const stage = document.getElementById("producerApartmentStage");
     if (!stage) return;
     const active = isProducerApartmentActive();
-    const morning = isProducerApartmentMorning();
-    const evening = isProducerApartmentEvening();
+    const dayVisual = active && !isProducerApartmentNightVisual();
+    const nightVisual = active && isProducerApartmentNightVisual();
+    const lateNight = active && isProducerApartmentLateNight();
     stage.classList.toggle("is-hidden", !active);
-    stage.classList.toggle("is-morning", active && morning);
-    stage.classList.toggle("is-evening", active && evening);
+    stage.classList.toggle("is-morning", dayVisual);
+    stage.classList.toggle("is-evening", nightVisual);
     if (!active) return;
     const bg = document.getElementById("producerApartmentBg");
     if (bg) {
@@ -7485,27 +7635,50 @@ ${idolLine}
     }
     const clock = document.getElementById("producerApartmentClock");
     if (clock) clock.textContent = `${formatFreeModeDayLabel()} · ${formatFreeModeClock()}`;
+    const companion = getApartmentCompanionIdol();
+    const standeeBtn = document.getElementById("apartmentCompanionStandeeBtn");
+    const standeeImg = document.getElementById("apartmentCompanionStandeeImg");
+    const standeeLabel = document.getElementById("apartmentCompanionStandeeLabel");
+    if (standeeBtn && standeeImg && standeeLabel) {
+      const standeeSrc = companion ? resolveIdolStandeeSrc(companion) : "";
+      if (companion && standeeSrc) {
+        standeeBtn.hidden = false;
+        standeeImg.src = standeeSrc;
+        standeeImg.alt = `${companion}立绘`;
+        standeeLabel.textContent = companion;
+      } else {
+        standeeBtn.hidden = true;
+        standeeImg.removeAttribute("src");
+        standeeLabel.textContent = "";
+      }
+    }
     const hint = document.getElementById("producerApartmentHint");
     const eligible = getApartmentNsfwEligibleIdols();
     if (hint) {
-      hint.textContent = morning
-        ? "22:00 前还可以出门返回学园地图。整理一下后再出发吧。"
-        : eligible.length
+      if (companion) {
+        hint.textContent = `${companion} 与你一起回到了公寓。点击立绘可选择聊天或亲密。`;
+      } else if (canReturnToCampusFromApartment()) {
+        hint.textContent = "22:00 前还可以出门返回学园地图。整理一下后再出发吧。";
+      } else if (lateNight) {
+        hint.textContent = eligible.length
           ? `今天学园日程告一段落。可邀约 ${eligible.length} 名好感满额的偶像回家，或整理今日总结后休息。`
           : state.idol
             ? `今天和 ${state.idol} 的学园日程告一段落。可以看看今日总结，或上床睡觉。`
             : "今日学园活动已结束，可以整理今天的事，准备休息。";
+      } else {
+        hint.textContent = "公寓里很安静。可以整理一下，或等待夜色降临。";
+      }
     }
     const campusBtn = document.getElementById("producerApartmentCampusBtn");
     if (campusBtn) {
       campusBtn.hidden = !canReturnToCampusFromApartment();
     }
     const sleepBtn = document.getElementById("apartmentSleepBtn");
-    if (sleepBtn) sleepBtn.hidden = morning;
+    if (sleepBtn) sleepBtn.hidden = !lateNight;
     const inviteBtn = document.getElementById("apartmentInviteBtn");
     if (inviteBtn) {
-      inviteBtn.hidden = morning;
-      if (!morning) {
+      inviteBtn.hidden = !lateNight;
+      if (lateNight) {
         inviteBtn.disabled = eligible.length === 0;
         inviteBtn.title = eligible.length
           ? "邀约好感度达到 100 的偶像来公寓"
@@ -7638,10 +7811,209 @@ ${idolLine}
     }
     triggerWipeTransition(() => {
       state.freeMode.atApartment = false;
+      setApartmentCompanionIdol("");
       saveState();
       render();
       showToast("出门", "返回初星学园大地图。", "info");
     });
+  }
+
+  function openApartmentCompanionActionOverlay() {
+    const companion = getApartmentCompanionIdol();
+    if (!companion) {
+      showToast("没有同行偶像", "当前没有与你一起回家的偶像。", "warn");
+      return;
+    }
+    const title = document.getElementById("apartmentCompanionActionTitle");
+    if (title) title.textContent = `与 ${companion} 互动`;
+    setElementHidden("apartmentCompanionActionOverlay", false);
+  }
+
+  function closeApartmentCompanionActionOverlay() {
+    setElementHidden("apartmentCompanionActionOverlay", true);
+  }
+
+  function startApartmentCompanionChatFlow() {
+    const companion = getApartmentCompanionIdol();
+    if (!companion) return;
+    closeApartmentCompanionActionOverlay();
+    state.freeMode.apartmentPendingChatIdol = companion;
+    const badge = document.getElementById("companionPhaseBadge");
+    if (badge) badge.textContent = `${formatFreeModeDayLabel()} · ${formatFreeModeClock()}`;
+    const textarea = document.getElementById("companionTopicTextarea");
+    if (textarea) {
+      textarea.value = "";
+      textarea.placeholder = `例如：聊聊今天和 ${companion} 在学园发生的事`;
+    }
+    setElementHidden("companionOverlay", false);
+  }
+
+  function startApartmentCompanionIntimacyFlow() {
+    const companion = getApartmentCompanionIdol();
+    if (!companion) return;
+    if (getFreeModeRelationshipScore(companion) < INTIMACY_NSFW_UNLOCK_TRUST) {
+      showToast("好感不足", `与 ${companion} 的好感度需达到 ${INTIMACY_NSFW_UNLOCK_TRUST}。`, "warn");
+      return;
+    }
+    closeApartmentCompanionActionOverlay();
+    startApartmentNsfwInvite(companion);
+  }
+
+  function buildApartmentCompanionChatPrompt(idolName, topic, options = {}) {
+    const { continuation = false } = options;
+    const targetIdol = canonicalIdolName(idolName);
+    const profile = idols[targetIdol] || {};
+    const dayTimeLabel = `${formatFreeModeDayLabel()} · ${formatFreeModeClock()}`;
+    const sceneLine = state.freeMode.clockMinutes >= FREE_MODE_MAP_NIGHT_START_MINUTES
+      ? "夜间公寓，室内灯光柔和，氛围比校园更私密。"
+      : "白天公寓，室内明亮安静。";
+    const sceneInstruction = continuation
+      ? `请承接下文摘要，写制作人与 ${targetIdol} 在公寓内继续聊天的下一轮场景，并设计 4 个新的制作人回应选项。
+- 不要重复已经发生过的事件；从当前时间点自然续写。
+- 上文摘要（仅供衔接，不要原文复述）：
+${summarizeMapExploreContext()}`
+      : `请写制作人与 ${targetIdol} 一起回到公寓后，围绕指定话题聊天的开场，并设计 4 个不同的制作人回应选项。`;
+    return `[初星育成系统：制作人公寓 · 同行聊天]
+
+同行偶像：${targetIdol}
+${getAffinityStageLine(targetIdol, getFreeModeRelationshipScore(targetIdol))}（当前好感度：${getFreeModeRelationshipScore(targetIdol)}/100）
+担当偶像：${state.idol || "未登记"}
+绑定角色卡：${state.boundCharacter?.name || "未绑定，按角色写"}
+当前时间：${dayTimeLabel}
+地点：制作人私人公寓
+${sceneLine}
+
+制作人想聊的话题：
+${topic}
+
+${buildProducerPromptSection()}
+
+${sceneInstruction}
+- 这是 First Live 后的学园自由模式，不是育成日程轮次。
+- 两人已经一起回到家，氛围私密但仍以日常聊天为主。
+- 角色基调：${profile.styles?.companion || profile.styles?.rest || ""}
+- 不要写选项被选中后的收尾，只写到等待制作人选择。
+
+${galgameRenderContract("choice")}
+${buildChoiceHardRules({ phase1: true })}`;
+  }
+
+  function beginApartmentCompanionChat(idolName, topic) {
+    const targetIdol = canonicalIdolName(idolName);
+    if (!targetIdol || !idols[targetIdol]) return;
+    const prompt = buildApartmentCompanionChatPrompt(targetIdol, topic);
+    state.pendingActionContext = {
+      action: "apartment_companion",
+      actionContext: {
+        mode: "chat",
+        companionIdol: targetIdol,
+        companionTopic: topic
+      }
+    };
+    state.eventMode = "choice_prompt";
+    state.choiceStep = 1;
+    state.pendingChoiceRewards = [0, 0, 0, 0];
+    state.pendingOptionTexts = [];
+    state.pendingOptionMinutes = [];
+    state.selectedChoiceText = "";
+    state.selectedChoiceRating = "";
+    const requestId = createRequestId();
+    pendingAiRequestId = requestId;
+    state.lastPrompt = prompt;
+    state.lastStory = `正在公寓与 ${targetIdol} 聊天...`;
+    state.lastDebug = `公寓聊天：${targetIdol} · ${topic}`;
+    appendEveningJournalActivity("公寓聊天", `与 ${targetIdol} 聊天 · ${topic}`);
+    saveState();
+    render();
+    setElementHidden("eventChoices", true);
+    const actionsEl = document.getElementById("eventActions");
+    if (actionsEl) actionsEl.style.display = "none";
+    openEventOverlay(`公寓 · ${targetIdol}`, buildAiWaitingResult(`公寓聊天：${topic}`), buildAiWaitingStory(`正在等待与 ${targetIdol} 的公寓聊天剧情...`));
+    if (!requestHostPromptSend(prompt, requestId)) {
+      openAiPromptOverlay("当前页面未连接 SillyTavern。请编辑或复制公寓聊天提示词后手动发送。");
+    }
+  }
+
+  function closeApartmentCompanionSession() {
+    pendingAiRequestId = "";
+    state.pendingActionContext = null;
+    state.eventMode = "none";
+    state.choiceStep = 0;
+    state.pendingOptionTexts = [];
+    state.pendingOptionMinutes = [];
+    state.pendingChoiceRewards = [];
+    state.selectedChoiceText = "";
+    state.selectedChoiceRating = "";
+    closeVnChoicesOverlay();
+    hideVnCustomChoicePanel();
+    setElementHidden("eventChoices", true);
+    setElementHidden("eventOverlay", true);
+    stopVnAuto();
+    saveState();
+    render();
+  }
+
+  function requestNextApartmentCompanionOptions() {
+    const actionContext = state.pendingActionContext?.actionContext || {};
+    const targetIdol = actionContext.companionIdol;
+    const topic = actionContext.companionTopic || "日常闲聊";
+    const prompt = buildApartmentCompanionChatPrompt(targetIdol, topic, { continuation: true });
+    const requestId = createRequestId();
+    pendingAiRequestId = requestId;
+    state.lastPrompt = prompt;
+    state.lastDebug = `公寓聊天：${targetIdol}，等待下一轮选项。`;
+    saveState();
+    render();
+    setEventActionsEnabled(false, true);
+    setElementHidden("eventChoices", true);
+    openEventOverlay(
+      `公寓 · ${targetIdol}`,
+      "正在等待 AI 生成本轮聊天选项",
+      buildAiWaitingStory(`正在等待与 ${targetIdol} 的下一轮公寓聊天选项...`)
+    );
+    if (!requestHostPromptSend(prompt, requestId)) {
+      openAiPromptOverlay("当前页面未连接 SillyTavern。请编辑或复制公寓聊天提示词后手动发送。");
+    }
+  }
+
+  function handleApartmentCompanionChoiceSelection(index) {
+    const actionContext = state.pendingActionContext?.actionContext || {};
+    const targetIdol = actionContext.companionIdol;
+    const chosenOptionText = state.pendingOptionTexts[index] || "选择该选项";
+    const chosenMinutes = 10;
+    const timeResult = advanceFreeModeTime(chosenMinutes);
+    const chosenLine = `<narration>▶ 制作人的选择：${chosenOptionText}</narration>`;
+    state.lastStory = state.lastStory ? `${state.lastStory}\n\n${chosenLine}` : chosenLine;
+    state.selectedChoiceText = "";
+    state.selectedChoiceRating = "";
+    state.pendingOptionTexts = [];
+    state.pendingOptionMinutes = [];
+    state.eventMode = "choice_prompt";
+    state.choiceStep = 1;
+    state.lastDebug = `公寓聊天：与 ${targetIdol} 已选择行动，时间 +${chosenMinutes} 分钟。`;
+    appendEveningJournalActivity("公寓聊天", `与 ${targetIdol} · ${chosenOptionText}`);
+    saveState();
+    render();
+    renderProducerApartmentStage();
+    closeVnChoicesOverlay();
+    if (timeResult.hitDayEnd) {
+      closeApartmentCompanionSession();
+      if (isProducerApartmentActive()) {
+        render();
+        maybeTriggerEveningGoHomePrompt();
+      }
+      return;
+    }
+    requestNextApartmentCompanionOptions();
+  }
+
+  function appendApartmentCompanionControlButtons(container) {
+    const backBtn = document.createElement("button");
+    backBtn.className = "vn-choice-btn vn-choice-btn-map-back";
+    backBtn.type = "button";
+    backBtn.textContent = "返回公寓";
+    backBtn.onclick = () => closeApartmentCompanionSession();
+    container.appendChild(backBtn);
   }
 
   function isFreeModeTravelAllowed() {
@@ -7688,6 +8060,9 @@ ${idolLine}
     state.freeMode.clockMinutes = FREE_MODE_DAY_START_MINUTES;
     state.freeMode.eveningJournal = null;
     state.freeMode.atApartment = Boolean(options.stayAtApartment);
+    if (!options.stayAtApartment) {
+      state.freeMode.apartmentCompanionIdol = "";
+    }
     state.freeMode.eveningStayExtended = false;
     state.freeMode.eveningGoHomeDeferred = false;
     if (globalThis.HatsuTasks?.isSandboxTasksActive(state)) {
@@ -12002,6 +12377,13 @@ ${idolLine}
       showToast("还没有内容", "输入这次想与担当交流的话题或互动后再开始。", "warn");
       return;
     }
+    const apartmentIdol = String(state.freeMode?.apartmentPendingChatIdol || "").trim();
+    if (apartmentIdol) {
+      state.freeMode.apartmentPendingChatIdol = "";
+      closeCompanionOverlay();
+      beginApartmentCompanionChat(apartmentIdol, companionTopic);
+      return;
+    }
     closeCompanionOverlay();
     settleAction("companion", null, { companionTopic });
   }
@@ -12517,6 +12899,9 @@ ${idolLine}
         const actionContext = context.actionContext || state.pendingActionContext?.actionContext || {};
         return getMapLocationSceneBackground(actionContext);
       }
+      if (action === "apartment_companion") {
+        return getProducerApartmentSceneBackground();
+      }
     }
     return "./assets/scenes/campus.png";
   }
@@ -12986,11 +13371,15 @@ ${idolLine}
       container.appendChild(btn);
     });
 
+    if (isApartmentCompanionSessionActive() && (hasOptionChoices || state.eventMode === "choice_prompt")) {
+      appendApartmentCompanionControlButtons(container);
+    }
+
     if (isMapLocationExploreActive() && (hasOptionChoices || showMapReturnOnly || (isChoicePromptMode() && !pendingAiRequestId))) {
       appendMapLocationControlButtons(container);
     }
 
-    if (nsfwMode || (isMapLocationExploreActive() && hasOptionChoices)) {
+    if (nsfwMode || (isMapLocationExploreActive() && hasOptionChoices) || (isApartmentCompanionSessionActive() && hasOptionChoices)) {
       const customBtn = document.createElement("button");
       customBtn.className = "vn-choice-btn vn-choice-btn-custom";
       customBtn.type = "button";
@@ -13792,6 +14181,10 @@ ${idolLine}
       return;
     }
     if (isFreeModeActive() && (isMapLocationExploreActive() || state.freeMode?.activeLocationId)) {
+      if (isApartmentCompanionSessionActive()) {
+        closeApartmentCompanionSession();
+        return;
+      }
       returnToFreeModeMap({ cancelled: !isChoiceResolutionMode() });
       return;
     }
@@ -14322,7 +14715,7 @@ ${idolLine}
     const candidates = collectAiReplyCandidates(text, rawText, renderedText);
     const pendingAction = state.pendingActionContext?.action;
     const expectsChoicePayload = isChoicePromptMode()
-      || (state.eventMode === "choice_prompt" && ["outing", "companion", "intimacy", "bond", "map_location"].includes(pendingAction));
+      || (state.eventMode === "choice_prompt" && ["outing", "companion", "intimacy", "bond", "map_location", "apartment_companion"].includes(pendingAction));
 
     if (expectsChoicePayload) {
       const completeChoiceSource = candidates.find((candidate) => {
@@ -14547,6 +14940,10 @@ ${idolLine}
       handleMapLocationChoiceSelection(index);
       return;
     }
+    if (action === "apartment_companion") {
+      handleApartmentCompanionChoiceSelection(index);
+      return;
+    }
 
     const trustGain = action === "intimacy"
       ? INTIMACY_NORMAL_TRUST_GAIN
@@ -14684,7 +15081,7 @@ ${idolLine}
     const choiceFallbackPayload = (() => {
       if (state.eventMode !== "choice_prompt" || isChoicePromptMode()) return null;
       const pendingAction = state.pendingActionContext?.action;
-      if (!["outing", "companion", "intimacy", "bond", "map_location"].includes(pendingAction)) return null;
+      if (!["outing", "companion", "intimacy", "bond", "map_location", "apartment_companion"].includes(pendingAction)) return null;
       for (const candidate of replyCandidates) {
         const payload = extractChoicePayload(candidate);
         if (payload.story && payload.options.length === 4) return payload;
@@ -14701,7 +15098,7 @@ ${idolLine}
       let [opt1, opt2, opt3, opt4] = choicePayload.options;
       let story = choicePayload.story;
 
-      if ((!story || !opt1 || !opt2 || !opt3 || !opt4) && state.pendingActionContext?.action === "map_location") {
+      if ((!story || !opt1 || !opt2 || !opt3 || !opt4) && (state.pendingActionContext?.action === "map_location" || state.pendingActionContext?.action === "apartment_companion")) {
         const stripped = choiceContent
           .replace(/<option[\s\S]*$/i, "")
           .replace(/<time[\d_\s>][\s\S]*$/gi, "");
@@ -14797,12 +15194,21 @@ ${idolLine}
             state.lastDebug = `自由探索好感度已更新：${relationshipSummary}`;
           }
         }
+        if (state.pendingActionContext?.action === "apartment_companion") {
+          const relationshipApplied = applyFreeModeRelationshipUpdate(extractFreeModeRelationshipUpdate(source));
+          const relationshipSummary = Object.entries(relationshipApplied)
+            .map(([idolName, info]) => `${idolName}${info.delta > 0 ? "+" : ""}${info.delta}（${info.好感度}）`)
+            .join("、");
+          if (relationshipSummary) {
+            state.lastDebug = `公寓聊天好感度已更新：${relationshipSummary}`;
+          }
+        }
         saveState();
 
         const actionName = currentChoiceActionTitle();
         openEventOverlay(actionName, "请做出你的选择", segmentStory);
 
-        if (!nsfwMode && state.pendingActionContext?.action !== "map_location") {
+        if (!nsfwMode && !["map_location", "apartment_companion"].includes(state.pendingActionContext?.action)) {
           const choicesEl = document.getElementById("eventChoices");
           if (choicesEl) {
             choicesEl.innerHTML = "";
@@ -15910,6 +16316,29 @@ ${idolLine}
   document.getElementById("producerApartmentCampusBtn")?.addEventListener("click", leaveProducerApartmentForCampus);
   document.getElementById("producerApartmentClock")?.addEventListener("click", openFreeModeTimeOverlay);
   document.getElementById("freeModeApartmentBtn")?.addEventListener("click", goToProducerApartmentFromMap);
+  document.getElementById("apartmentGoHomeAloneBtn")?.addEventListener("click", handleApartmentGoHomeAlone);
+  document.getElementById("apartmentGoHomeWithIdolBtn")?.addEventListener("click", handleApartmentGoHomeWithIdol);
+  document.getElementById("apartmentGoHomeCancelBtn")?.addEventListener("click", closeApartmentGoHomeOverlay);
+  document.getElementById("apartmentGoHomeOverlay")?.addEventListener("click", (event) => {
+    if (event.target.id === "apartmentGoHomeOverlay") closeApartmentGoHomeOverlay();
+  });
+  document.getElementById("apartmentCompanionPickCancelBtn")?.addEventListener("click", () => {
+    closeApartmentCompanionPickOverlay();
+    openApartmentGoHomeOverlay();
+  });
+  document.getElementById("apartmentCompanionPickOverlay")?.addEventListener("click", (event) => {
+    if (event.target.id === "apartmentCompanionPickOverlay") {
+      closeApartmentCompanionPickOverlay();
+      openApartmentGoHomeOverlay();
+    }
+  });
+  document.getElementById("apartmentCompanionStandeeBtn")?.addEventListener("click", openApartmentCompanionActionOverlay);
+  document.getElementById("apartmentCompanionChatBtn")?.addEventListener("click", startApartmentCompanionChatFlow);
+  document.getElementById("apartmentCompanionIntimacyBtn")?.addEventListener("click", startApartmentCompanionIntimacyFlow);
+  document.getElementById("apartmentCompanionActionCancelBtn")?.addEventListener("click", closeApartmentCompanionActionOverlay);
+  document.getElementById("apartmentCompanionActionOverlay")?.addEventListener("click", (event) => {
+    if (event.target.id === "apartmentCompanionActionOverlay") closeApartmentCompanionActionOverlay();
+  });
   document.getElementById("freeModeStayBtn")?.addEventListener("click", () => closeFreeModeEntryOverlay(true));
   document.getElementById("freeModeEnterBtn")?.addEventListener("click", enterFreeMode);
   document.getElementById("hybridCampusExitBtn")?.addEventListener("click", exitHybridCampus);

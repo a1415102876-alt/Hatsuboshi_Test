@@ -355,6 +355,10 @@
         <svg aria-hidden="true"><use href="#icon-map"></use></svg>
         <span>学园</span>
       </button>
+      <button id="apartmentCompanionStandeeBtn" class="apartment-companion-standee" type="button" hidden aria-label="与同行偶像互动">
+        <img id="apartmentCompanionStandeeImg" src="" alt="" draggable="false">
+        <span id="apartmentCompanionStandeeLabel" class="apartment-companion-standee-label"></span>
+      </button>
       <div class="producer-apartment-hotspots" aria-label="夜间行动">
         <button id="apartmentSleepBtn" class="apartment-hotspot is-primary is-bed" type="button" title="结束今天，从 08:00 开始新的学园日程。">
           <span class="apartment-hotspot-kicker">Rest</span>
@@ -375,6 +379,74 @@
       </div>
     </section>
   </main>
+
+  <section id="apartmentGoHomeOverlay" class="event-overlay" hidden aria-label="回到公寓">
+    <article class="event-panel apartment-go-home-panel">
+      <header class="event-head">
+        <div>
+          <p class="ui-kicker">Producer Apartment</p>
+          <h2>回到公寓</h2>
+        </div>
+        <span id="apartmentGoHomePhaseBadge" class="event-phase">学园地图</span>
+      </header>
+      <p class="ai-prompt-note">选择今晚如何离开学园。与偶像一起回家需要对方好感度达到 100。</p>
+      <div class="apartment-go-home-actions">
+        <button id="apartmentGoHomeAloneBtn" class="apartment-go-home-btn" type="button">
+          <strong>自己回</strong>
+          <span>制作人独自回到公寓。</span>
+        </button>
+        <button id="apartmentGoHomeWithIdolBtn" class="apartment-go-home-btn is-accent" type="button">
+          <strong>与偶像一起回</strong>
+          <span>邀请好感度满额的偶像同行回家。</span>
+        </button>
+      </div>
+      <footer class="event-actions">
+        <button id="apartmentGoHomeCancelBtn" class="event-button secondary" type="button">取消</button>
+      </footer>
+    </article>
+  </section>
+
+  <section id="apartmentCompanionPickOverlay" class="event-overlay" hidden aria-label="选择同行偶像">
+    <article class="event-panel apartment-invite-panel">
+      <header class="event-head">
+        <div>
+          <p class="ui-kicker">Go Home Together</p>
+          <h2>选择同行偶像</h2>
+        </div>
+        <span id="apartmentCompanionPickPhaseBadge" class="event-phase">学园地图</span>
+      </header>
+      <p id="apartmentCompanionPickNote" class="ai-prompt-note">仅好感度达到 100 的偶像可与你一起回家。</p>
+      <div id="apartmentCompanionPickList" class="apartment-invite-list" aria-label="可同行偶像列表"></div>
+      <footer class="event-actions">
+        <button id="apartmentCompanionPickCancelBtn" class="event-button secondary" type="button">返回</button>
+      </footer>
+    </article>
+  </section>
+
+  <section id="apartmentCompanionActionOverlay" class="event-overlay" hidden aria-label="公寓互动">
+    <article class="event-panel apartment-companion-action-panel">
+      <header class="event-head">
+        <div>
+          <p class="ui-kicker">Apartment</p>
+          <h2 id="apartmentCompanionActionTitle">公寓互动</h2>
+        </div>
+      </header>
+      <p class="ai-prompt-note">选择想和同行偶像进行的互动。</p>
+      <div class="apartment-go-home-actions">
+        <button id="apartmentCompanionChatBtn" class="apartment-go-home-btn" type="button">
+          <strong>聊天</strong>
+          <span>在公寓里聊一聊今天的事。</span>
+        </button>
+        <button id="apartmentCompanionIntimacyBtn" class="apartment-go-home-btn is-accent" type="button">
+          <strong>亲密</strong>
+          <span>进入更私密的亲密互动剧情。</span>
+        </button>
+      </div>
+      <footer class="event-actions">
+        <button id="apartmentCompanionActionCancelBtn" class="event-button secondary" type="button">取消</button>
+      </footer>
+    </article>
+  </section>
 
   <section id="eventOverlay" class="event-overlay" hidden aria-label="行动事件">
     <!-- Visual Novel Play Container -->
