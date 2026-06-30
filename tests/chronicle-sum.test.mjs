@@ -1,0 +1,70 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import test from "node:test";
+import vm from "node:vm";
+
+function loadChronicle() {
+  const sandbox = { globalThis: {} };
+  sandbox.globalThis = sandbox;
+  vm.runInNewContext(readFileSync(new URL("../chronicle/sum-chronicle.js", import.meta.url), "utf8"), sandbox, {
+    filename: "chronicle/sum-chronicle.js"
+  });
+  return sandbox.globalThis.HatsuChronicle;
+}
+
+test("extractSumText keeps the last sum tag", () => {
+  const api = loadChronicle();
+  const text = `<sum>旧总结</sum>正文<sum>午后 · 教室 · 琴音与制作人确认训练计划。</sum>`;
+  assert.equal(api.extractSumText(text), "午后 · 教室 · 琴音与制作人确认训练计划。");
+});
+
+test("assistant message ids map to chronicle entry numbers", () => {
+  const api = loadChronicle();
+  assert.equal(api.assistantMessageIdToEntryNo(3), 1);
+  assert.equal(api.assistantMessageIdToEntryNo(5), 2);
+  assert.equal(api.assistantMessageIdToEntryNo(7), 3);
+  assert.equal(api.assistantMessageIdToEntryNo(2), 0);
+  assert.equal(api.assistantMessageIdToEntryNo(4), 0);
+});
+
+test("chronicle content upsert and reroll prune later entries", () => {
+  const api = loadChronicle();
+  const initial = "1. 第一次总结\n2. 第二次总结\n3. 第三次总结";
+  const rerolled = api.upsertChronicleContent(initial, 2, "第二次总结（重 roll）", { pruneAfterReroll: true });
+  assert.match(rerolled, /^1\. 第一次总结/);
+  assert.match(rerolled, /2\. 第二次总结（重 roll）/);
+  assert.doesNotMatch(rerolled, /3\./);
+});
+
+test("chronicle content can prune entries after branch point", () => {
+  const api = loadChronicle();
+  const pruned = api.pruneChronicleContentAfter("1. A\n2. B\n3. C", 1);
+  assert.equal(pruned, "1. A");
+});
+
+test("buildCheckpointFromMessage only keeps assistant messages with sum", () => {
+  const api = loadChronicle();
+  const checkpoint = api.buildCheckpointFromMessage({
+    message_id: 5,
+    role: "assistant",
+    message: "正文<sum>傍晚 · 操场 · 佑芽完成加练。</sum>"
+  });
+  assert.ok(checkpoint);
+  assert.equal(checkpoint.messageId, 5);
+  assert.equal(checkpoint.entryNo, 2);
+  assert.equal(checkpoint.summary, "傍晚 · 操场 · 佑芽完成加练。");
+  assert.equal(checkpoint.label, "节点 2");
+});
+
+test("app and st bridge wire chronicle sum and load save flow", () => {
+  const app = readFileSync(new URL("../app.js", import.meta.url), "utf8");
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const st = readFileSync(new URL("../st.html", import.meta.url), "utf8");
+  assert.match(app, /function requestChronicleUpdate/);
+  assert.match(app, /function openChronicleLoadOverlay/);
+  assert.match(html, /id="vnChronicleLoadBtn"/);
+  assert.match(html, /id="chronicleLoadOverlay"/);
+  assert.match(st, /"chronicle\/sum-chronicle\.js"/);
+  assert.match(st, /function updateChronicleWorldbook/);
+  assert.match(st, /branch-create/);
+});

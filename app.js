@@ -3293,7 +3293,7 @@
   }
 
   function canOpenGiftShop() {
-    return isFreeModeActive() && Boolean(getGiftShopApi());
+    return isSandboxLaunch() && state.sandbox?.inviteComplete && isFreeModeActive() && Boolean(getGiftShopApi());
   }
 
   function setGiftShopTab(tab) {
@@ -3304,7 +3304,7 @@
 
   function openGiftShopOverlay(tab = "shop") {
     if (!canOpenGiftShop()) {
-      showToast("尚未开放", "进入学园地图后可使用小卖部商店。", "warn");
+      showToast("尚未开放", "沙盒模式确定担当后可使用小卖部商店。", "warn");
       return;
     }
     giftShopUi.tab = tab === "bag" ? "bag" : "shop";
@@ -4717,12 +4717,14 @@ ${outputContract("请写 700 字以内的完整送礼场景，自然收束，不
     if (mode === "choice") {
       return `【初星学园 Galgame 渲染规则契约】
 - 选项剧情必须输出完整四个 option。
-- <story> 内只用 <dialogue char="角色名"> 与 <narration>；不要 Markdown、列表、数值结算或标签外说明。`;
+- <story> 内只用 <dialogue char="角色名"> 与 <narration>；不要 Markdown、列表、数值结算或标签外说明。
+- 【初星正文结束】之后必须额外输出 <sum>1-2句剧情小结</sum>。`;
     }
 
     return `【初星学园 Galgame 渲染规则契约】
 - 正文写在【初星正文开始】…【初星正文结束】内，普通剧情中只使用：<dialogue char="角色名"> 与 <narration>。
-- 不要输出 option、Markdown、列表或数值结算。`;
+- 不要输出 option、Markdown、列表或数值结算。
+- 【初星正文结束】之后必须额外输出 <sum>1-2句剧情小结</sum>：从时间、空间、地点、人物、行为、对话、事件概括本次正文；<sum> 不进入 story。`;
   }
 
   function outputContract(maxText) {
@@ -4768,7 +4770,8 @@ ${outputContract("请写 700 字以内的完整送礼场景，自然收束，不
 <option2>...</option2><time2>30</time2>
 <option3>...</option3><time3>10</time3>
 <option4>...</option4><time4>20</time4>${relationshipLine}
-【初星正文结束】`;
+【初星正文结束】
+<sum>1-2句概括本次探索的时间、地点、人物与事件。</sum>`;
   }
 
   function buildMapExplorePlayRules(options = {}) {
@@ -4793,7 +4796,8 @@ ${outputContract("请写 700 字以内的完整送礼场景，自然收束，不
 <option2>...</option2>
 <option3>...</option3>
 <option4>...</option4>
-【初星正文结束】`;
+【初星正文结束】
+<sum>1-2句概括本次选项剧情。</sum>`;
   }
 
   function buildMapExploreChoiceOutputBlock(options = {}) {
@@ -8505,6 +8509,10 @@ ${idolLine}
     if (affinityOverlay && !affinityOverlay.hidden) {
       renderAffinityOverlay();
     }
+    const chronicleLoadBtn = document.getElementById("vnChronicleLoadBtn");
+    if (chronicleLoadBtn) {
+      chronicleLoadBtn.hidden = !isSillyTavernHost();
+    }
   }
 
   function enterHybridCampus() {
@@ -9582,6 +9590,120 @@ ${idolLine}
       }
     } catch (e) {}
     return window.parent && window.parent !== window && new URLSearchParams(window.location.search).get("host") === "sillytavern";
+  }
+
+  function isSillyTavernHost() {
+    if (typeof window.SillyTavern !== 'undefined' || document.getElementById('hatsu-fullscreen-overlay') || window.isHatsuLoaderST) {
+      return true;
+    }
+    try {
+      if (window.parent && window.parent !== window && (window.parent.SillyTavern || window.parent.isHatsuLoaderST)) {
+        return true;
+      }
+    } catch (e) {}
+    return window.parent && window.parent !== window && new URLSearchParams(window.location.search).get("host") === "sillytavern";
+  }
+
+  let chronicleCheckpointResolver = null;
+
+  function getChronicleApi() {
+    return globalThis.HatsuChronicle || null;
+  }
+
+  function extractSumFromReplySource(...sources) {
+    const api = getChronicleApi();
+    if (!api) return "";
+    for (const source of sources) {
+      const sum = api.extractSumText(source);
+      if (sum) return sum;
+    }
+    return "";
+  }
+
+  function requestChronicleUpdate(rawText, renderedText, text, messageId) {
+    if (!isSillyTavernHost()) return;
+    const sum = extractSumFromReplySource(rawText, renderedText, text);
+    if (!sum) return;
+    const messageIdNum = Number(messageId);
+    if (!Number.isInteger(messageIdNum) || messageIdNum < 0) return;
+    window.parent.postMessage({
+      source: "hatsuboshi-produce",
+      type: "updateChronicle",
+      messageId: messageIdNum,
+      sum
+    }, "*");
+  }
+
+  function renderChronicleCheckpointList(checkpoints, error = "") {
+    const list = document.getElementById("chronicleCheckpointList");
+    if (!list) return;
+    list.textContent = "";
+    if (error) {
+      const empty = document.createElement("p");
+      empty.className = "chronicle-load-empty";
+      empty.textContent = error;
+      list.appendChild(empty);
+      return;
+    }
+    if (!Array.isArray(checkpoints) || checkpoints.length === 0) {
+      const empty = document.createElement("p");
+      empty.className = "chronicle-load-empty";
+      empty.textContent = "还没有可读的剧情摘要。继续游玩并等待 AI 输出 <sum> 后，这里会出现读档节点。";
+      list.appendChild(empty);
+      return;
+    }
+    checkpoints.forEach((item) => {
+      const row = document.createElement("button");
+      row.type = "button";
+      row.className = "chronicle-checkpoint-btn";
+      const label = item.label || `节点 ${item.entryNo || "?"}`;
+      const summary = String(item.summary || "");
+      const floor = Number(item.messageId);
+      row.innerHTML = `<strong>${label}</strong><span>${summary}</span><em>楼层 ${Number.isInteger(floor) ? floor : "?"}</em>`;
+      row.addEventListener("click", () => requestChronicleBranch(item.messageId));
+      list.appendChild(row);
+    });
+  }
+
+  function openChronicleLoadOverlay() {
+    if (!isSillyTavernHost()) {
+      showToast("仅酒馆可用", "读档需要 SillyTavern 酒馆助手与分支功能。", "warn");
+      return;
+    }
+    setElementHidden("chronicleLoadOverlay", false);
+    const list = document.getElementById("chronicleCheckpointList");
+    if (list) {
+      list.innerHTML = '<p class="chronicle-load-empty">正在扫描剧情摘要……</p>';
+    }
+    const requestId = createRequestId();
+    chronicleCheckpointResolver = { requestId };
+    window.parent.postMessage({
+      source: "hatsuboshi-produce",
+      type: "listChronicleCheckpoints",
+      requestId
+    }, "*");
+    window.setTimeout(() => {
+      if (chronicleCheckpointResolver?.requestId !== requestId) return;
+      chronicleCheckpointResolver = null;
+      renderChronicleCheckpointList([], "扫描超时，请确认已安装酒馆助手。");
+    }, 12000);
+  }
+
+  function closeChronicleLoadOverlay() {
+    setElementHidden("chronicleLoadOverlay", true);
+  }
+
+  function requestChronicleBranch(messageId) {
+    if (!isSillyTavernHost()) return;
+    const floorLabel = `楼层 ${messageId}`;
+    if (!window.confirm(`创建分支并回到 ${floorLabel}？\n当前楼层之后的编年史摘要也会同步清理。`)) return;
+    closeChronicleLoadOverlay();
+    showToast("正在读档", `正在创建分支并回到 ${floorLabel}……`, "gold");
+    window.parent.postMessage({
+      source: "hatsuboshi-produce",
+      type: "branchToChronicleCheckpoint",
+      messageId: Number(messageId)
+    }, "*");
   }
 
   function requestHostCharacter() {
@@ -15519,6 +15641,11 @@ ${idolLine}
   // Galgame 播放器控制按钮事件绑定
   document.getElementById("vnBtnSkip").addEventListener("click", skipAllVnDialogue);
   document.getElementById("vnBtnLog").addEventListener("click", openVnLogView);
+  document.getElementById("vnChronicleLoadBtn")?.addEventListener("click", openChronicleLoadOverlay);
+  document.getElementById("chronicleLoadCloseBtn")?.addEventListener("click", closeChronicleLoadOverlay);
+  document.getElementById("chronicleLoadOverlay")?.addEventListener("click", (event) => {
+    if (event.target.id === "chronicleLoadOverlay") closeChronicleLoadOverlay();
+  });
   document.getElementById("vnBtnDebug").addEventListener("click", openVnDebugView);
   document.getElementById("vnBtnAuto").addEventListener("click", toggleVnAuto);
   document.getElementById("vnBtnRegen").addEventListener("click", () => {
@@ -15798,12 +15925,22 @@ ${idolLine}
       applyHostCharacter(payload.character, payload.saveScope, payload.savedState, payload.hasSavedState);
       return;
     }
+    if (payload.type === "chronicleCheckpoints") {
+      if (chronicleCheckpointResolver?.requestId === payload.requestId) {
+        chronicleCheckpointResolver = null;
+        renderChronicleCheckpointList(payload.checkpoints || [], payload.error || "");
+      }
+      return;
+    }
     if (payload.type === "secondaryAiReply") {
       handleSecondaryAiReply(payload);
       return;
     }
     if (shouldSkipCommittedReply(payload)) return;
     if (payload.type === "aiReply" || payload.type === "aiReplyCommitted") {
+      if (payload.isFinal !== false) {
+        requestChronicleUpdate(payload.rawText, payload.renderedText, payload.text, payload.messageId);
+      }
       applyAiReply(
         payload.text,
         payload.requestId,

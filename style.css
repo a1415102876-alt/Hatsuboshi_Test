@@ -4586,6 +4586,85 @@ p {
   justify-content: space-between;
 }
 
+.vn-chronicle-load-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(36, 33, 38, 0.12);
+  background: rgba(255, 255, 255, 0.88);
+  color: #242126;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+}
+
+.vn-chronicle-load-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.chronicle-load-panel {
+  width: min(720px, 94vw);
+}
+
+.chronicle-load-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.chronicle-checkpoint-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: min(58vh, 520px);
+  overflow-y: auto;
+}
+
+.chronicle-checkpoint-btn {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(36, 33, 38, 0.1);
+  background: rgba(255, 255, 255, 0.92);
+  text-align: left;
+  color: #242126;
+}
+
+.chronicle-checkpoint-btn strong {
+  font-size: 14px;
+}
+
+.chronicle-checkpoint-btn span {
+  font-size: 13px;
+  line-height: 1.55;
+  color: rgba(36, 33, 38, 0.78);
+}
+
+.chronicle-checkpoint-btn em {
+  font-style: normal;
+  font-size: 12px;
+  color: rgba(36, 33, 38, 0.52);
+}
+
+.chronicle-load-empty {
+  margin: 0;
+  padding: 18px 12px;
+  text-align: center;
+  color: rgba(36, 33, 38, 0.62);
+  line-height: 1.6;
+}
+
 .vn-nameplate {
   position: absolute;
   top: -16px;

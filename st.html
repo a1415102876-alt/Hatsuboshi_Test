@@ -187,6 +187,46 @@
     return new URL(path, BASE).href;
   }
 
+  // 与 PlayList、Live 视频同一 R2 桶；除头像外的大图资源走 CDN，头像仍走 Workers 本地。
+  const R2_MEDIA_CDN = "https://pub-cfdeb8f85de84d8193695eca002e7880.r2.dev";
+
+  function r2MediaUrl(path) {
+    const clean = String(path || "").replace(/^\.\//, "");
+    return R2_MEDIA_CDN + "/" + clean.split("/").map(encodeURIComponent).join("/");
+  }
+
+  function isLocalAvatarAsset(path) {
+    const clean = String(path || "").replace(/^\.\//, "");
+    return clean.startsWith("assets/avatars/");
+  }
+
+  function rewriteAssetRef(path) {
+    if (!path) return path;
+    const normalized = String(path).replace(/^\.\//, "");
+    if (!normalized.startsWith("assets/")) {
+      return shouldRewriteUrl(path) ? abs(path) : path;
+    }
+    if (isLocalAvatarAsset(path)) return abs(normalized);
+    return r2MediaUrl(normalized);
+  }
+
+  function rewriteAssetsInText(text) {
+    return text
+      .replaceAll('"./assets/avatars/', '"' + abs('assets/avatars/'))
+      .replaceAll("'./assets/avatars/", "'" + abs('assets/avatars/'))
+      .replaceAll('`./assets/avatars/', '`' + abs('assets/avatars/'))
+      .replaceAll('"./assets/', '"' + r2MediaUrl('assets/'))
+      .replaceAll("'./assets/", "'" + r2MediaUrl('assets/'))
+      .replaceAll('`./assets/', '`' + r2MediaUrl('assets/'));
+  }
+
+  function rewriteAssetsInCss(text) {
+    return text.replace(/url\((['"]?)(\.\/assets\/[^'")]+)\1\)/gi, (match, quote, path) => {
+      const target = rewriteAssetRef(path);
+      return `url(${quote}${target}${quote})`;
+    });
+  }
+
   function shouldRewriteUrl(url) {
     return url &&
       !url.startsWith('#') &&
@@ -238,11 +278,14 @@
     // 加载远程 CSS
     document.querySelectorAll('[data-hatsu-remote-style]').forEach(el => el.remove());
 
-    const styleLink = document.createElement('link');
-    styleLink.rel = 'stylesheet';
-    styleLink.href = abs('style.css');
-    styleLink.setAttribute('data-hatsu-remote-style', 'true');
-    document.head.appendChild(styleLink);
+    const cssRes = await fetch(abs('style.css'), { cache: 'no-store' });
+    if (!cssRes.ok) {
+      throw new Error('style.css 加载失败：HTTP ' + cssRes.status);
+    }
+    const styleEl = document.createElement('style');
+    styleEl.setAttribute('data-hatsu-remote-style', 'true');
+    styleEl.textContent = rewriteAssetsInCss(await cssRes.text());
+    document.head.appendChild(styleEl);
 
     // 删除 index.html 里原来的 script，避免相对路径错误
     doc.body.querySelectorAll('script').forEach(s => s.remove());
@@ -282,7 +325,7 @@
     page.querySelectorAll('[src]').forEach(el => {
       const src = el.getAttribute('src');
       if (shouldRewriteUrl(src)) {
-        el.setAttribute('src', abs(src));
+        el.setAttribute('src', rewriteAssetRef(src));
       }
     });
 
@@ -290,7 +333,7 @@
     page.querySelectorAll('[href]').forEach(el => {
       const href = el.getAttribute('href');
       if (shouldRewriteUrl(href)) {
-        el.setAttribute('href', abs(href));
+        el.setAttribute('href', rewriteAssetRef(href));
       }
     });
 
@@ -516,7 +559,9 @@
       "broadcast/prompts.js",
       "tasks/side-pool.js",
       "tasks/side-quest-api.js",
-      "tasks/sandbox-tasks.js"
+      "tasks/sandbox-tasks.js",
+      "shop/gift-shop.js",
+      "chronicle/sum-chronicle.js"
     ];
 
     for (const rel of WORLD_SCRIPTS) {
@@ -537,10 +582,7 @@
 
     let jsText = await jsRes.text();
 
-    jsText = jsText
-      .replaceAll('"./assets/', '"' + abs('assets/'))
-      .replaceAll("'./assets/", "'" + abs('assets/'))
-      .replaceAll('`./assets/', '`' + abs('assets/'));
+    jsText = rewriteAssetsInText(jsText);
 
     const script = document.createElement('script');
     script.textContent = jsText + '\n//# sourceURL=' + abs('app.js');
@@ -603,6 +645,37 @@
         }
         if (data.type === 'saveState') {
           saveChatState(data.state);
+        }
+        if (data.type === 'updateChronicle') {
+          updateChronicleWorldbook(data.messageId, data.sum).catch((error) => {
+            console.warn('[st.html] updateChronicle failed:', error);
+          });
+        }
+        if (data.type === 'listChronicleCheckpoints') {
+          listChronicleCheckpointsFromHost()
+            .then((checkpoints) => {
+              postToFrame({
+                source: 'hatsuboshi-produce-host',
+                type: 'chronicleCheckpoints',
+                requestId: String(data.requestId || ''),
+                checkpoints
+              });
+            })
+            .catch((error) => {
+              postToFrame({
+                source: 'hatsuboshi-produce-host',
+                type: 'chronicleCheckpoints',
+                requestId: String(data.requestId || ''),
+                checkpoints: [],
+                error: String(error?.message || error || '扫描剧情摘要失败')
+              });
+            });
+        }
+        if (data.type === 'branchToChronicleCheckpoint') {
+          branchToChronicleCheckpoint(data.messageId).catch((error) => {
+            console.error('[st.html] branchToChronicleCheckpoint failed:', error);
+            alert('[读档失败] ' + String(error?.message || error));
+          });
         }
       };
 
@@ -718,7 +791,134 @@
       try {
         candidates.push(window.TavernHelper);
       } catch (e) {}
-      return candidates.find((api) => api && typeof api.generate === 'function') || null;
+      return candidates.find((api) => api && (typeof api.generate === 'function' || typeof api.getChatMessages === 'function')) || null;
+    }
+
+    function postToFrame(payload) {
+      window.postMessage(payload, '*');
+      try {
+        const frame = document.getElementById('hatsu-st-page');
+        frame?.contentWindow?.postMessage(payload, '*');
+      } catch (error) {
+        // 忽略跨域 frame 投递失败。
+      }
+    }
+
+    function resolveChronicleWorldbookName(context) {
+      const character = context?.characters?.[context.characterId];
+      const linked = String(character?.data?.extensions?.world || '').trim();
+      if (linked) return linked;
+      const names = context?.getWorldInfoNames?.() || [];
+      return names.length === 1 ? String(names[0] || '').trim() : '';
+    }
+
+    async function ensureChronicleWorldbookEntry(context, bookName) {
+      const api = globalThis.HatsuChronicle;
+      if (!api || !context?.loadWorldInfo || !bookName) return null;
+      const data = await context.loadWorldInfo(bookName);
+      if (!data?.entries) return null;
+      let uid = api.findChronicleEntryUid(data.entries);
+      if (!uid) {
+        uid = String(api.nextWorldInfoEntryUid(data.entries));
+        data.entries[uid] = api.buildChronicleEntryTemplate(Number(uid));
+      }
+      return { data, uid: String(uid) };
+    }
+
+    async function saveChronicleWorldbook(context, bookName, data) {
+      if (!context?.saveWorldInfo || !bookName || !data) return;
+      await context.saveWorldInfo(bookName, data, true);
+    }
+
+    async function updateChronicleWorldbook(messageId, sumText) {
+      const api = globalThis.HatsuChronicle;
+      const context = getContext();
+      if (!api || !context) return;
+      const entryNo = api.assistantMessageIdToEntryNo(messageId);
+      const summary = String(sumText || '').trim();
+      if (!entryNo || !summary) return;
+      const bookName = resolveChronicleWorldbookName(context);
+      if (!bookName) {
+        console.warn('[st.html] 未找到角色绑定的世界书，无法写入编年史。');
+        return;
+      }
+      const ensured = await ensureChronicleWorldbookEntry(context, bookName);
+      if (!ensured) return;
+      const { data, uid } = ensured;
+      const previous = String(data.entries[uid]?.content || '');
+      data.entries[uid].content = api.upsertChronicleContent(previous, entryNo, summary, { pruneAfterReroll: true });
+      data.entries[uid].comment = api.CHRONICLE_ENTRY_COMMENT;
+      data.entries[uid].constant = true;
+      data.entries[uid].disable = false;
+      await saveChronicleWorldbook(context, bookName, data);
+    }
+
+    async function pruneChronicleWorldbookAfter(entryNo) {
+      const api = globalThis.HatsuChronicle;
+      const context = getContext();
+      if (!api || !context) return;
+      const no = Number(entryNo);
+      if (!Number.isInteger(no) || no <= 0) return;
+      const bookName = resolveChronicleWorldbookName(context);
+      if (!bookName) return;
+      const ensured = await ensureChronicleWorldbookEntry(context, bookName);
+      if (!ensured) return;
+      const { data, uid } = ensured;
+      data.entries[uid].content = api.pruneChronicleContentAfter(String(data.entries[uid]?.content || ''), no);
+      await saveChronicleWorldbook(context, bookName, data);
+    }
+
+    async function listChronicleCheckpointsFromHost() {
+      const api = globalThis.HatsuChronicle;
+      const context = getContext();
+      const helper = getTavernHelper();
+      if (!api || !context) return [];
+      const lastIndex = Math.max(0, (context.chat?.length || 1) - 1);
+      let messages = [];
+      if (helper?.getChatMessages) {
+        const range = `0-${lastIndex}`;
+        try {
+          messages = await helper.getChatMessages(range, { include_swipes: true });
+        } catch (error) {
+          messages = await helper.getChatMessages(range);
+        }
+      } else if (Array.isArray(context.chat)) {
+        messages = context.chat.map((message, index) => ({
+          message_id: index,
+          role: message?.is_user ? 'user' : 'assistant',
+          message: message?.mes,
+          is_user: message?.is_user
+        }));
+      }
+      if (!Array.isArray(messages)) return [];
+      return messages
+        .map((message, index) => api.buildCheckpointFromMessage(message, index))
+        .filter(Boolean)
+        .sort((a, b) => b.messageId - a.messageId);
+    }
+
+    async function branchToChronicleCheckpoint(messageId) {
+      const api = globalThis.HatsuChronicle;
+      const id = Number(messageId);
+      if (!Number.isInteger(id) || id < 0) throw new Error('无效的楼层编号');
+      const entryNo = api?.assistantMessageIdToEntryNo(id);
+      if (entryNo > 0) await pruneChronicleWorldbookAfter(entryNo);
+      const helper = getTavernHelper();
+      if (!helper?.triggerSlash) throw new Error('需要安装酒馆助手并启用 triggerSlash');
+      await helper.triggerSlash(`/branch-create ${id}`);
+      window.location.reload();
+    }
+
+    function resolveAssistantMessageId(explicitId) {
+      const id = Number(explicitId);
+      if (Number.isInteger(id) && id >= 0) return id;
+      const chat = getContext()?.chat;
+      if (!Array.isArray(chat) || !chat.length) return -1;
+      for (let index = chat.length - 1; index >= 0; index -= 1) {
+        const message = chat[index];
+        if (message && message.is_user === false) return index;
+      }
+      return chat.length - 1;
     }
 
     function getCurrentContextInfo() {
@@ -1134,6 +1334,7 @@
     }
 
     function postCommittedReply(requestId, text, options = {}) {
+      const messageId = resolveAssistantMessageId(options.messageId);
       const payload = {
         source: 'hatsuboshi-produce-host',
         type: 'aiReplyCommitted',
@@ -1141,7 +1342,8 @@
         text: String(text || ''),
         rawText: String(options.rawText || text || ''),
         renderedText: String(options.renderedText || ''),
-        isFinal: options.isFinal !== false
+        isFinal: options.isFinal !== false,
+        messageId: messageId >= 0 ? messageId : undefined
       };
       window.postMessage(payload, '*');
       dispatchCommittedReplyEvent(payload);
@@ -1272,10 +1474,12 @@
       await createSilentChatMessage('user', promptText, reqId);
       await createSilentChatMessage('assistant', generatedText, reqId);
       await persistChatSilently();
+      const assistantMessageId = getContext()?.chat?.length - 1;
       postCommittedReply(reqId, generatedText, {
         isFinal: true,
         rawText: generatedText,
-        renderedText: ''
+        renderedText: '',
+        messageId: assistantMessageId
       });
     }
 
@@ -1326,10 +1530,12 @@
       removeGeneratedAssistantMessagesAfter(assistantStartIndex, reqId);
       await createSilentChatMessage('assistant', assistantResolvedText, reqId);
       await persistChatSilently();
+      const assistantMessageId = getContext()?.chat?.length - 1;
       postCommittedReply(reqId, assistantResolvedText, {
         isFinal: true,
         rawText: existingAssistantHit?.rawText || assistantResolvedText,
-        renderedText: existingAssistantHit?.renderedText || ''
+        renderedText: existingAssistantHit?.renderedText || '',
+        messageId: assistantMessageId
       });
     }
 

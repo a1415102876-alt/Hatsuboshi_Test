@@ -51,3 +51,21 @@ test("st.html removes older Hatsuboshi user prompt floors from chat completion p
   assert.match(stSource, /lastHatsuUserPromptIndex/);
   assert.match(stSource, /eventData\.chat\.splice\(0, eventData\.chat\.length, \.\.\.filtered\)/);
 });
+
+test("st.html loads the gift shop module so the shop/bag entry is available under the bridge", () => {
+  assert.match(stSource, /"shop\/gift-shop\.js"/);
+  const scriptsBlock = stSource.match(/const WORLD_SCRIPTS = \[([\s\S]*?)\];/);
+  assert.ok(scriptsBlock, "WORLD_SCRIPTS array should exist");
+  assert.match(scriptsBlock[1], /"shop\/gift-shop\.js"/);
+});
+
+test("st.html rewrites large assets to R2 while keeping avatars on Workers base", () => {
+  assert.match(stSource, /R2_MEDIA_CDN/);
+  assert.match(stSource, /function rewriteAssetsInText\(/);
+  assert.match(stSource, /function rewriteAssetRef\(/);
+  assert.match(stSource, /isLocalAvatarAsset/);
+  assert.match(stSource, /rewriteAssetsInCss/);
+  assert.match(stSource, /\.replaceAll\('"\.\/assets\/avatars\/'/);
+  assert.match(stSource, /\.replaceAll\('"\.\/assets\/'/);
+  assert.doesNotMatch(stSource, /\.replaceAll\('"\.\/assets\/', '"' \+ abs\('assets\/'\)\)/);
+});

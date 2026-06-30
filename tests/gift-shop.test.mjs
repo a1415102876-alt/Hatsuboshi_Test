@@ -70,6 +70,15 @@ test("app wires student store shop entry and gift overlay", () => {
   assert.match(app, /function handleGiftShopGive/);
 });
 
+test("gift shop is gated to sandbox mode after the idol invitation", () => {
+  const app = readFileSync(new URL("app.js", root), "utf8");
+  const match = app.match(/function canOpenGiftShop\(\) \{\s*return ([^;]+);/);
+  assert.ok(match, "canOpenGiftShop should exist");
+  assert.match(match[1], /isSandboxLaunch\(\)/);
+  assert.match(match[1], /state\.sandbox\?\.inviteComplete/);
+  assert.doesNotMatch(match[1], /^isFreeModeActive\(\) && Boolean\(getGiftShopApi\(\)\)$/);
+});
+
 test("app wires gift giving story prompt and activeStoryNode", () => {
   const app = readFileSync(new URL("app.js", root), "utf8");
   assert.match(app, /function buildGiftGivingPrompt/);
