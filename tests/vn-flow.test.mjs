@@ -475,8 +475,11 @@ test("ended non-choice VN dialogue hides stale choice overlay", () => {
   const context = {
     state: { choiceStep: 0, pendingOptionTexts: ["A", "B", "C", "D"] },
     document: { getElementById: (id) => elements.get(id) || null },
+    pendingAiRequestId: "",
     stopVnAuto() {},
     isMapLocationExploreActive: () => false,
+    isEveningGoHomeActive: () => false,
+    isFreeModeTravelAllowed: () => true,
     showVnChoicesOverlay() {
       elements.get("vnChoicesOverlay").style.display = "flex";
     },

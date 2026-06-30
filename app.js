@@ -3599,6 +3599,14 @@ ${outputContract("请写 700 字以内的完整送礼场景，自然收束，不
     if (!item || !recipientName) return;
     const prompt = buildGiftGivingPrompt(item, recipient, applied);
     const requestId = createRequestId();
+    // 赠礼是普通叙事，不是选项流程。清理可能遗留的地图/选项上下文，
+    // 否则赠礼回复会在 applyAiReply 命中 choice 兜底，被硬塞地点选项。
+    state.pendingActionContext = null;
+    state.eventMode = "none";
+    state.choiceStep = 0;
+    state.pendingOptionTexts = [];
+    state.selectedChoiceText = "";
+    state.selectedChoiceRating = "";
     state.activeStoryNode = {
       type: "gift",
       itemId: item.id,
