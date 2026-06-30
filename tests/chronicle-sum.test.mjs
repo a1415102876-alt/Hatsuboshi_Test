@@ -25,8 +25,13 @@ test("assistant message ids map to chronicle entry numbers on even ST floors", (
   assert.equal(api.assistantMessageIdToEntryNo(4), 2);
   assert.equal(api.assistantMessageIdToEntryNo(6), 3);
   assert.equal(api.assistantMessageIdToEntryNo(1), 0);
-  assert.equal(api.assistantMessageIdToEntryNo(3), 0);
-  assert.equal(api.assistantMessageIdToEntryNo(5), 0);
+});
+
+test("assistant one-based visible floors map to chronicle entry numbers", () => {
+  const api = loadChronicle();
+  assert.equal(api.assistantMessageIdToEntryNo(3), 1);
+  assert.equal(api.assistantMessageIdToEntryNo(5), 2);
+  assert.equal(api.assistantMessageIdToEntryNo(7), 3);
 });
 
 test("chronicle content upsert and reroll prune later entries", () => {
@@ -69,4 +74,21 @@ test("app and st bridge wire chronicle sum and load save flow", () => {
   assert.match(st, /"chronicle\/sum-chronicle\.js"/);
   assert.match(st, /function updateChronicleWorldbook/);
   assert.match(st, /branch-create/);
+});
+
+test("streamed host reply payload includes message id for chronicle update", () => {
+  const st = readFileSync(new URL("../st.html", import.meta.url), "utf8");
+  const collectStart = st.indexOf("function collectAndSendAiReply");
+  const collectEnd = st.indexOf("function scheduleStreamFinalize", collectStart);
+  const collectBody = st.slice(collectStart, collectEnd);
+  assert.match(collectBody, /messageId:\s*replyMessageId/);
+});
+
+test("chronicle load list renders summaries as text, not html", () => {
+  const app = readFileSync(new URL("../app.js", import.meta.url), "utf8");
+  const renderStart = app.indexOf("function renderChronicleCheckpointList");
+  const renderEnd = app.indexOf("function openChronicleLoadOverlay", renderStart);
+  const renderBody = app.slice(renderStart, renderEnd);
+  assert.doesNotMatch(renderBody, /\.innerHTML\s*=/);
+  assert.match(renderBody, /\.textContent\s*=\s*summary/);
 });

@@ -101,6 +101,8 @@ test("map location explore uses choice flow with return to map", () => {
   assert.match(readFunction("renderWorldMapIdolMarkers"), /profile\.avatar/);
   assert.match(readFunction("returnToFreeModeMap"), /activeLocationId = null/);
   assert.match(readFunction("handleMapLocationChoiceSelection"), /requestNextMapLocationOptions\(\)/);
+  assert.match(readFunction("handleApartmentCompanionChoiceSelection"), /requestNextApartmentCompanionOptions\(\)/);
+  assert.doesNotMatch(readFunction("handleApartmentCompanionChoiceSelection"), /closeApartmentCompanionSession\(\)/);
   assert.match(source, /function requestNextMapLocationOptions\(/);
   assert.match(readFunction("requestNextMapLocationOptions"), /continuation: true/);
   assert.doesNotMatch(readFunction("appendMapLocationControlButtons"), /继续探索/);

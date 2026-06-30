@@ -674,7 +674,11 @@
         if (data.type === 'branchToChronicleCheckpoint') {
           branchToChronicleCheckpoint(data.messageId).catch((error) => {
             console.error('[st.html] branchToChronicleCheckpoint failed:', error);
-            alert('[读档失败] ' + String(error?.message || error));
+            postToFrame({
+              source: 'hatsuboshi-produce-host',
+              type: 'chronicleBranchFailed',
+              error: String(error?.message || error || '读档失败')
+            });
           });
         }
       };
@@ -1700,7 +1704,8 @@
           text,
           rawText,
           renderedText,
-          isFinal
+          isFinal,
+          messageId: replyMessageId
         };
         window.postMessage(payload, '*');
         if (useCommittedReplyEvent && isFinal) {

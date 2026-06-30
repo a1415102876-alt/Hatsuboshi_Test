@@ -11,11 +11,13 @@
     return String(matches[matches.length - 1][1] || "").replace(/\s+/g, " ").trim();
   }
 
-  // SillyTavern 常见结构：0 楼 first_mes（assistant），之后 user/assistant 交替，带 <sum> 的 AI 回复在偶数楼（2、4、6…）。
+  // 兼容两种编号：SillyTavern chat index 常是 0-based（2/4/6...），可见楼层说明常是 1-based（3/5/7...）。
   function assistantMessageIdToEntryNo(messageId) {
     const id = Number(messageId);
-    if (!Number.isInteger(id) || id < 2 || id % 2 !== 0) return 0;
-    return id / 2;
+    if (!Number.isInteger(id) || id < 2) return 0;
+    if (id % 2 === 0) return id / 2;
+    if (id >= 3) return (id - 1) / 2;
+    return 0;
   }
 
   function parseChronicleContent(content) {

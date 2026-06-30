@@ -4633,6 +4633,50 @@ p {
   color: rgba(36, 33, 38, 0.52);
 }
 
+
+.chronicle-confirm-panel {
+  display: grid;
+  gap: 12px;
+  padding: 18px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(214, 122, 148, 0.28);
+  background: rgba(255, 255, 255, 0.94);
+  color: #242126;
+}
+
+.chronicle-confirm-panel strong {
+  font-size: 15px;
+}
+
+.chronicle-confirm-panel p {
+  margin: 0;
+  color: rgba(36, 33, 38, 0.68);
+  line-height: 1.55;
+}
+
+.chronicle-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.chronicle-confirm-btn {
+  min-height: 38px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(36, 33, 38, 0.12);
+  background: rgba(255, 255, 255, 0.88);
+  color: #242126;
+  font-weight: 700;
+}
+
+.chronicle-confirm-btn.primary {
+  border-color: rgba(214, 122, 148, 0.4);
+  background: linear-gradient(135deg, #ff8cac, #ffd36e);
+  color: #fff;
+}
+
 .chronicle-load-empty {
   margin: 0;
   padding: 18px 12px;
@@ -5469,16 +5513,20 @@ p {
 .apartment-companion-standee {
   position: absolute;
   left: 50%;
-  bottom: calc(108px + env(safe-area-inset-bottom));
+  bottom: calc(84px + env(safe-area-inset-bottom));
   z-index: 3;
-  display: grid;
-  justify-items: center;
-  gap: 8px;
-  padding: 0;
+  width: min(90vw, 500px);
+  height: min(68vh, 720px);
+  padding: 0 0 6px;
   border: 0;
   background: transparent;
   cursor: pointer;
   transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  overflow: hidden;
   filter: drop-shadow(0 16px 28px rgba(0, 0, 0, 0.34));
   transition: transform 0.2s ease, filter 0.2s ease;
 }
@@ -5491,13 +5539,27 @@ p {
 
 .apartment-companion-standee img {
   display: block;
-  width: min(42vw, 220px);
-  max-height: min(52vh, 420px);
+  width: auto;
+  height: 148%;
+  max-width: none;
+  flex: 0 0 auto;
   object-fit: contain;
   object-position: center bottom;
+  transform: translateY(38%);
+  transform-origin: bottom center;
+  transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+  pointer-events: none;
+}
+
+.apartment-companion-standee:hover img,
+.apartment-companion-standee:focus-visible img {
+  transform: translateY(35%) scale(1.02);
 }
 
 .apartment-companion-standee-label {
+  position: relative;
+  z-index: 2;
+  margin-top: -4px;
   padding: 6px 12px;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.22);
@@ -5510,6 +5572,24 @@ p {
 
 .apartment-companion-standee[hidden] {
   display: none !important;
+}
+
+@media (max-width: 460px) {
+  .apartment-companion-standee {
+    width: min(94vw, 420px);
+    height: min(62vh, 640px);
+    bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+
+  .apartment-companion-standee img {
+    height: 122%;
+    transform: translateY(34%) scale(0.94);
+  }
+
+  .apartment-companion-standee:hover img,
+  .apartment-companion-standee:focus-visible img {
+    transform: translateY(31%) scale(0.97);
+  }
 }
 
 .day-summary-overlay.is-evening-mode .day-summary-chart,

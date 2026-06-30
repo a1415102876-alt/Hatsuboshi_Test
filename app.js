@@ -7197,7 +7197,7 @@ ${idolLine}
     ensureFreeModeTimeDefaults();
     const endMinutes = getFreeModeTravelEndMinutes();
     if (state.freeMode.clockMinutes < endMinutes) return false;
-    if (pendingAiRequestId || isMapLocationExploreActive()) {
+    if (pendingAiRequestId || isMapLocationExploreActive() || isApartmentCompanionSessionActive()) {
       state.freeMode.eveningGoHomeDeferred = true;
       return false;
     }
@@ -7981,7 +7981,7 @@ ${buildChoiceHardRules({ phase1: true })}`;
     const targetIdol = actionContext.companionIdol;
     const chosenOptionText = state.pendingOptionTexts[index] || "选择该选项";
     const chosenMinutes = 10;
-    const timeResult = advanceFreeModeTime(chosenMinutes);
+    advanceFreeModeTime(chosenMinutes);
     const chosenLine = `<narration>▶ 制作人的选择：${chosenOptionText}</narration>`;
     state.lastStory = state.lastStory ? `${state.lastStory}\n\n${chosenLine}` : chosenLine;
     state.selectedChoiceText = "";
@@ -7996,14 +7996,6 @@ ${buildChoiceHardRules({ phase1: true })}`;
     render();
     renderProducerApartmentStage();
     closeVnChoicesOverlay();
-    if (timeResult.hitDayEnd) {
-      closeApartmentCompanionSession();
-      if (isProducerApartmentActive()) {
-        render();
-        maybeTriggerEveningGoHomePrompt();
-      }
-      return;
-    }
     requestNextApartmentCompanionOptions();
   }
 
@@ -10122,22 +10114,28 @@ ${buildChoiceHardRules({ phase1: true })}`;
     }, "*");
   }
 
+  function appendChronicleEmptyMessage(list, message) {
+    const empty = document.createElement("p");
+    empty.className = "chronicle-load-empty";
+    empty.textContent = message;
+    list.appendChild(empty);
+  }
+
+  function formatChronicleFloorLabel(messageId) {
+    const floor = Number(messageId);
+    return Number.isInteger(floor) ? `楼层 ${floor + 1}` : "楼层 ?";
+  }
+
   function renderChronicleCheckpointList(checkpoints, error = "") {
     const list = document.getElementById("chronicleCheckpointList");
     if (!list) return;
     list.textContent = "";
     if (error) {
-      const empty = document.createElement("p");
-      empty.className = "chronicle-load-empty";
-      empty.textContent = error;
-      list.appendChild(empty);
+      appendChronicleEmptyMessage(list, error);
       return;
     }
     if (!Array.isArray(checkpoints) || checkpoints.length === 0) {
-      const empty = document.createElement("p");
-      empty.className = "chronicle-load-empty";
-      empty.textContent = "还没有可读的剧情摘要。继续游玩并等待 AI 输出 <sum> 后，这里会出现读档节点。";
-      list.appendChild(empty);
+      appendChronicleEmptyMessage(list, "还没有可读的剧情摘要。继续游玩并等待 AI 输出 <sum> 后，这里会出现读档节点。");
       return;
     }
     checkpoints.forEach((item) => {
@@ -10146,13 +10144,47 @@ ${buildChoiceHardRules({ phase1: true })}`;
       row.className = "chronicle-checkpoint-btn";
       const label = item.label || `节点 ${item.entryNo || "?"}`;
       const summary = String(item.summary || "");
-      const floor = Number(item.messageId);
-      row.innerHTML = `<strong>${label}</strong><span>${summary}</span><em>楼层 ${Number.isInteger(floor) ? floor : "?"}</em>`;
-      row.addEventListener("click", () => requestChronicleBranch(item.messageId));
+      const title = document.createElement("strong");
+      const body = document.createElement("span");
+      const meta = document.createElement("em");
+      title.textContent = label;
+      body.textContent = summary;
+      meta.textContent = formatChronicleFloorLabel(item.messageId);
+      row.append(title, body, meta);
+      row.addEventListener("click", () => renderChronicleBranchConfirm(item));
       list.appendChild(row);
     });
   }
 
+  function renderChronicleBranchConfirm(item) {
+    const list = document.getElementById("chronicleCheckpointList");
+    if (!list) return;
+    const messageId = Number(item?.messageId);
+    if (!Number.isInteger(messageId) || messageId < 0) return;
+    const floorLabel = formatChronicleFloorLabel(messageId);
+    list.textContent = "";
+    const panel = document.createElement("div");
+    panel.className = "chronicle-confirm-panel";
+    const title = document.createElement("strong");
+    const note = document.createElement("p");
+    const actions = document.createElement("div");
+    const cancelBtn = document.createElement("button");
+    const confirmBtn = document.createElement("button");
+    title.textContent = `创建分支并回到 ${floorLabel}？`;
+    note.textContent = "当前楼层之后的编年史摘要也会同步清理。";
+    actions.className = "chronicle-confirm-actions";
+    cancelBtn.type = "button";
+    cancelBtn.className = "chronicle-confirm-btn";
+    cancelBtn.textContent = "取消";
+    cancelBtn.addEventListener("click", openChronicleLoadOverlay);
+    confirmBtn.type = "button";
+    confirmBtn.className = "chronicle-confirm-btn primary";
+    confirmBtn.textContent = "确认读档";
+    confirmBtn.addEventListener("click", () => requestChronicleBranch(messageId));
+    actions.append(cancelBtn, confirmBtn);
+    panel.append(title, note, actions);
+    list.appendChild(panel);
+  }
   function openChronicleLoadOverlay() {
     if (!isSillyTavernHost()) {
       showToast("仅酒馆可用", "读档需要 SillyTavern 酒馆助手与分支功能。", "warn");
@@ -10161,7 +10193,8 @@ ${buildChoiceHardRules({ phase1: true })}`;
     setElementHidden("chronicleLoadOverlay", false);
     const list = document.getElementById("chronicleCheckpointList");
     if (list) {
-      list.innerHTML = '<p class="chronicle-load-empty">正在扫描剧情摘要……</p>';
+      list.textContent = "";
+      appendChronicleEmptyMessage(list, "正在扫描剧情摘要……");
     }
     const requestId = createRequestId();
     chronicleCheckpointResolver = { requestId };
@@ -10183,17 +10216,17 @@ ${buildChoiceHardRules({ phase1: true })}`;
 
   function requestChronicleBranch(messageId) {
     if (!isSillyTavernHost()) return;
-    const floorLabel = `楼层 ${messageId}`;
-    if (!window.confirm(`创建分支并回到 ${floorLabel}？\n当前楼层之后的编年史摘要也会同步清理。`)) return;
+    const id = Number(messageId);
+    if (!Number.isInteger(id) || id < 0) return;
+    const floorLabel = formatChronicleFloorLabel(id);
     closeChronicleLoadOverlay();
     showToast("正在读档", `正在创建分支并回到 ${floorLabel}……`, "gold");
     window.parent.postMessage({
       source: "hatsuboshi-produce",
       type: "branchToChronicleCheckpoint",
-      messageId: Number(messageId)
+      messageId: id
     }, "*");
   }
-
   function requestHostCharacter() {
     if (!isSillyTavernHost()) return;
     window.parent.postMessage({
@@ -16481,6 +16514,11 @@ ${buildChoiceHardRules({ phase1: true })}`;
       handleSecondaryAiReply(payload);
       return;
     }
+    if (payload.type === "chronicleBranchFailed") {
+      showToast("读档失败", payload.error || "创建分支失败，请确认酒馆助手可用。", "warn");
+      openChronicleLoadOverlay();
+      return;
+    }
     if (shouldSkipCommittedReply(payload)) return;
     if (payload.type === "aiReply" || payload.type === "aiReplyCommitted") {
       if (payload.isFinal !== false) {
@@ -16774,4 +16812,3 @@ ${buildChoiceHardRules({ phase1: true })}`;
     }
   });
 })();
-
