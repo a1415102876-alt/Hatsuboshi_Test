@@ -27,8 +27,15 @@ function loadHatsuTasks() {
 }
 
 function finishScoutFlow(HatsuTasks, state) {
+  HatsuTasks.activateScoutQuestForIdol(state, state.idol);
   HatsuTasks.onScoutInviteComplete(state);
   HatsuTasks.applyQuestCompletionsFromReply(state, "【初星任务完成】scout_temari");
+}
+
+function finishKotoneScoutFlow(HatsuTasks, state) {
+  HatsuTasks.activateScoutQuestForIdol(state, state.idol);
+  HatsuTasks.onScoutInviteComplete(state);
+  HatsuTasks.applyQuestCompletionsFromReply(state, "【初星任务完成】scout_kotone");
 }
 
 function loadSideQuestPool() {
@@ -113,20 +120,44 @@ test("sandbox task wallet migrates fame for commission rewards", () => {
   assert.equal(state.tasks.wallet.money, 12);
   assert.equal(state.tasks.wallet.fame, 0);
 });
-test("scout invite complete activates scout quest without auto-completing it", () => {
+test("scout invite complete does not auto-activate scout without idol selection", () => {
   const HatsuTasks = loadHatsuTasks();
   const state = baseSandboxState();
   HatsuTasks.ensureTasksShape(state);
   const completed = HatsuTasks.onScoutInviteComplete(state);
   assert.equal(completed.length, 0);
-  assert.equal(state.tasks.main.scout_temari.status, "active");
-  assert.equal(state.tasks.main.temari_main_01.status, "locked");
+  assert.equal(state.tasks.main.scout_temari.status, "locked");
+  assert.equal(state.tasks.main.scout_kotone.status, "locked");
+});
+
+test("scout quest activates only for selected idol", () => {
+  const HatsuTasks = loadHatsuTasks();
+  const state = baseKotoneSandboxState();
+  HatsuTasks.ensureTasksShape(state);
+  HatsuTasks.activateScoutQuestForIdol(state, "藤田琴音");
+  assert.equal(state.tasks.main.scout_kotone.status, "active");
+  assert.equal(state.tasks.main.scout_temari.status, "locked");
+  assert.equal(state.sandbox.scoutTargetIdol, "藤田琴音");
+});
+
+test("task panel hides inactive scout quests until idol is chosen", () => {
+  const HatsuTasks = loadHatsuTasks();
+  const state = baseKotoneSandboxState();
+  HatsuTasks.ensureTasksShape(state);
+  let snapshot = HatsuTasks.getTaskPanelSnapshot(state);
+  assert.equal(snapshot.main.some((item) => item.id === "scout_kotone"), false);
+  assert.equal(snapshot.main.some((item) => item.id === "scout_temari"), false);
+  HatsuTasks.activateScoutQuestForIdol(state, "藤田琴音");
+  snapshot = HatsuTasks.getTaskPanelSnapshot(state);
+  assert.equal(snapshot.main.some((item) => item.id === "scout_kotone"), true);
+  assert.equal(snapshot.main.some((item) => item.id === "scout_temari"), false);
 });
 
 test("scout temari completes when AI outputs quest completion tag", () => {
   const HatsuTasks = loadHatsuTasks();
   const state = baseSandboxState();
   HatsuTasks.ensureTasksShape(state);
+  HatsuTasks.activateScoutQuestForIdol(state, "月村手毬");
   HatsuTasks.onScoutInviteComplete(state);
   const text = "【初星正文开始】<story><narration>她点头答应。</narration></story>【初星任务完成】scout_temari【初星正文结束】";
   const completed = HatsuTasks.applyQuestCompletionsFromReply(state, text);
@@ -144,6 +175,7 @@ test("scout location talk does not auto-complete without AI tag", () => {
   const HatsuTasks = loadHatsuTasks();
   const state = baseSandboxState();
   HatsuTasks.ensureTasksShape(state);
+  HatsuTasks.activateScoutQuestForIdol(state, "月村手毬");
   HatsuTasks.onScoutInviteComplete(state);
   const completed = HatsuTasks.completeScoutTemariOnLocationTalk(state);
   assert.equal(completed.length, 0);
@@ -239,7 +271,7 @@ test("app.js wires sandbox task hooks", () => {
   assert.match(appSource, /openSideQuestOverlay/);
   assert.match(appSource, /applySideQuestTier/);
   assert.match(appSource, /buildSandboxScoutWrapUpPrompt/);
-  assert.match(appSource, /scoutTemariCompletionPendingInReply/);
+  assert.match(appSource, /scoutCompletionPendingInReply/);
   assert.match(appSource, /completeScoutFromReplyAndBeginWrapUp/);
   assert.match(appSource, /buildSandboxMainQuestPromptBlock/);
   assert.match(appSource, /processSandboxMainQuestMapChoice/);
@@ -448,4 +480,101 @@ test("queue side quest refresh uses api mode when secondary enabled", () => {
   assert.equal(mode, "api");
   assert.equal(state.tasks.side.genStatus, "pending");
   assert.equal(state.tasks.side.slots.length, 3);
+});
+
+function baseKotoneSandboxState() {
+  return {
+    launchMode: "sandbox",
+    idol: "藤田琴音",
+    sandbox: { openingComplete: true, inviteComplete: false },
+    stamina: 100,
+    stress: 0,
+    trust: 0,
+    Vo: 90,
+    Da: 90,
+    Vi: 120
+  };
+}
+
+test("sandbox selectable idols include kotone with scout and personal quests", () => {
+  const HatsuTasks = loadHatsuTasks();
+  assert.ok(HatsuTasks.SANDBOX_SELECTABLE_IDOLS.includes("藤田琴音"));
+  assert.equal(HatsuTasks.SANDBOX_IDOL_QUEST_PACKS["藤田琴音"].scoutId, "scout_kotone");
+  assert.equal(HatsuTasks.SANDBOX_IDOL_QUEST_PACKS["藤田琴音"].personalIds, HatsuTasks.KOTONE_PERSONAL_IDS);
+});
+
+test("kotone scout completes and unlocks only kotone personal quests", () => {
+  const HatsuTasks = loadHatsuTasks();
+  const state = baseKotoneSandboxState();
+  HatsuTasks.ensureTasksShape(state);
+  finishKotoneScoutFlow(HatsuTasks, state);
+  assert.equal(state.tasks.main.scout_kotone.status, "completed");
+  assert.equal(state.tasks.main.kotone_main_01.status, "active");
+  assert.equal(state.tasks.main.kotone_main_02.status, "active");
+  assert.equal(state.tasks.main.kotone_main_03.status, "active");
+  assert.equal(state.tasks.main.temari_main_01.status, "locked");
+  assert.equal(state.tasks.baseline.Vo, 90);
+  assert.equal(state.tasks.baseline.Vi, 120);
+});
+
+test("kotone main quests track part-time cancel, praise count, and rest recovery", () => {
+  const HatsuTasks = loadHatsuTasks();
+  const state = baseKotoneSandboxState();
+  finishKotoneScoutFlow(HatsuTasks, state);
+  state.tasks.main.kotone_main_01.flags.part_time_cancelled = true;
+  state.tasks.wallet.fame = 30;
+  state.tasks.wallet.money = 1000;
+  const main01 = HatsuTasks.evaluateNumericMainQuests(state);
+  assert.ok(main01.includes("kotone_main_01"));
+
+  state.tasks.main.kotone_main_02.flags.praise_count = 20;
+  const main02 = HatsuTasks.evaluateNumericMainQuests(state);
+  assert.ok(main02.includes("kotone_main_02"));
+
+  state.tasks.main.kotone_main_03.flags.rest_sessions = 2;
+  state.stamina = 95;
+  const main03 = HatsuTasks.evaluateNumericMainQuests(state);
+  assert.ok(main03.includes("kotone_main_03"));
+});
+
+test("kotone rest action records rest sessions for main quest 03", () => {
+  const HatsuTasks = loadHatsuTasks();
+  const state = baseKotoneSandboxState();
+  finishKotoneScoutFlow(HatsuTasks, state);
+  state.stamina = 95;
+  HatsuTasks.onSandboxRestSettled(state);
+  HatsuTasks.onSandboxRestSettled(state);
+  assert.equal(state.tasks.main.kotone_main_03.flags.rest_sessions, 2);
+  assert.equal(state.tasks.main.kotone_main_03.status, "completed");
+});
+
+test("kotone praise and part-time flags parse from AI reply", () => {
+  const HatsuTasks = loadHatsuTasks();
+  const state = baseKotoneSandboxState();
+  finishKotoneScoutFlow(HatsuTasks, state);
+  const flags = HatsuTasks.applyQuestFlagsFromReply(state, "【初星任务标记】praise_kotone【初星任务标记】part_time_cancelled");
+  assert.ok(flags.notices.includes("已记录一次对琴音的夸奖"));
+  assert.ok(flags.notices.includes("已确认琴音取消快餐店打工"));
+  assert.equal(state.tasks.main.kotone_main_02.flags.praise_count, 1);
+  assert.equal(state.tasks.main.kotone_main_01.flags.part_time_cancelled, true);
+});
+
+test("second idol unlock appears after full mainline completion", () => {
+  const HatsuTasks = loadHatsuTasks();
+  const state = baseKotoneSandboxState();
+  finishKotoneScoutFlow(HatsuTasks, state);
+  state.sandbox.inviteComplete = true;
+  state.freeMode = { relationships: { "藤田琴音": { 好感度: 100, 更新日: 1 } } };
+  Object.keys(HatsuTasks.MAIN_QUEST_META).forEach((id) => {
+    if (id === "scout_temari" || id.startsWith("temari_main")) return;
+    if (state.tasks.main[id]) state.tasks.main[id].status = "completed";
+  });
+  HatsuTasks.syncProducedIdolsAndSecondUnlock(state);
+  const snapshot = HatsuTasks.getTaskPanelSnapshot(state);
+  assert.equal(snapshot.secondIdol.unlocked, true);
+  assert.ok(snapshot.secondIdol.candidates.includes("月村手毬"));
+  const begin = HatsuTasks.beginSecondIdolScout(state, "月村手毬");
+  assert.equal(begin.ok, true);
+  assert.equal(state.tasks.main.scout_temari.status, "active");
+  assert.equal(state.sandbox.scoutTargetIdol, "月村手毬");
 });

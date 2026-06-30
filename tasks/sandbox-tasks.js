@@ -52,6 +52,26 @@
       conflict: "调整饮食与舞台体态",
       category: "conflict"
     },
+    scout_kotone: {
+      title: "担当物色：藤田琴音",
+      conflict: "在学园中接触藤田琴音并邀请她成为担当",
+      category: "scout"
+    },
+    kotone_main_01: {
+      title: "解决担当面对的矛盾：告别快餐店打工",
+      conflict: "让琴音辞掉快餐店打工，并通过委托系统达到 30 点知名度、赚到 1000 初星币",
+      category: "conflict"
+    },
+    kotone_main_02: {
+      title: "解决担当面对的矛盾：建立自信",
+      conflict: "累计夸奖琴音 20 次，帮她把制作人的认可变成自信",
+      category: "conflict"
+    },
+    kotone_main_03: {
+      title: "解决担当面对的矛盾：体力修养",
+      conflict: "让琴音充分休息，把体力恢复到健康水平",
+      category: "conflict"
+    },
     ability_vocal_180: {
       title: "培养偶像能力：Vocal 达到 180",
       conflict: "完成亚纱里老师布置的歌唱能力阶段审查",
@@ -86,11 +106,161 @@
     }
   };
   const TEMARI_PERSONAL_IDS = ["temari_main_01", "temari_main_02", "temari_main_03"];
+  const KOTONE_PERSONAL_IDS = ["kotone_main_01", "kotone_main_02", "kotone_main_03"];
+
+  const SANDBOX_IDOL_QUEST_PACKS = {
+    "月村手毬": {
+      scoutId: "scout_temari",
+      personalIds: TEMARI_PERSONAL_IDS
+    },
+    "藤田琴音": {
+      scoutId: "scout_kotone",
+      personalIds: KOTONE_PERSONAL_IDS
+    }
+  };
+  const SANDBOX_SELECTABLE_IDOLS = Object.keys(SANDBOX_IDOL_QUEST_PACKS);
 
   const THRESHOLDS = {
     temari_main_01: { staminaMin: 85, voGain: 40 },
-    temari_main_03: { viGain: 35, stressMax: 40, healthyMealsMin: 2 }
+    temari_main_03: { viGain: 35, stressMax: 40, healthyMealsMin: 2 },
+    kotone_main_01: { fameMin: 30, moneyEarnedMin: 1000 },
+    kotone_main_02: { praiseMin: 20 },
+    kotone_main_03: { staminaMin: 95, restSessionsMin: 2 }
   };
+
+  function getSandboxQuestPack(state) {
+    const idol = String(state?.idol || "").trim();
+    return SANDBOX_IDOL_QUEST_PACKS[idol] || null;
+  }
+
+  function getScoutQuestId(state) {
+    const idol = String(state?.sandbox?.scoutTargetIdol || state?.idol || "").trim();
+    return SANDBOX_IDOL_QUEST_PACKS[idol]?.scoutId || "";
+  }
+
+  function getIdolByScoutQuestId(questId) {
+    return Object.entries(SANDBOX_IDOL_QUEST_PACKS).find(([, pack]) => pack.scoutId === questId)?.[0] || "";
+  }
+
+  function getIdolForPersonalQuestId(questId) {
+    return Object.entries(SANDBOX_IDOL_QUEST_PACKS).find(([, pack]) => pack.personalIds.includes(questId))?.[0] || "";
+  }
+
+  function ensureSandboxProgressState(state) {
+    if (!state.sandbox || typeof state.sandbox !== "object") state.sandbox = {};
+    if (!Array.isArray(state.sandbox.producedIdols)) state.sandbox.producedIdols = [];
+    state.sandbox.producedIdols = state.sandbox.producedIdols.map((name) => String(name || "").trim()).filter(Boolean);
+    if (state.sandbox.scoutTargetIdol) {
+      state.sandbox.scoutTargetIdol = String(state.sandbox.scoutTargetIdol).trim() || null;
+    } else {
+      state.sandbox.scoutTargetIdol = null;
+    }
+    state.sandbox.secondIdolUnlocked = Boolean(state.sandbox.secondIdolUnlocked);
+  }
+
+  function getSharedMainQuestIds() {
+    return Object.keys(MAIN_QUEST_META).filter((id) => !isScoutQuestId(id) && !isIdolPersonalQuestId(id));
+  }
+
+  function getIdolRelationshipScore(state, idolName) {
+    const entry = state?.freeMode?.relationships?.[idolName];
+    if (typeof entry === "object" && entry) return Number(entry.好感度) || 0;
+    if (typeof entry === "number" || typeof entry === "string") return Number(entry) || 0;
+    return 0;
+  }
+
+  function isIdolMainlineComplete(state, idolName) {
+    const pack = SANDBOX_IDOL_QUEST_PACKS[idolName];
+    if (!pack || !state.tasks?.main) return false;
+    if (state.tasks.main[pack.scoutId]?.status !== "completed") return false;
+    if (!pack.personalIds.every((id) => state.tasks.main[id]?.status === "completed")) return false;
+    if (!getSharedMainQuestIds().every((id) => state.tasks.main[id]?.status === "completed")) return false;
+    return getIdolRelationshipScore(state, idolName) >= 100;
+  }
+
+  function syncProducedIdolsAndSecondUnlock(state) {
+    if (!isSandboxTasksActive(state)) return;
+    ensureSandboxProgressState(state);
+    const produced = new Set(state.sandbox.producedIdols);
+    SANDBOX_SELECTABLE_IDOLS.forEach((idol) => {
+      if (isIdolMainlineComplete(state, idol)) produced.add(idol);
+    });
+    state.sandbox.producedIdols = [...produced];
+    const hasOpenSlot = produced.size < SANDBOX_SELECTABLE_IDOLS.length;
+    state.sandbox.secondIdolUnlocked = produced.size > 0 && hasOpenSlot
+      && [...produced].some((idol) => isIdolMainlineComplete(state, idol));
+  }
+
+  function getSecondIdolCandidates(state) {
+    if (!isSandboxTasksActive(state)) return [];
+    ensureSandboxProgressState(state);
+    const produced = new Set(state.sandbox.producedIdols);
+    return SANDBOX_SELECTABLE_IDOLS.filter((idol) => !produced.has(idol));
+  }
+
+  function shouldShowMainQuestInPanel(state, id) {
+    ensureTasksShape(state);
+    const quest = state.tasks?.main?.[id];
+    const status = quest?.status || "locked";
+    if (isScoutQuestId(id)) {
+      const idol = getIdolByScoutQuestId(id);
+      if (status === "completed" || status === "active") return true;
+      return state.sandbox?.scoutTargetIdol === idol;
+    }
+    if (isIdolPersonalQuestId(id)) {
+      const idol = getIdolForPersonalQuestId(id);
+      if (status === "completed") return true;
+      if (status === "active") return true;
+      if (state.idol === idol) return true;
+      return false;
+    }
+    const anyScoutDone = Object.values(SANDBOX_IDOL_QUEST_PACKS)
+      .some((pack) => state.tasks?.main?.[pack.scoutId]?.status === "completed");
+    if (!anyScoutDone && status === "locked") return false;
+    return true;
+  }
+
+  function activateScoutQuestForIdol(state, idolName) {
+    if (!isSandboxTasksActive(state)) return;
+    const pack = SANDBOX_IDOL_QUEST_PACKS[idolName];
+    if (!pack) return;
+    ensureTasksShape(state);
+    ensureSandboxProgressState(state);
+    state.sandbox.scoutTargetIdol = idolName;
+    Object.entries(SANDBOX_IDOL_QUEST_PACKS).forEach(([name, other]) => {
+      if (name === idolName) return;
+      const quest = state.tasks.main[other.scoutId];
+      if (quest?.status !== "completed") quest.status = "locked";
+    });
+    const quest = state.tasks.main[pack.scoutId];
+    if (quest && quest.status !== "completed") quest.status = "active";
+  }
+
+  function beginSecondIdolScout(state, idolName) {
+    if (!isSandboxTasksActive(state)) return { ok: false, reason: "not_sandbox" };
+    const canonical = String(idolName || "").trim();
+    syncProducedIdolsAndSecondUnlock(state);
+    if (!state.sandbox?.secondIdolUnlocked) return { ok: false, reason: "locked" };
+    if (!getSecondIdolCandidates(state).includes(canonical)) return { ok: false, reason: "unavailable" };
+    activateScoutQuestForIdol(state, canonical);
+    return { ok: true, idol: canonical };
+  }
+
+  function getPersonalQuestIds(state) {
+    return getSandboxQuestPack(state)?.personalIds || [];
+  }
+
+  function getAllPersonalQuestIds() {
+    return Object.values(SANDBOX_IDOL_QUEST_PACKS).flatMap((pack) => pack.personalIds);
+  }
+
+  function isScoutQuestId(id) {
+    return String(id || "").startsWith("scout_");
+  }
+
+  function isIdolPersonalQuestId(id) {
+    return getAllPersonalQuestIds().includes(id);
+  }
 
   const MAP_MAIN_QUEST_LOCATIONS = {
     temari_main_02_misaki: ["dining_hall", "club_room", "idol_classroom", "gymnasium", "playground"]
@@ -120,15 +290,49 @@
       patterns: [/健康餐|沙拉|低油|蒸煮|清淡|营养餐|蔬菜为主|便当.*健康|轻食/i],
       apply: "healthy_meal",
       notice: "已记录一次健康餐"
+    },
+    {
+      id: "part_time_cancelled",
+      questId: "kotone_main_01",
+      locations: ["student_store", "school_entrance", "dining_hall", "producer_classroom"],
+      patterns: [/辞掉|取消打工|不再打工|退出兼职|快餐店|辞工|请假不上班|停止打工/i],
+      apply: "part_time_cancelled",
+      notice: "已确认琴音取消快餐店打工"
+    },
+    {
+      id: "praise_kotone",
+      questId: "kotone_main_02",
+      locations: ["producer_classroom", "idol_classroom", "dining_hall", "outstage", "auditorium", "gymnasium", "special_education", "student_store"],
+      patterns: [/夸她|夸奖|称赞|很可爱|真可爱|做得好|很棒|漂亮|厉害|表扬|夸赞/i],
+      apply: "praise_kotone",
+      notice: "已记录一次对琴音的夸奖"
+    },
+    {
+      id: "full_rest",
+      questId: "kotone_main_03",
+      locations: ["producer_classroom", "dining_hall", "courtyard", "school_entrance"],
+      patterns: [/充分休息|好好睡一觉|睡足|恢复体力|躺下休息|午睡|放松休息|休养/i],
+      apply: "full_rest",
+      notice: "已记录一次充分休息"
     }
   ];
 
-  const QUEST_FLAG_IDS = ["diet_plan_active", "healthy_meal", "outstage_full_song"];
+  const QUEST_FLAG_IDS = [
+    "diet_plan_active",
+    "healthy_meal",
+    "outstage_full_song",
+    "part_time_cancelled",
+    "praise_kotone",
+    "full_rest"
+  ];
 
   const QUEST_FLAG_NOTICE = {
     diet_plan_active: "已制定饮食方案",
     healthy_meal: "已记录一次健康餐",
-    outstage_full_song: "已记录野外舞台完整试唱"
+    outstage_full_song: "已记录野外舞台完整试唱",
+    part_time_cancelled: "已确认琴音取消快餐店打工",
+    praise_kotone: "已记录一次对琴音的夸奖",
+    full_rest: "已记录一次充分休息"
   };
 
   const CAMPUS_MAX_PER_DAY = 3;
@@ -153,6 +357,16 @@
     if (id === "temari_main_03") {
       flags.diet_plan_active = false;
       flags.healthy_meal_count = 0;
+    }
+    if (id === "kotone_main_01") {
+      flags.part_time_cancelled = false;
+      flags.money_baseline = 0;
+    }
+    if (id === "kotone_main_02") {
+      flags.praise_count = 0;
+    }
+    if (id === "kotone_main_03") {
+      flags.rest_sessions = 0;
     }
     return { id, status, step: 0, flags };
   }
@@ -186,9 +400,13 @@
       secondaryApi: defaultSecondaryApi(),
       main: {
         scout_temari: defaultMainQuest("scout_temari", "locked"),
+        scout_kotone: defaultMainQuest("scout_kotone", "locked"),
         temari_main_01: defaultMainQuest("temari_main_01"),
         temari_main_02: defaultMainQuest("temari_main_02"),
-        temari_main_03: defaultMainQuest("temari_main_03")
+        temari_main_03: defaultMainQuest("temari_main_03"),
+        kotone_main_01: defaultMainQuest("kotone_main_01"),
+        kotone_main_02: defaultMainQuest("kotone_main_02"),
+        kotone_main_03: defaultMainQuest("kotone_main_03")
       },
       side: defaultSideState(),
       campus: { dayKey: "", usedCount: 0, maxPerDay: CAMPUS_MAX_PER_DAY, log: [] }
@@ -216,6 +434,18 @@
       if (!Number.isFinite(Number(quest.flags.healthy_meal_count))) {
         quest.flags.healthy_meal_count = 0;
       }
+    }
+    if (id === "kotone_main_01") {
+      if (quest.flags.part_time_cancelled === undefined) quest.flags.part_time_cancelled = false;
+      if (!Number.isFinite(Number(quest.flags.money_baseline))) {
+        quest.flags.money_baseline = Number(state.tasks?.wallet?.money) || 0;
+      }
+    }
+    if (id === "kotone_main_02" && !Number.isFinite(Number(quest.flags.praise_count))) {
+      quest.flags.praise_count = 0;
+    }
+    if (id === "kotone_main_03" && !Number.isFinite(Number(quest.flags.rest_sessions))) {
+      quest.flags.rest_sessions = 0;
     }
     const allowed = ["locked", "active", "completed"];
     if (!allowed.includes(quest.status)) quest.status = status;
@@ -281,16 +511,23 @@
       syncCampusDay(state);
       syncSideQuestDay(state);
     }
-    if (!state.tasks.baseline && state.tasks.main.scout_temari?.status === "completed") {
+    if (!state.tasks.baseline) {
+      const scoutId = getScoutQuestId(state);
+      if (scoutId && state.tasks.main[scoutId]?.status === "completed") {
       state.tasks.baseline = {
         Vo: Number(state.Vo) || 120,
         Vi: Number(state.Vi) || 80,
         stamina: Number(state.stamina) || 100
       };
+      }
     }
-    if (state.tasks.main.scout_temari?.status === "completed") {
+    const scoutId = getScoutQuestId(state);
+    if (scoutId && state.tasks.main[scoutId]?.status === "completed") {
+      const pack = getSandboxQuestPack(state);
       Object.keys(MAIN_QUEST_META).forEach((id) => {
-        if (id !== "scout_temari" && state.tasks.main[id]?.status === "locked") {
+        if (id === scoutId) return;
+        if (isIdolPersonalQuestId(id) && !pack?.personalIds.includes(id)) return;
+        if (state.tasks.main[id]?.status === "locked") {
           state.tasks.main[id].status = "active";
         }
       });
@@ -357,7 +594,25 @@
     if (flagId === "diet_plan_active") return markDietPlanActive(state);
     if (flagId === "healthy_meal") return recordHealthyMeal(state, 1);
     if (flagId === "outstage_full_song") return markOutstageFullSong(state);
+    if (flagId === "part_time_cancelled") return markPartTimeCancelled(state);
+    if (flagId === "praise_kotone") return recordPraiseKotone(state, 1);
+    if (flagId === "full_rest") return recordKotoneRestSession(state, 1);
     return false;
+  }
+
+  function initKotoneMain01MoneyBaseline(state) {
+    const quest = state.tasks.main.kotone_main_01;
+    if (!quest || quest.status !== "active") return;
+    if (!Number.isFinite(Number(quest.flags.money_baseline))) {
+      quest.flags.money_baseline = Number(state.tasks?.wallet?.money) || 0;
+    }
+  }
+
+  function getKotoneMoneyEarned(state) {
+    const quest = state.tasks.main.kotone_main_01;
+    if (!quest) return 0;
+    const baseline = Number(quest.flags?.money_baseline) || 0;
+    return Math.max(0, (Number(state.tasks?.wallet?.money) || 0) - baseline);
   }
 
   function parseQuestFlagsFromText(text) {
@@ -381,24 +636,44 @@
     const notices = [];
     const completions = [];
     ids.forEach((id) => {
-      const quest = state.tasks.main.temari_main_01;
-      const quest03 = state.tasks.main.temari_main_03;
+      const temari01 = state.tasks.main.temari_main_01;
+      const temari03 = state.tasks.main.temari_main_03;
+      const kotone01 = state.tasks.main.kotone_main_01;
+      const kotone02 = state.tasks.main.kotone_main_02;
+      const kotone03 = state.tasks.main.kotone_main_03;
       let changed = false;
-      if (id === "outstage_full_song" && quest?.status === "active" && !quest.flags.outstage_full_song) {
+      if (id === "outstage_full_song" && temari01?.status === "active" && !temari01.flags.outstage_full_song) {
         changed = true;
       }
-      if (id === "diet_plan_active" && quest03?.status === "active" && !quest03.flags.diet_plan_active) {
+      if (id === "diet_plan_active" && temari03?.status === "active" && !temari03.flags.diet_plan_active) {
         changed = true;
       }
-      if (id === "healthy_meal" && quest03?.status === "active") {
+      if (id === "healthy_meal" && temari03?.status === "active") {
+        changed = true;
+      }
+      if (id === "part_time_cancelled" && kotone01?.status === "active" && !kotone01.flags.part_time_cancelled) {
+        changed = true;
+      }
+      if (id === "praise_kotone" && kotone02?.status === "active") {
+        changed = true;
+      }
+      if (id === "full_rest" && kotone03?.status === "active") {
         changed = true;
       }
       if (!changed) return;
       if (applyQuestFlag(state, id)) {
         if (id === "outstage_full_song") completions.push("temari_main_01");
         if (id === "diet_plan_active" || id === "healthy_meal") {
-          const done = evaluateTemariMain03(state);
-          if (done) completions.push("temari_main_03");
+          if (evaluateTemariMain03(state)) completions.push("temari_main_03");
+        }
+        if (id === "part_time_cancelled" && evaluateKotoneMain01(state)) {
+          completions.push("kotone_main_01");
+        }
+        if (id === "praise_kotone" && evaluateKotoneMain02(state)) {
+          completions.push("kotone_main_02");
+        }
+        if (id === "full_rest" && evaluateKotoneMain03(state)) {
+          completions.push("kotone_main_03");
         }
       }
       if (QUEST_FLAG_NOTICE[id]) notices.push(QUEST_FLAG_NOTICE[id]);
@@ -415,6 +690,7 @@
 
     if (hook.apply === "outstage_full_song" && quest.flags.outstage_full_song) return null;
     if (hook.apply === "diet_plan_active" && quest.flags.diet_plan_active) return null;
+    if (hook.apply === "part_time_cancelled" && quest.flags.part_time_cancelled) return null;
 
     const result = { notices: [], completions: [] };
     if (hook.apply === "outstage_full_song") {
@@ -432,6 +708,24 @@
     if (hook.apply === "healthy_meal") {
       quest.flags.healthy_meal_count = Math.max(0, Number(quest.flags.healthy_meal_count) || 0) + 1;
       if (evaluateTemariMain03(state)) result.completions.push("temari_main_03");
+      result.notices.push(hook.notice);
+      return result;
+    }
+    if (hook.apply === "part_time_cancelled") {
+      quest.flags.part_time_cancelled = true;
+      if (evaluateKotoneMain01(state)) result.completions.push("kotone_main_01");
+      result.notices.push(hook.notice);
+      return result;
+    }
+    if (hook.apply === "praise_kotone") {
+      quest.flags.praise_count = Math.max(0, Number(quest.flags.praise_count) || 0) + 1;
+      if (evaluateKotoneMain02(state)) result.completions.push("kotone_main_02");
+      result.notices.push(hook.notice);
+      return result;
+    }
+    if (hook.apply === "full_rest") {
+      quest.flags.rest_sessions = Math.max(0, Number(quest.flags.rest_sessions) || 0) + 1;
+      if (evaluateKotoneMain03(state)) result.completions.push("kotone_main_03");
       result.notices.push(hook.notice);
       return result;
     }
@@ -510,7 +804,7 @@
 
   function syncAsariStageQuestSteps(state) {
     Object.entries(MAIN_QUEST_META).forEach(([id, meta]) => {
-      if (id === "scout_temari" || TEMARI_PERSONAL_IDS.includes(id)) return;
+      if (isScoutQuestId(id) || isIdolPersonalQuestId(id)) return;
       const quest = state.tasks.main[id];
       if (!quest || quest.status !== "active") return;
       const ratio = getQuestProgressRatio(state, meta);
@@ -545,6 +839,35 @@
       else if (quest03.flags.diet_plan_active) quest03.step = 2;
       else if (Number(quest03.flags.healthy_meal_count) > 0) quest03.step = 1;
       else quest03.step = 0;
+    }
+    const kotone01 = state.tasks.main.kotone_main_01;
+    if (kotone01?.status === "active") {
+      initKotoneMain01MoneyBaseline(state);
+      const t = THRESHOLDS.kotone_main_01;
+      const fame = Number(state.tasks?.wallet?.fame) || 0;
+      const earned = getKotoneMoneyEarned(state);
+      if (kotone01.flags.part_time_cancelled && fame >= t.fameMin && earned >= t.moneyEarnedMin) kotone01.step = 3;
+      else if (kotone01.flags.part_time_cancelled && (fame >= t.fameMin || earned >= t.moneyEarnedMin)) kotone01.step = 2;
+      else if (kotone01.flags.part_time_cancelled || fame > 0 || earned > 0) kotone01.step = 1;
+      else kotone01.step = 0;
+    }
+    const kotone02 = state.tasks.main.kotone_main_02;
+    if (kotone02?.status === "active") {
+      const t = THRESHOLDS.kotone_main_02;
+      const count = Number(kotone02.flags.praise_count) || 0;
+      if (count >= t.praiseMin) kotone02.step = 3;
+      else if (count >= Math.floor(t.praiseMin * 0.6)) kotone02.step = 2;
+      else if (count > 0) kotone02.step = 1;
+      else kotone02.step = 0;
+    }
+    const kotone03 = state.tasks.main.kotone_main_03;
+    if (kotone03?.status === "active") {
+      const t = THRESHOLDS.kotone_main_03;
+      const sessions = Number(kotone03.flags.rest_sessions) || 0;
+      if (sessions >= t.restSessionsMin && Number(state.stamina) >= t.staminaMin) kotone03.step = 3;
+      else if (sessions >= t.restSessionsMin || Number(state.stamina) >= t.staminaMin) kotone03.step = 2;
+      else if (sessions > 0 || Number(state.stamina) >= Math.floor(t.staminaMin * 0.8)) kotone03.step = 1;
+      else kotone03.step = 0;
     }
     syncAsariStageQuestSteps(state);
   }
@@ -588,15 +911,49 @@ ${dietLine}
 制定饮食方案后可输出【初星任务标记】diet_plan_active；选择健康餐后可输出【初星任务标记】healthy_meal。`
       );
     }
+    const kotone01 = state.tasks.main.kotone_main_01;
+    if (kotone01?.status === "active") {
+      const workLine = ["student_store", "school_entrance", "dining_hall"].includes(locationId)
+        ? "本场景可写快餐店打工、辞工沟通，或引导她改用委托系统接偶像工作。"
+        : "若在 P 科教室或小卖部附近，可写她仍想去快餐店打工，以及制作人如何劝阻。";
+      blocks.push(
+        `【亚纱里课题 · 告别快餐店打工】
+琴音仍被赚钱焦虑推着走，想继续快餐店打工；制作人需要让她改用委托系统承接偶像工作。
+${workLine}
+当前进度：${progressHint(state, "kotone_main_01")}
+确认她辞掉快餐店打工后，可输出【初星任务标记】part_time_cancelled。
+知名度与初星币通过委托系统结算自动累计，不要在三项未达标前写课题已全部完成。`
+      );
+    }
+    const kotone02 = state.tasks.main.kotone_main_02;
+    if (kotone02?.status === "active") {
+      blocks.push(
+        `【亚纱里课题 · 建立自信】
+琴音嘴上爱被夸，心里却不相信自己真的够好；制作人需要持续、认真地夸奖她，把认可变成自信。
+当前进度：${progressHint(state, "kotone_main_02")}
+若本轮剧情里制作人明确夸奖了琴音（可爱、努力、进步、舞台魅力等），可在正文末尾输出【初星任务标记】praise_kotone（或 <quest_flag id="praise_kotone" />），每次有效夸奖记 1 次。`
+      );
+    }
+    const kotone03 = state.tasks.main.kotone_main_03;
+    if (kotone03?.status === "active") {
+      const restLine = ["producer_classroom", "dining_hall", "courtyard"].includes(locationId)
+        ? "本场景适合写她被迫停下、好好吃饭或躺下休息。"
+        : "可写她仍想硬撑训练，制作人需要安排充分休息。";
+      blocks.push(
+        `【亚纱里课题 · 体力修养】
+琴音容易把自己逼到透支，需要制作人安排充分休息，把体力恢复到健康水平。
+${restLine}
+当前进度：${progressHint(state, "kotone_main_03")}
+若本轮写了充分休息、睡足或明显恢复体力，可输出【初星任务标记】full_rest。`
+      );
+    }
     return blocks.join("\n\n");
   }
 
   function activateScoutQuest(state) {
-    if (!isSandboxTasksActive(state)) return;
-    ensureTasksShape(state);
-    const quest = state.tasks.main.scout_temari;
-    if (quest.status === "completed") return;
-    quest.status = "active";
+    const idol = String(state?.sandbox?.scoutTargetIdol || state?.idol || "").trim();
+    if (!idol) return;
+    activateScoutQuestForIdol(state, idol);
   }
 
   function captureBaseline(state) {
@@ -607,15 +964,19 @@ ${dietLine}
     };
   }
 
-  function activateTemariPersonalQuests(state) {
+  function activatePersonalQuests(state) {
     if (!isSandboxTasksActive(state)) return;
     ensureTasksShape(state);
+    const pack = getSandboxQuestPack(state);
+    if (!pack) return;
     if (!state.tasks.baseline) captureBaseline(state);
     Object.keys(MAIN_QUEST_META).forEach((id) => {
-      if (id === "scout_temari") return;
+      if (id === pack.scoutId) return;
+      if (isIdolPersonalQuestId(id) && !pack.personalIds.includes(id)) return;
       const quest = state.tasks.main[id];
       if (quest?.status === "locked") quest.status = "active";
     });
+    initKotoneMain01MoneyBaseline(state);
   }
 
   function completeMainQuest(state, id) {
@@ -630,7 +991,10 @@ ${dietLine}
   function onScoutInviteComplete(state) {
     if (!isSandboxTasksActive(state)) return [];
     ensureTasksShape(state);
-    activateScoutQuest(state);
+    ensureSandboxProgressState(state);
+    if (state.idol && !state.sandbox.scoutTargetIdol) {
+      state.sandbox.scoutTargetIdol = state.idol;
+    }
     return [];
   }
 
@@ -638,19 +1002,22 @@ ${dietLine}
     return [];
   }
 
-  function onScoutTemariQuestCompleted(state) {
+  function onScoutQuestCompleted(state) {
     if (!isSandboxTasksActive(state)) return;
     if (!state.tasks.baseline) captureBaseline(state);
-    activateTemariPersonalQuests(state);
+    activatePersonalQuests(state);
+  }
+
+  function onScoutTemariQuestCompleted(state) {
+    onScoutQuestCompleted(state);
   }
 
   function syncSandboxQuestProgress(state) {
     if (!isSandboxTasksActive(state)) return [];
     ensureTasksShape(state);
+    ensureSandboxProgressState(state);
     const completed = [];
-    if (state.sandbox?.openingComplete && !state.sandbox?.inviteComplete) {
-      activateScoutQuest(state);
-    }
+    syncProducedIdolsAndSecondUnlock(state);
     completed.push(...evaluateNumericMainQuests(state));
     syncMainQuestSteps(state);
     return completed;
@@ -678,10 +1045,38 @@ ${dietLine}
     ids.forEach((id) => {
       if (completeMainQuest(state, id)) {
         completed.push(id);
-        if (id === "scout_temari") onScoutTemariQuestCompleted(state);
+        const scoutId = getScoutQuestId(state);
+        if (scoutId && id === scoutId) onScoutQuestCompleted(state);
       }
     });
     return completed;
+  }
+
+  function evaluateKotoneMain01(state) {
+    const quest = state.tasks.main.kotone_main_01;
+    if (quest?.status !== "active") return false;
+    initKotoneMain01MoneyBaseline(state);
+    const t = THRESHOLDS.kotone_main_01;
+    if (!quest.flags.part_time_cancelled) return false;
+    if ((Number(state.tasks?.wallet?.fame) || 0) < t.fameMin) return false;
+    if (getKotoneMoneyEarned(state) < t.moneyEarnedMin) return false;
+    return completeMainQuest(state, "kotone_main_01");
+  }
+
+  function evaluateKotoneMain02(state) {
+    const quest = state.tasks.main.kotone_main_02;
+    if (quest?.status !== "active") return false;
+    if ((Number(quest.flags.praise_count) || 0) < THRESHOLDS.kotone_main_02.praiseMin) return false;
+    return completeMainQuest(state, "kotone_main_02");
+  }
+
+  function evaluateKotoneMain03(state) {
+    const quest = state.tasks.main.kotone_main_03;
+    if (quest?.status !== "active") return false;
+    const t = THRESHOLDS.kotone_main_03;
+    if ((Number(quest.flags.rest_sessions) || 0) < t.restSessionsMin) return false;
+    if (Number(state.stamina) < t.staminaMin) return false;
+    return completeMainQuest(state, "kotone_main_03");
   }
 
   function evaluateTemariMain01(state) {
@@ -708,7 +1103,7 @@ ${dietLine}
   function evaluateAsariStageQuests(state) {
     const completed = [];
     Object.keys(MAIN_QUEST_META).forEach((id) => {
-      if (id === "scout_temari" || TEMARI_PERSONAL_IDS.includes(id)) return;
+      if (isScoutQuestId(id) || isIdolPersonalQuestId(id)) return;
       const quest = state.tasks.main[id];
       const meta = MAIN_QUEST_META[id];
       if (!quest || quest.status !== "active") return;
@@ -725,6 +1120,9 @@ ${dietLine}
     const completed = [];
     if (evaluateTemariMain01(state)) completed.push("temari_main_01");
     if (evaluateTemariMain03(state)) completed.push("temari_main_03");
+    if (evaluateKotoneMain01(state)) completed.push("kotone_main_01");
+    if (evaluateKotoneMain02(state)) completed.push("kotone_main_02");
+    if (evaluateKotoneMain03(state)) completed.push("kotone_main_03");
     completed.push(...evaluateAsariStageQuests(state));
     syncMainQuestSteps(state);
     return [...new Set(completed)];
@@ -745,6 +1143,44 @@ ${dietLine}
     if (quest.status !== "active") return false;
     quest.flags.diet_plan_active = true;
     return evaluateTemariMain03(state);
+  }
+
+  function markPartTimeCancelled(state) {
+    if (!isSandboxTasksActive(state)) return false;
+    ensureTasksShape(state);
+    const quest = state.tasks.main.kotone_main_01;
+    if (quest?.status !== "active" || quest.flags.part_time_cancelled) return false;
+    quest.flags.part_time_cancelled = true;
+    return evaluateKotoneMain01(state);
+  }
+
+  function recordPraiseKotone(state, count = 1) {
+    if (!isSandboxTasksActive(state)) return false;
+    ensureTasksShape(state);
+    const quest = state.tasks.main.kotone_main_02;
+    if (quest?.status !== "active") return false;
+    quest.flags.praise_count = Math.max(0, Number(quest.flags.praise_count) || 0) + count;
+    evaluateKotoneMain02(state);
+    return true;
+  }
+
+  function recordKotoneRestSession(state, count = 1) {
+    if (!isSandboxTasksActive(state)) return false;
+    ensureTasksShape(state);
+    const quest = state.tasks.main.kotone_main_03;
+    if (quest?.status !== "active") return false;
+    quest.flags.rest_sessions = Math.max(0, Number(quest.flags.rest_sessions) || 0) + count;
+    return evaluateKotoneMain03(state);
+  }
+
+  function onSandboxRestSettled(state) {
+    if (!isSandboxTasksActive(state) || state?.idol !== "藤田琴音") return [];
+    const completed = [];
+    if (recordKotoneRestSession(state, 1)) {
+      completed.push("kotone_main_03");
+    }
+    syncMainQuestSteps(state);
+    return completed;
   }
 
   function clampStat(value, min, max) {
@@ -1065,6 +1501,19 @@ ${dietLine}
     if (id === "temari_main_03") {
       return `参考 GKMS 1～3 话：饮食与体态 · Vi ${state.Vi}/${baseline.Vi + THRESHOLDS.temari_main_03.viGain} · 压力 ≤${THRESHOLDS.temari_main_03.stressMax} · 饮食方案 ${quest.flags.diet_plan_active ? "已制定" : "未制定"} · 健康餐 ${quest.flags.healthy_meal_count}/${THRESHOLDS.temari_main_03.healthyMealsMin}`;
     }
+    if (id === "kotone_main_01") {
+      const t = THRESHOLDS.kotone_main_01;
+      const fame = Number(state.tasks?.wallet?.fame) || 0;
+      const earned = getKotoneMoneyEarned(state);
+      return `快餐店打工 ${quest.flags.part_time_cancelled ? "已取消" : "未取消"} · 知名度 ${fame}/${t.fameMin} · 初星币 +${earned}/${t.moneyEarnedMin}（委托收益）`;
+    }
+    if (id === "kotone_main_02") {
+      return `累计夸奖 ${Number(quest.flags.praise_count) || 0}/${THRESHOLDS.kotone_main_02.praiseMin} 次`;
+    }
+    if (id === "kotone_main_03") {
+      const t = THRESHOLDS.kotone_main_03;
+      return `充分休息 ${Number(quest.flags.rest_sessions) || 0}/${t.restSessionsMin} 次 · 体力 ${Number(state.stamina) || 0}/${t.staminaMin}`;
+    }
     if (meta.category === "relationship") {
       return `好感度 ${getCurrentIdolRelationshipScore(state)}/${meta.trustTarget} · 达成后开放对应羁绊课题复盘`;
     }
@@ -1077,27 +1526,36 @@ ${dietLine}
     if (meta.category === "final") {
       return state.firstLive?.success ? "First Live 已举办成功" : "等待 First Live 最终演出成功";
     }
-    if (id === "scout_temari") {
-      return "在物色目标所在地点搭话；她同意成为担当时由 AI 输出【初星任务完成】scout_temari";
+    if (isScoutQuestId(id)) {
+      return `在物色目标所在地点搭话；她同意成为担当时由 AI 输出【初星任务完成】${id}`;
     }
     return "";
   }
 
   function getTaskPanelSnapshot(state) {
     ensureTasksShape(state);
-    const main = Object.keys(MAIN_QUEST_META).map((id) => ({
-      id,
-      title: MAIN_QUEST_META[id].title,
-      conflict: MAIN_QUEST_META[id].conflict,
-      category: MAIN_QUEST_META[id].category || "main",
-      status: state.tasks.main[id]?.status || "locked",
-      step: Number(state.tasks.main[id]?.step) || 0,
-      progressHint: progressHint(state, id)
-    }));
+    ensureSandboxProgressState(state);
+    syncProducedIdolsAndSecondUnlock(state);
+    const main = Object.keys(MAIN_QUEST_META)
+      .filter((id) => shouldShowMainQuestInPanel(state, id))
+      .map((id) => ({
+        id,
+        title: MAIN_QUEST_META[id].title,
+        conflict: MAIN_QUEST_META[id].conflict,
+        category: MAIN_QUEST_META[id].category || "main",
+        status: state.tasks.main[id]?.status || "locked",
+        step: Number(state.tasks.main[id]?.step) || 0,
+        progressHint: progressHint(state, id)
+      }));
     return {
       launchMode: state.launchMode,
       idol: state.idol,
       main,
+      secondIdol: {
+        unlocked: Boolean(state.sandbox?.secondIdolUnlocked),
+        candidates: getSecondIdolCandidates(state),
+        produced: [...(state.sandbox?.producedIdols || [])]
+      },
       side: {
         dayKey: state.tasks.side.dayKey,
         slots: state.tasks.side.slots,
@@ -1131,16 +1589,23 @@ ${dietLine}
   function getQuestCompleteToast(id) {
     const map = {
       scout_temari: "担当确认，亚纱里老师阶段课题已解锁",
+      scout_kotone: "担当确认，亚纱里老师阶段课题已解锁",
       temari_main_01: "课题完成：舞台唱完",
       temari_main_02: "课题完成：和美铃和好",
-      temari_main_03: "课题完成：饮食与体态"
+      temari_main_03: "课题完成：饮食与体态",
+      kotone_main_01: "课题完成：告别快餐店打工",
+      kotone_main_02: "课题完成：建立自信",
+      kotone_main_03: "课题完成：体力修养"
     };
     return map[id] || `任务完成：${MAIN_QUEST_META[id]?.title || id}`;
   }
 
   global.HatsuTasks = {
     MAIN_QUEST_META,
+    SANDBOX_IDOL_QUEST_PACKS,
+    SANDBOX_SELECTABLE_IDOLS,
     TEMARI_PERSONAL_IDS,
+    KOTONE_PERSONAL_IDS,
     THRESHOLDS,
     CAMPUS_MAX_PER_DAY,
     SIDE_SLOTS_PER_DAY,
@@ -1150,6 +1615,9 @@ ${dietLine}
     defaultTasksState,
     ensureTasksShape,
     isSandboxTasksActive,
+    getSandboxQuestPack,
+    getScoutQuestId,
+    getPersonalQuestIds,
     getCampusDayKey,
     syncCampusDay,
     getCampusRemaining,
@@ -1172,9 +1640,17 @@ ${dietLine}
     getActiveSideQuestAtLocation,
     applySideQuestTier,
     activateScoutQuest,
+    activateScoutQuestForIdol,
+    beginSecondIdolScout,
+    getSecondIdolCandidates,
+    isIdolMainlineComplete,
+    shouldShowMainQuestInPanel,
+    syncProducedIdolsAndSecondUnlock,
     onScoutInviteComplete,
     completeScoutTemariOnLocationTalk,
+    onScoutQuestCompleted,
     onScoutTemariQuestCompleted,
+    activatePersonalQuests,
     syncSandboxQuestProgress,
     parseQuestCompletionsFromText,
     parseQuestFlagsFromText,
@@ -1186,6 +1662,10 @@ ${dietLine}
     evaluateNumericMainQuests,
     markOutstageFullSong,
     markDietPlanActive,
+    markPartTimeCancelled,
+    recordPraiseKotone,
+    recordKotoneRestSession,
+    onSandboxRestSettled,
     recordHealthyMeal,
     getTaskPanelSnapshot,
     getQuestCompleteToast

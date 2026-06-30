@@ -530,7 +530,7 @@
   const DEFAULT_OUTING_SCENE = "./assets/scenes/campus.png";
   const WORLD_MAP_LOCATION_SCENES = {
     school_entrance: "./assets/scenes/School_Entrance.png",
-    club_room: "./assets/scenes/campus.png",
+    club_room: "./assets/scenes/Student_Council.png",
     auditorium: "./assets/scenes/Auditorium.png",
     outstage: "./assets/scenes/OutStage.png",
     playground: "./assets/scenes/Playground.png",
@@ -594,7 +594,7 @@
   const HYBRID_FACILITY_LESSON_LOCATIONS = ["idol_classroom", "producer_classroom"];
   const HYBRID_FACILITY_TRAINING_LOCATIONS = ["gymnasium", "special_education"];
   const HYBRID_FACILITY_ACTION_MINUTES = 60;
-  const SANDBOX_SELECTABLE_IDOLS = ["月村手毬"];
+  const SANDBOX_SELECTABLE_IDOLS = ["月村手毬", "藤田琴音"];
   const SANDBOX_ASARI_OPENING_STORY = `【初星正文开始】
 <story>
 <narration>午后的制作人科教室里，黑板上还留着上一节课的字迹。</narration>
@@ -1547,7 +1547,10 @@
     launchMenuPaused: false,
     sandbox: {
       openingComplete: false,
-      inviteComplete: false
+      inviteComplete: false,
+      scoutTargetIdol: null,
+      producedIdols: [],
+      secondIdolUnlocked: false
     },
     idol: null,
     day: 1,
@@ -2101,10 +2104,20 @@
     state.sandbox = {
       openingComplete: false,
       inviteComplete: false,
+      scoutTargetIdol: null,
+      producedIdols: [],
+      secondIdolUnlocked: false,
       ...(state.sandbox || {})
     };
     state.sandbox.openingComplete = Boolean(state.sandbox.openingComplete);
     state.sandbox.inviteComplete = Boolean(state.sandbox.inviteComplete);
+    state.sandbox.scoutTargetIdol = state.sandbox.scoutTargetIdol
+      ? canonicalIdolName(state.sandbox.scoutTargetIdol)
+      : null;
+    state.sandbox.producedIdols = Array.isArray(state.sandbox.producedIdols)
+      ? state.sandbox.producedIdols.map((name) => canonicalIdolName(name)).filter(Boolean)
+      : [];
+    state.sandbox.secondIdolUnlocked = Boolean(state.sandbox.secondIdolUnlocked);
     if (state.idol && !state.launchMode) {
       state.launchMode = state.gameMode === "hybrid" ? "sandbox" : "produce";
     }
@@ -2327,6 +2340,14 @@
       saveState();
       notifyQuestCompletions(completed);
     }
+  }
+
+  function notifySandboxRestQuestIfNeeded(rawAction) {
+    if (rawAction !== "rest") return;
+    const completed = globalThis.HatsuTasks?.onSandboxRestSettled?.(state) || [];
+    if (!completed.length) return;
+    saveState();
+    notifyQuestCompletions(completed);
   }
 
   function getTaskPanelSnapshot() {
@@ -3078,6 +3099,62 @@
     return "is-locked";
   }
 
+  function startSecondIdolScoutFromTaskPanel(idolName) {
+    const canonical = canonicalIdolName(idolName);
+    const result = globalThis.HatsuTasks?.beginSecondIdolScout?.(state, canonical);
+    if (!result?.ok) {
+      showToast("无法开启物色", "第二个担当尚未解锁，或该偶像不可选。", "warn");
+      return;
+    }
+    closeTaskPanelOverlay();
+    startSandboxInviteStory(canonical);
+    saveState();
+    showToast("第二个担当", `亚纱里老师已登记下一项物色课题：${canonical}。`, "gold");
+  }
+
+  function renderTaskPanelSecondIdolSection(snapshot, mainList) {
+    if (!mainList || !snapshot?.secondIdol?.unlocked) return;
+    const candidates = snapshot.secondIdol.candidates || [];
+    if (!candidates.length) return;
+    const section = document.createElement("details");
+    section.className = "task-panel-group is-pink";
+    section.open = true;
+    const summary = document.createElement("summary");
+    summary.className = "task-panel-group-summary";
+    const indexEl = document.createElement("span");
+    indexEl.className = "task-panel-group-index";
+    indexEl.textContent = "特";
+    const textWrap = document.createElement("span");
+    textWrap.className = "task-panel-group-text";
+    const titleEl = document.createElement("strong");
+    titleEl.textContent = "第二个担当";
+    const subtitleEl = document.createElement("span");
+    subtitleEl.textContent = "首名担当已完成全部课题，可物色下一名偶像";
+    textWrap.append(titleEl, subtitleEl);
+    summary.append(indexEl, textWrap);
+    section.appendChild(summary);
+    const questList = document.createElement("div");
+    questList.className = "task-panel-group-list";
+    const hint = document.createElement("p");
+    hint.className = "task-panel-hint";
+    hint.textContent = "选择一名尚未担任你偶像的学园成员，开启她的担当物色课题。";
+    questList.appendChild(hint);
+    candidates.forEach((name) => {
+      const profile = idols[name];
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "event-button secondary task-panel-action";
+      btn.textContent = `物色 ${name}`;
+      if (profile?.theme) {
+        btn.style.borderColor = profile.theme;
+      }
+      btn.addEventListener("click", () => startSecondIdolScoutFromTaskPanel(name));
+      questList.appendChild(btn);
+    });
+    section.appendChild(questList);
+    mainList.prepend(section);
+  }
+
   function renderTaskPanelOverlay() {
     const snapshot = getTaskPanelSnapshot();
     if (!snapshot) return;
@@ -3176,6 +3253,7 @@
     const fallbackOpenCategory = categoryOrder.find((key) => grouped[key]?.length);
 
     mainList.innerHTML = "";
+    renderTaskPanelSecondIdolSection(snapshot, mainList);
     categoryOrder.forEach((key) => {
       const quests = grouped[key] || [];
       if (!quests.length) return;
@@ -3954,7 +4032,8 @@ ${outputContract("请写 700 字以内的完整送礼场景，自然收束，不
 
   function isSandboxScoutPhase() {
     if (!isSandboxLaunch()) return false;
-    return state.tasks?.main?.scout_temari?.status === "active";
+    const scoutId = globalThis.HatsuTasks?.getScoutQuestId?.(state);
+    return Boolean(scoutId && state.tasks?.main?.[scoutId]?.status === "active");
   }
 
   function getHatsuWorldHelpers() {
@@ -4423,7 +4502,7 @@ ${outputContract("请写 700 字以内的完整送礼场景，自然收束，不
     return Boolean(state.produceOptions?.skipLessonTrainingAiStory);
   }
 
-  function finalizeProduceActionWithoutAi(actionName, resultSummary) {
+  function finalizeProduceActionWithoutAi(actionName, resultSummary, rawAction = "") {
     pendingAiRequestId = "";
     state.pendingAiRequestId = "";
     state.eventMode = "none";
@@ -4442,6 +4521,7 @@ ${outputContract("请写 700 字以内的完整送礼场景，自然收束，不
       ? `${actionName}已结算 · +${HYBRID_FACILITY_ACTION_MINUTES}分 · ${formatFreeModeClock()}`
       : `${actionName}已结算，已跳过 AI 叙事并进入下一轮。`;
     showToast("行动完成", toastDetail, "info");
+    notifySandboxRestQuestIfNeeded(rawAction);
     processSandboxQuestAfterSettlement();
   }
 
@@ -4671,7 +4751,7 @@ ${outputContract("请写 700 字以内的完整送礼场景，自然收束，不
     saveState();
     render();
     if (["lesson", "training"].includes(action) && isSkipLessonTrainingAiStoryEnabled()) {
-      finalizeProduceActionWithoutAi(actionName, resultSummary);
+      finalizeProduceActionWithoutAi(actionName, resultSummary, action);
       if (hybridTimeResult?.hitDayEnd) {
         maybeTriggerEveningGoHomePrompt();
       }
@@ -4686,6 +4766,7 @@ ${outputContract("请写 700 字以内的完整送礼场景，自然收束，不
       maybeTriggerEveningGoHomePrompt();
     }
     showToast("行动结算完成", `${actionName}已经写入 P 手账。`, randomEvent ? "gold" : "info");
+    notifySandboxRestQuestIfNeeded(action);
     processSandboxQuestAfterSettlement();
   }
 
@@ -5037,11 +5118,12 @@ ${buildChoiceOnlyExample()}`;
     const location = getWorldMapLocation(locationId);
     if (!location) return "";
     const targetIdol = state.idol || "物色目标";
+    const scoutQuestId = globalThis.HatsuTasks?.getScoutQuestId?.(state) || "scout_temari";
     const presenceLine = buildMapLocationPresenceLine(locationId);
     const sceneInstruction = continuation
       ? `请承接下文摘要，写制作人继续留在 ${location.name}、与 ${targetIdol} 物色搭话的下一轮场景，并设计 4 个新的下一步行动选项。
 - 不要重复已经发生过的事件；从当前时间点自然续写。
-- 若 ${targetIdol} 在本轮明确同意成为制作人担当，不要输出 option 与 time 标签；正文写到她答应签约的瞬间，并在【初星正文结束】之前输出【初星任务完成】scout_temari（或 <quest_complete id="scout_temari" />）。前端将自动请求收尾剧情，不再展示选项。
+- 若 ${targetIdol} 在本轮明确同意成为制作人担当，不要输出 option 与 time 标签；正文写到她答应签约的瞬间，并在【初星正文结束】之前输出【初星任务完成】${scoutQuestId}（或 <quest_complete id="${scoutQuestId}" />）。前端将自动请求收尾剧情，不再展示选项。
 - 上文摘要（仅供衔接，不要原文复述）：
 ${summarizeMapExploreContext()}`
       : `请写制作人独自来到 ${location.name}，与 ${targetIdol} 初次接触、尝试邀请她成为担当的开场场景，并设计 4 个不同的下一步行动选项。
@@ -5061,7 +5143,7 @@ ${presenceLine ? `\n${presenceLine}\n` : ""}${composeWorldSummaryBlock("map", lo
 ${buildProducerPromptSection()}
 
 ${sceneInstruction}
-- ${targetIdol} 同意签约时：正文末尾输出【初星任务完成】scout_temari（或 <quest_complete id="scout_temari" />），同轮不要 option/time。
+- ${targetIdol} 同意签约时：正文末尾输出【初星任务完成】${scoutQuestId}（或 <quest_complete id="${scoutQuestId}" />），同轮不要 option/time。
 - 仅与 ${targetIdol} 接触，不要提供与其他偶像深聊的选项。
 
 ${buildMapExplorePlayRules({ outing: false, relationship: false })}
@@ -5072,6 +5154,7 @@ ${buildMapExploreChoiceOutputBlock({ includeRelationship: false })}`;
 
   function buildSandboxScoutWrapUpPrompt() {
     const targetIdol = state.idol || "物色目标";
+    const scoutQuestId = globalThis.HatsuTasks?.getScoutQuestId?.(state) || "scout_temari";
     const locationId = state.pendingActionContext?.actionContext?.locationId;
     const location = getWorldMapLocation(locationId);
     return `[初星育成系统：沙盒模式 · 物色搭话 · 收尾]
@@ -5084,7 +5167,7 @@ ${buildMapExploreChoiceOutputBlock({ includeRelationship: false })}`;
 上文摘要（仅供衔接，不要原文复述）：
 ${summarizeMapExploreContext()}
 
-【重要】前端已确认物色成功：上一段剧情中 AI 已输出【初星任务完成】scout_temari，${targetIdol} 已同意成为制作人担当。
+【重要】前端已确认物色成功：上一段剧情中 AI 已输出【初星任务完成】${scoutQuestId}，${targetIdol} 已同意成为制作人担当。
 
 请写签约后余韵与简短告别，500 字以内；不要 option/time/任务标记，不要改数值。
 
@@ -6403,8 +6486,8 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
 
   function isSandboxScoutTalkAvailable(locationId) {
     if (!isSandboxLaunch() || !isSandboxScoutActive()) return false;
-    const scoutStatus = state.tasks?.main?.scout_temari?.status;
-    if (scoutStatus !== "active") return false;
+    const scoutId = globalThis.HatsuTasks?.getScoutQuestId?.(state);
+    if (!scoutId || state.tasks?.main?.[scoutId]?.status !== "active") return false;
     return Boolean(getSandboxScoutTargetAtLocation(locationId));
   }
 
@@ -6412,11 +6495,16 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     return Boolean(state.pendingActionContext?.actionContext?.scoutWrapUpPending);
   }
 
-  function scoutTemariCompletionPendingInReply(source) {
+  function scoutCompletionPendingInReply(source) {
     if (!isSandboxScoutActive()) return false;
-    if (state.tasks?.main?.scout_temari?.status !== "active") return false;
+    const scoutId = globalThis.HatsuTasks?.getScoutQuestId?.(state);
+    if (!scoutId || state.tasks?.main?.[scoutId]?.status !== "active") return false;
     const ids = globalThis.HatsuTasks?.parseQuestCompletionsFromText?.(source) || [];
-    return ids.includes("scout_temari");
+    return ids.includes(scoutId);
+  }
+
+  function scoutTemariCompletionPendingInReply(source) {
+    return scoutCompletionPendingInReply(source);
   }
 
   function getSandboxScoutSignStory() {
@@ -6459,9 +6547,10 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   }
 
   function completeScoutFromReplyAndBeginWrapUp(source, segmentStory) {
-    if (!scoutTemariCompletionPendingInReply(source)) return false;
+    if (!scoutCompletionPendingInReply(source)) return false;
+    const scoutId = globalThis.HatsuTasks?.getScoutQuestId?.(state);
     const completed = globalThis.HatsuTasks?.applyQuestCompletionsFromReply?.(state, source) || [];
-    if (!completed.includes("scout_temari")) return false;
+    if (!scoutId || !completed.includes(scoutId)) return false;
     if (segmentStory) {
       const signStory = String(segmentStory || "").trim();
       state.pendingActionContext.actionContext = {
@@ -6697,7 +6786,6 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     state.lastEventStory = SANDBOX_ASARI_OPENING_STORY;
     state.lastStory = state.lastEventStory;
     state.lastDebug = "沙盒模式：亚纱里老师开学指引。";
-    globalThis.HatsuTasks?.activateScoutQuest(state);
     saveState();
     render();
     if (resume) return;
@@ -6717,7 +6805,8 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     const { resume = false } = options;
     const canonical = canonicalIdolName(idolName);
     applyIdolPreset(canonical, true);
-    state.sandbox = { ...(state.sandbox || {}), inviteComplete: false };
+    globalThis.HatsuTasks?.activateScoutQuestForIdol?.(state, canonical);
+    state.sandbox = { ...(state.sandbox || {}), inviteComplete: false, scoutTargetIdol: canonical };
     state.activeStoryNode = { type: "sandboxInvite", ready: true, idol: canonical };
     const spawnLocationId = getSandboxScoutLocation(canonical);
     const spawnLocationName = spawnLocationId ? getWorldMapLocation(spawnLocationId)?.name : "指定地点";
@@ -7322,16 +7411,18 @@ ${idolLine}
     setElementHidden("daySummaryOverlay", false);
   }
 
-  function enterProducerApartmentIfNeeded(options = {}) {
-    if (!isProducerApartmentActive()) {
-      if (state.freeMode) state.freeMode.atApartment = false;
+  function enterProducerApartment(options = {}) {
+    if (!isFreeModeActive()) return false;
+    if (state.freeMode?.atApartment) return true;
+    if (pendingAiRequestId && !options.force) {
+      showToast("请稍候", "等待当前剧情生成完成后再移动。", "warn");
       return false;
     }
-    if (state.freeMode?.atApartment) return true;
     if (isMapLocationExploreActive()) {
       returnToFreeModeMap({ cancelled: true });
     }
     closeMapLocationOverlay();
+    closeGiftShopOverlay();
     closeFreeModeTimeOverlay();
     closeVnChoicesOverlay();
     hideVnCustomChoicePanel();
@@ -7345,12 +7436,32 @@ ${idolLine}
     }
     state.pendingActionContext = null;
     state.eventMode = "none";
-    ensureEveningJournal();
+    if (isProducerApartmentEvening()) {
+      ensureEveningJournal();
+    }
     saveState();
+    render();
     if (options.toast !== false) {
-      showToast("回到公寓", "今日学园活动已结束，制作人回到了自己的公寓。", "info");
+      const message = isProducerApartmentEvening()
+        ? "今日学园活动已结束，制作人回到了自己的公寓。"
+        : "制作人回到了自己的公寓。";
+      showToast("公寓", message, "info");
     }
     return true;
+  }
+
+  function enterProducerApartmentIfNeeded(options = {}) {
+    return enterProducerApartment(options);
+  }
+
+  function goToProducerApartmentFromMap() {
+    if (!isFreeModeActive() || isHybridFacilityActive()) return;
+    if (isProducerApartmentActive()) return;
+    enterProducerApartment({ toast: true });
+  }
+
+  function canReturnToCampusFromApartment() {
+    return isProducerApartmentMorning();
   }
 
   function syncProducerApartmentState() {
@@ -7370,8 +7481,7 @@ ${idolLine}
     if (!active) return;
     const bg = document.getElementById("producerApartmentBg");
     if (bg) {
-      const sceneUrl = morning ? PRODUCER_APARTMENT_DAY_SCENE : PRODUCER_APARTMENT_SCENE;
-      bg.style.backgroundImage = `linear-gradient(180deg, rgba(12, 14, 22, 0.18), rgba(12, 14, 22, 0.72)), url("${sceneUrl}")`;
+      bg.style.backgroundImage = "";
     }
     const clock = document.getElementById("producerApartmentClock");
     if (clock) clock.textContent = `${formatFreeModeDayLabel()} · ${formatFreeModeClock()}`;
@@ -7379,35 +7489,27 @@ ${idolLine}
     const eligible = getApartmentNsfwEligibleIdols();
     if (hint) {
       hint.textContent = morning
-        ? "新的一天开始了。可以整理一下，然后出门前往学园。"
+        ? "22:00 前还可以出门返回学园地图。整理一下后再出发吧。"
         : eligible.length
           ? `今天学园日程告一段落。可邀约 ${eligible.length} 名好感满额的偶像回家，或整理今日总结后休息。`
           : state.idol
             ? `今天和 ${state.idol} 的学园日程告一段落。可以看看今日总结，或上床睡觉。`
             : "今日学园活动已结束，可以整理今天的事，准备休息。";
     }
+    const campusBtn = document.getElementById("producerApartmentCampusBtn");
+    if (campusBtn) {
+      campusBtn.hidden = !canReturnToCampusFromApartment();
+    }
     const sleepBtn = document.getElementById("apartmentSleepBtn");
     if (sleepBtn) sleepBtn.hidden = morning;
     const inviteBtn = document.getElementById("apartmentInviteBtn");
     if (inviteBtn) {
-      const kicker = inviteBtn.querySelector(".apartment-hotspot-kicker");
-      const label = inviteBtn.querySelector("strong");
-      if (morning) {
-        inviteBtn.disabled = false;
-        inviteBtn.classList.remove("is-accent");
-        inviteBtn.classList.add("is-exit");
-        inviteBtn.title = "离开公寓，前往学园地图。";
-        if (kicker) kicker.textContent = "Leave";
-        if (label) label.textContent = "出门";
-      } else {
-        inviteBtn.classList.add("is-accent");
-        inviteBtn.classList.remove("is-exit");
+      inviteBtn.hidden = morning;
+      if (!morning) {
         inviteBtn.disabled = eligible.length === 0;
         inviteBtn.title = eligible.length
           ? "邀约好感度达到 100 的偶像来公寓"
           : `尚无好感度达到 ${INTIMACY_NSFW_UNLOCK_TRUST} 的偶像`;
-        if (kicker) kicker.textContent = "Invite";
-        if (label) label.textContent = "邀约";
       }
     }
   }
@@ -7446,10 +7548,6 @@ ${idolLine}
   }
 
   function openApartmentInviteOverlay() {
-    if (isProducerApartmentMorning()) {
-      leaveProducerApartmentForCampus();
-      return;
-    }
     if (!isProducerApartmentActive()) {
       showToast("尚未回公寓", "22:00 后回到制作人公寓才能邀约回家。", "warn");
       return;
@@ -7534,12 +7632,15 @@ ${idolLine}
   }
 
   function leaveProducerApartmentForCampus() {
-    if (!isProducerApartmentMorning()) return;
+    if (!canReturnToCampusFromApartment()) {
+      showToast("夜深了", "22:00 后无法返回学园，请休息或整理今日总结。", "warn");
+      return;
+    }
     triggerWipeTransition(() => {
       state.freeMode.atApartment = false;
       saveState();
       render();
-      showToast("出门", "走向初星学园。", "info");
+      showToast("出门", "返回初星学园大地图。", "info");
     });
   }
 
@@ -7581,12 +7682,12 @@ ${idolLine}
       .map(([name, profile]) => ({ name, ...profile }));
   }
 
-  function advanceFreeModeToNextDay() {
+  function advanceFreeModeToNextDay(options = {}) {
     ensureFreeModeTimeDefaults();
     state.freeMode.postLiveDay += 1;
     state.freeMode.clockMinutes = FREE_MODE_DAY_START_MINUTES;
     state.freeMode.eveningJournal = null;
-    state.freeMode.atApartment = false;
+    state.freeMode.atApartment = Boolean(options.stayAtApartment);
     state.freeMode.eveningStayExtended = false;
     state.freeMode.eveningGoHomeDeferred = false;
     if (globalThis.HatsuTasks?.isSandboxTasksActive(state)) {
@@ -8505,6 +8606,10 @@ ${idolLine}
       affinityBtn.hidden = !canOpenAffinityOverlay();
     }
     updateFreeModeBagButton();
+    const apartmentBtn = document.getElementById("freeModeApartmentBtn");
+    if (apartmentBtn) {
+      apartmentBtn.hidden = !isFreeModeActive() || isHybridFacilityActive() || worldMapLayoutState.editorActive;
+    }
     const giftShopOverlay = document.getElementById("giftShopOverlay");
     if (giftShopOverlay && !giftShopOverlay.hidden) {
       renderGiftShopOverlay();
@@ -10386,7 +10491,7 @@ ${idolLine}
 
   function maybeAutoRequestBroadcastFullScript(reason = "auto") {
     if (!isPhoneWorldFeedUnlocked() || !isBroadcastAutoFullScriptEnabled()) return false;
-    if (isSandboxLaunch() && state.tasks?.main?.scout_temari?.status === "active") return false;
+    if (isSandboxLaunch() && isSandboxScoutPhase()) return false;
     syncBroadcastLoadingState();
     const episode = state.freeMode?.world?.broadcast?.today;
     if (!episode || episode.fullScript || broadcastScriptLoading || episode.scriptStatus === "generating") {
@@ -15802,6 +15907,9 @@ ${idolLine}
     if (event.target.id === "apartmentInviteOverlay") closeApartmentInviteOverlay();
   });
   document.getElementById("apartmentSleepBtn")?.addEventListener("click", sleepFromProducerApartment);
+  document.getElementById("producerApartmentCampusBtn")?.addEventListener("click", leaveProducerApartmentForCampus);
+  document.getElementById("producerApartmentClock")?.addEventListener("click", openFreeModeTimeOverlay);
+  document.getElementById("freeModeApartmentBtn")?.addEventListener("click", goToProducerApartmentFromMap);
   document.getElementById("freeModeStayBtn")?.addEventListener("click", () => closeFreeModeEntryOverlay(true));
   document.getElementById("freeModeEnterBtn")?.addEventListener("click", enterFreeMode);
   document.getElementById("hybridCampusExitBtn")?.addEventListener("click", exitHybridCampus);
@@ -16190,7 +16298,8 @@ ${idolLine}
     notifyQuestCompletions(globalThis.HatsuTasks.syncSandboxQuestProgress(state));
     if (
       isSandboxLaunch()
-      && state.tasks?.main?.scout_temari?.status === "completed"
+      && globalThis.HatsuTasks?.getScoutQuestId?.(state)
+      && state.tasks?.main?.[globalThis.HatsuTasks.getScoutQuestId(state)]?.status === "completed"
       && state.freeMode?.world?.campus?.phase === "scout"
     ) {
       refreshWorldPresenceFromRules(true);

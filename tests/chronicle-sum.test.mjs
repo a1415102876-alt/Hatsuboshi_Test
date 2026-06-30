@@ -18,13 +18,15 @@ test("extractSumText keeps the last sum tag", () => {
   assert.equal(api.extractSumText(text), "午后 · 教室 · 琴音与制作人确认训练计划。");
 });
 
-test("assistant message ids map to chronicle entry numbers", () => {
+test("assistant message ids map to chronicle entry numbers on even ST floors", () => {
   const api = loadChronicle();
-  assert.equal(api.assistantMessageIdToEntryNo(3), 1);
-  assert.equal(api.assistantMessageIdToEntryNo(5), 2);
-  assert.equal(api.assistantMessageIdToEntryNo(7), 3);
-  assert.equal(api.assistantMessageIdToEntryNo(2), 0);
-  assert.equal(api.assistantMessageIdToEntryNo(4), 0);
+  assert.equal(api.assistantMessageIdToEntryNo(0), 0);
+  assert.equal(api.assistantMessageIdToEntryNo(2), 1);
+  assert.equal(api.assistantMessageIdToEntryNo(4), 2);
+  assert.equal(api.assistantMessageIdToEntryNo(6), 3);
+  assert.equal(api.assistantMessageIdToEntryNo(1), 0);
+  assert.equal(api.assistantMessageIdToEntryNo(3), 0);
+  assert.equal(api.assistantMessageIdToEntryNo(5), 0);
 });
 
 test("chronicle content upsert and reroll prune later entries", () => {
@@ -45,12 +47,12 @@ test("chronicle content can prune entries after branch point", () => {
 test("buildCheckpointFromMessage only keeps assistant messages with sum", () => {
   const api = loadChronicle();
   const checkpoint = api.buildCheckpointFromMessage({
-    message_id: 5,
+    message_id: 4,
     role: "assistant",
     message: "正文<sum>傍晚 · 操场 · 佑芽完成加练。</sum>"
   });
   assert.ok(checkpoint);
-  assert.equal(checkpoint.messageId, 5);
+  assert.equal(checkpoint.messageId, 4);
   assert.equal(checkpoint.entryNo, 2);
   assert.equal(checkpoint.summary, "傍晚 · 操场 · 佑芽完成加练。");
   assert.equal(checkpoint.label, "节点 2");
