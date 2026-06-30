@@ -56,9 +56,9 @@
       publicLabel: "自主体能训练"
     },
     "秦谷美铃": {
-      locationId: "dining_hall",
+      locationId: "courtyard",
       activityId: "rest_tea",
-      publicLabel: "喝茶摸鱼"
+      publicLabel: "中庭长椅午睡"
     },
     "筱泽广": {
       locationId: "idol_classroom",
@@ -101,16 +101,16 @@
       slots: {
         morning: profileSlot("idol_classroom", "翘课但偶尔露脸", "很少", ["playground"], "wandering"),
         midday: profileSlot("dining_hall", "和莉莉娅固定午餐", "中", ["student_store"], "rest_tea"),
-        afternoon: profileSlot("club_room", "旁观莉莉娅练习、顺便摸鱼", "低", ["playground"], "wandering"),
+        afternoon: profileSlot("special_education", "旁观莉莉娅练习、顺便摸鱼", "低", ["playground"], "wandering"),
         evening: profileSlot("outstage", "陪莉莉娅练台步", "低", ["dining_hall"], "rehearsal")
       }
     },
     "葛城莉莉娅": {
       slots: {
-        morning: profileSlot("club_room", "部室偷偷练声乐", "中", ["idol_classroom"], "solo_training"),
+        morning: profileSlot("special_education", "特教栋偷偷练声乐", "中", ["idol_classroom"], "solo_training"),
         midday: profileSlot("dining_hall", "和清夏一起吃午饭", "中", ["student_store"], "rest_tea"),
-        afternoon: profileSlot("club_room", "基础练习，怕被人听见", "高", ["idol_classroom"], "solo_training"),
-        evening: profileSlot("club_room", "继续练到闭馆", "中", ["outstage"], "rehearsal")
+        afternoon: profileSlot("special_education", "基础练习，怕被人听见", "高", ["idol_classroom"], "solo_training"),
+        evening: profileSlot("special_education", "继续练到闭馆", "中", ["outstage"], "rehearsal")
       }
     },
     "筱泽广": {
@@ -121,20 +121,20 @@
         evening: profileSlot("producer_classroom", "给佑芽千奈补习", "中", ["dining_hall"], "group_lesson")
       }
     },
-    "花海祐芽": {
+    "花海佑芽": {
       slots: {
         morning: profileSlot("playground", "星南带晨跑", "高", ["gymnasium"], "solo_training"),
-        midday: profileSlot("dining_hall", "大吃一顿补体力", "中", ["playground"], "rest_tea"),
+        midday: profileSlot("club_room", "学生会午间会议或整理文件", "低", ["dining_hall"], "student_council"),
         afternoon: profileSlot("gymnasium", "追姐姐的自主训练", "高", ["playground"], "solo_training"),
         evening: profileSlot("outstage", "傍晚加练", "高", ["gymnasium"], "rehearsal")
       }
     },
     "秦谷美铃": {
       slots: {
-        morning: profileSlot("dining_hall", "喝茶摸鱼，上课常迟到", "高", ["club_room"], "rest_tea"),
-        midday: profileSlot("dining_hall", "午睡续摊", "高", ["student_store"], "rest_tea"),
-        afternoon: profileSlot("special_education", "顺路看手毬或浅练一下", "中", ["club_room"], "solo_training"),
-        evening: profileSlot("dining_hall", "茶点与闲聊", "中", ["club_room"], "rest_tea")
+        morning: profileSlot("courtyard", "中庭树荫下喝茶摸鱼，上课常迟到", "高", ["dining_hall"], "rest_tea"),
+        midday: profileSlot("courtyard", "中庭长椅午睡续摊", "高", ["dining_hall", "student_store"], "rest_tea"),
+        afternoon: profileSlot("special_education", "顺路看手毬或浅练一下", "中", ["courtyard"], "solo_training"),
+        evening: profileSlot("club_room", "被拎回学生会补文件，全程犯困", "很少", ["dining_hall", "courtyard"], "student_council")
       }
     },
     "仓本千奈": {
@@ -142,7 +142,7 @@
         morning: profileSlot("idol_classroom", "星南基础课，硬跟进度", "高", ["producer_classroom"], "group_lesson"),
         midday: profileSlot("dining_hall", "和广、佑芽一起吃", "中", ["student_store"], "rest_tea"),
         afternoon: profileSlot("gymnasium", "基础体力课，练到想哭再继续", "高", ["idol_classroom"], "solo_training"),
-        evening: profileSlot("outstage", "傍晚加练", "中", ["gymnasium"], "rehearsal")
+        evening: profileSlot("club_room", "学生会整理会务或复盘材料", "低", ["outstage", "gymnasium"], "student_council")
       }
     },
     "十王星南": {
@@ -207,9 +207,19 @@
     return typeof canonicalFn === "function" ? canonicalFn(raw) : raw;
   }
 
+  function isSandboxScoutPhase(state, helpers) {
+    if (typeof helpers?.isSandboxScoutPhase === "function") {
+      return helpers.isSandboxScoutPhase() === true;
+    }
+    return false;
+  }
+
   function getEffectivePhase(state, helpers) {
-    if (typeof helpers?.isSandboxLaunch === "function" && helpers.isSandboxLaunch()) {
+    if (isSandboxScoutPhase(state, helpers)) {
       return "scout";
+    }
+    if (typeof helpers?.isSandboxLaunch === "function" && helpers.isSandboxLaunch()) {
+      return "first_live";
     }
     const phase = state?.freeMode?.world?.macro_phase;
     return phase === "scout" ? "scout" : phase || "first_live";
@@ -321,6 +331,36 @@
     };
   }
 
+  // 担当被你培育时，按概率陪你在制作人科教室；其余时段走她自己的日程。
+  const WITH_PRODUCER_RATE = 0.3;
+
+  function rollIdolWithProducer(slotKey, idolName) {
+    const roll = (hashSeed(`${slotKey}:${idolName}:with_producer`) % 10000) / 10000;
+    return roll < WITH_PRODUCER_RATE;
+  }
+
+  // 取某偶像当前时段的自然出没槽位（忽略 presence 概率，保证担当始终能被找到）。
+  function getProfileSlotForIdol(idolName, state, helpers) {
+    const canonical = normalizeIdolName(idolName, helpers?.canonicalIdolName);
+    const profile = CAMPUS_PROFILES[canonical];
+    if (!canonical || !profile) return null;
+    const timePhase = getTimePhase(state?.freeMode?.clockMinutes);
+    const slotConfig = profile.slots?.[timePhase];
+    if (!slotConfig) return null;
+    const slotKey = typeof helpers?.getPresenceSlotKey === "function"
+      ? helpers.getPresenceSlotKey(state)
+      : `${state?.freeMode?.postLiveDay || 1}@${state?.freeMode?.clockMinutes || 480}`;
+    const locationId = pickLocationFromSlot(slotConfig, `${slotKey}:${canonical}:loc`);
+    return {
+      locationId,
+      activityId: slotConfig.activityId || "wandering",
+      publicLabel: slotConfig.publicLabel || "",
+      mood: slotConfig.mood || "",
+      interactable: true,
+      source: "campus_profile"
+    };
+  }
+
   function resolveCampusDay(state, helpers) {
     const phase = getEffectivePhase(state, helpers);
     if (phase === "scout") return resolveScoutCampus(state, helpers);
@@ -426,16 +466,17 @@
   const BUZZ_CATEGORY_LOCATIONS = {
     food: ["dining_hall", "student_store"],
     practice_idle: ["gymnasium", "club_room", "special_education", "outstage", "playground"],
-    campus_spot: ["club_room", "dining_hall", "playground", "gymnasium", "student_store", "school_entrance"],
+    campus_spot: ["club_room", "courtyard", "dining_hall", "playground", "gymnasium", "student_store", "school_entrance"],
     class_mood: ["idol_classroom", "producer_classroom"],
     weather_day: [],
     self_moment: [],
-    petty_gossip: ["club_room", "dining_hall", "student_store"]
+    petty_gossip: ["club_room", "courtyard", "dining_hall", "student_store"]
   };
 
   const LOCATION_LABELS = {
     school_entrance: "学园正门",
     student_store: "小卖部",
+    courtyard: "中庭",
     dining_hall: "食堂",
     playground: "运动场",
     gymnasium: "体育馆",
@@ -543,6 +584,8 @@
     getEffectivePhase,
     resolveCampusDay,
     resolveProfileCampus,
+    getProfileSlotForIdol,
+    rollIdolWithProducer,
     buildPresenceFromCampus,
     applyCampusSnapshot,
     getIdolCampusSlot,

@@ -13,6 +13,7 @@ function loadWorldModules() {
     "world/campus-behavior.js",
     "world/injection.js",
     "world/daily-tick.js",
+    "world/world-gen-api.js",
     "broadcast/prompts.js"
   ];
   const sandbox = { globalThis: {}, console };
@@ -39,12 +40,12 @@ test("world modules resolve cast track and daily broadcast", () => {
     }
   };
   const canonical = (name) => name;
-  assert.equal(HatsuWorld.castTrack.getCastFirstLiveStatus("花海祐芽", state, canonical), "complete");
+  assert.equal(HatsuWorld.castTrack.getCastFirstLiveStatus("花海佑芽", state, canonical), "complete");
   assert.equal(HatsuWorld.castTrack.getCastFirstLiveStatus("藤田琴音", state, canonical), "user_producing");
   assert.equal(HatsuWorld.castTrack.getCastFirstLiveStatus("月村手毬", state, canonical), "none");
 
   const episode = HatsuWorld.dailyTick.rollDailyBroadcast(state, {
-    idolNames: ["藤田琴音", "花海祐芽", "月村手毬"],
+    idolNames: ["藤田琴音", "花海佑芽", "月村手毬"],
     canonicalIdolName: canonical
   });
   assert.ok(episode?.id);
@@ -56,16 +57,47 @@ test("world modules resolve cast track and daily broadcast", () => {
   assert.match(episode.outline, /本期主题/);
 
   const summary = HatsuWorld.injection.composeWorldSummary(state, { scope: "produce" }, {
-    idolNames: ["藤田琴音", "花海祐芽", "月村手毬"],
+    idolNames: ["藤田琴音", "花海佑芽", "月村手毬"],
     canonicalIdolName: canonical
   });
   assert.match(summary, /学园公开层概况/);
   assert.match(summary, /背景偶像公开标签/);
 });
 
+test("sandbox scout phase ends after scout_temari completes", () => {
+  const HatsuWorld = loadWorldModules();
+  const campus = HatsuWorld.campusBehavior;
+  const helpersScout = {
+    isSandboxLaunch: () => true,
+    isSandboxScoutPhase: () => true,
+    canonicalIdolName: (name) => name,
+    idolNames: ["月村手毬"],
+    getDayKey: () => "scout+1",
+    getPresenceSlotKey: () => "scout+1@480"
+  };
+  const helpersPostScout = {
+    ...helpersScout,
+    isSandboxScoutPhase: () => false
+  };
+  assert.equal(campus.getEffectivePhase({ launchMode: "sandbox" }, helpersScout), "scout");
+  assert.equal(campus.getEffectivePhase({ launchMode: "sandbox" }, helpersPostScout), "first_live");
+
+  const scoutCampus = campus.resolveCampusDay({ idol: "月村手毬", launchMode: "sandbox" }, helpersScout);
+  const liveCampus = campus.resolveCampusDay({
+    idol: "月村手毬",
+    launchMode: "sandbox",
+    freeMode: { postLiveDay: 1, clockMinutes: 600 }
+  }, helpersPostScout);
+  assert.equal(scoutCampus.phase, "scout");
+  assert.equal(liveCampus.phase, "first_live");
+  assert.ok(scoutCampus.slots["月村手毬"]?.interactable);
+  assert.notEqual(liveCampus.slots["月村手毬"]?.source, "sandbox_scout");
+});
+
 test("app.js wires world engine, broadcast app and prompt injection", () => {
   assert.match(appSource, /freeMode\.world/);
   assert.match(appSource, /isSandboxScoutActive/);
+  assert.match(appSource, /isSandboxScoutPhase/);
   assert.match(appSource, /buildSandboxScoutExplorePrompt/);
   assert.match(html, /id="mapLocationPresenceList"/);
   assert.match(appSource, /runFreeModeWorldDailyTick/);
@@ -80,6 +112,7 @@ test("app.js wires world engine, broadcast app and prompt injection", () => {
   assert.match(html, /world\/cast-track\.js/);
   assert.match(html, /world\/campus-behavior\.js/);
   assert.match(html, /world\/buzz-pool\.js/);
+  assert.match(html, /world\/world-gen-api\.js/);
   assert.match(html, /broadcast\/prompts\.js/);
 });
 
@@ -126,7 +159,8 @@ test("campus behavior resolves scout opening presence for sandbox", () => {
     canonicalIdolName: (name) => name,
     getPresenceSlotKey: () => "1@480",
     getDayKey: () => "scout+1",
-    isSandboxLaunch: () => true
+    isSandboxLaunch: () => true,
+    isSandboxScoutPhase: () => true
   };
 
   const presence = HatsuWorld.dailyTick.refreshWorldPresence(state, helpers);

@@ -6,12 +6,15 @@
     const outline = String(episode?.outline || "").trim();
     const guard = global.HatsuWorld?.castTrack?.getRouteGuardLines?.(state, helpers?.canonicalIdolName) || "";
     const summary = global.HatsuWorld?.injection?.composeWorldSummary?.(state, { scope: "broadcast" }, helpers) || "";
+    const dateLabel = state?.launchMode === "sandbox"
+      ? `学园第 ${state?.freeMode?.postLiveDay || 1} 天`
+      : `Live 后第 ${state?.freeMode?.postLiveDay || 1} 天`;
 
     return `[初星广播部 · 完整节目稿]
 
 节目：${episode?.title || "学园广播"}
 嘉宾：${guests}
-日期：Live 后第 ${state?.freeMode?.postLiveDay || 1} 天
+日期：${dateLabel}
 
 ${summary}
 

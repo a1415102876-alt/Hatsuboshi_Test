@@ -3,23 +3,88 @@
 
   const MAIN_QUEST_META = {
     scout_temari: {
-      title: "物色手毬",
-      conflict: "在学园中接触月村手毬并邀请她成为担当"
+      title: "担当物色：月村手毬",
+      conflict: "在学园中接触月村手毬并邀请她成为担当",
+      category: "scout"
+    },
+    relationship_20: {
+      title: "培养和担当之间的关系：好感度 20",
+      conflict: "亚纱里老师要求确认制作人与担当之间的初步信任",
+      category: "relationship",
+      trustTarget: 20
+    },
+    relationship_40: {
+      title: "培养和担当之间的关系：好感度 40",
+      conflict: "把日常陪伴推进到能共同复盘训练得失的关系",
+      category: "relationship",
+      trustTarget: 40
+    },
+    relationship_60: {
+      title: "培养和担当之间的关系：好感度 60",
+      conflict: "让担当能在压力下主动向制作人求助或商量",
+      category: "relationship",
+      trustTarget: 60
+    },
+    relationship_80: {
+      title: "培养和担当之间的关系：好感度 80",
+      conflict: "First Live 前确认担当愿意把最核心的不安交给制作人",
+      category: "relationship",
+      trustTarget: 80
+    },
+    relationship_100: {
+      title: "培养和担当之间的关系：好感度 100",
+      conflict: "First Live 后完成担当关系的收束与再确认",
+      category: "relationship",
+      trustTarget: 100
     },
     temari_main_01: {
-      title: "舞台唱完",
-      conflict: "体力锻炼到能在舞台上唱完"
+      title: "解决担当面对的矛盾：舞台唱完",
+      conflict: "体力锻炼到能在舞台上唱完",
+      category: "conflict"
     },
     temari_main_02: {
-      title: "和美铃和好",
-      conflict: "调整与秦谷美铃的关系"
+      title: "解决担当面对的矛盾：和美铃和好",
+      conflict: "调整与秦谷美铃的关系",
+      category: "conflict"
     },
     temari_main_03: {
-      title: "饮食与体态",
-      conflict: "调整饮食与舞台体态"
+      title: "解决担当面对的矛盾：饮食与体态",
+      conflict: "调整饮食与舞台体态",
+      category: "conflict"
+    },
+    ability_vocal_180: {
+      title: "培养偶像能力：Vocal 达到 180",
+      conflict: "完成亚纱里老师布置的歌唱能力阶段审查",
+      category: "ability",
+      stat: "Vo",
+      target: 180
+    },
+    ability_dance_140: {
+      title: "培养偶像能力：Dance 达到 140",
+      conflict: "让舞蹈基础足以支撑 First Live 编舞",
+      category: "ability",
+      stat: "Da",
+      target: 140
+    },
+    ability_visual_130: {
+      title: "培养偶像能力：Visual 达到 130",
+      conflict: "完成镜头感、表情和舞台体态的阶段打磨",
+      category: "ability",
+      stat: "Vi",
+      target: 130
+    },
+    work_invite_30: {
+      title: "工作邀约课题：知名度达到 30",
+      conflict: "通过委托系统承接小型商演，提高担当偶像知名度",
+      category: "work",
+      fameTarget: 30
+    },
+    first_live_success: {
+      title: "舞台终极任务：First Live 举办成功",
+      conflict: "完成第一阶段的最终舞台审查",
+      category: "final"
     }
   };
-
   const TEMARI_PERSONAL_IDS = ["temari_main_01", "temari_main_02", "temari_main_03"];
 
   const THRESHOLDS = {
@@ -106,6 +171,7 @@
     return {
       dayKey: "",
       slots: [],
+      activeSlotIndex: null,
       genStatus: "idle",
       source: "",
       pendingRequestId: ""
@@ -114,7 +180,8 @@
 
   function defaultTasksState() {
     return {
-      wallet: { money: 0 },
+      wallet: { money: 0, fame: 0 },
+      inventory: {},
       baseline: null,
       secondaryApi: defaultSecondaryApi(),
       main: {
@@ -162,8 +229,14 @@
       state.tasks = defaultTasksState();
     }
     state.tasks.wallet = {
-      money: Number.isFinite(Number(state.tasks.wallet?.money)) ? Number(state.tasks.wallet.money) : 0
+      money: Number.isFinite(Number(state.tasks.wallet?.money)) ? Number(state.tasks.wallet.money) : 0,
+      fame: Number.isFinite(Number(state.tasks.wallet?.fame)) ? Number(state.tasks.wallet.fame) : 0
     };
+    if (globalThis.HatsuGiftShop?.ensureInventory) {
+      globalThis.HatsuGiftShop.ensureInventory(state);
+    } else if (!state.tasks.inventory || typeof state.tasks.inventory !== "object" || Array.isArray(state.tasks.inventory)) {
+      state.tasks.inventory = {};
+    }
     if (!state.tasks.main || typeof state.tasks.main !== "object") {
       state.tasks.main = defaultTasksState().main;
     }
@@ -188,6 +261,13 @@
         : 1200
     };
     if (!Array.isArray(state.tasks.side.slots)) state.tasks.side.slots = [];
+    if (state.tasks.side.activeSlotIndex !== null && state.tasks.side.activeSlotIndex !== undefined) {
+      const activeIndex = Number(state.tasks.side.activeSlotIndex);
+      state.tasks.side.activeSlotIndex = Number.isInteger(activeIndex) ? activeIndex : null;
+    } else {
+      state.tasks.side.activeSlotIndex = null;
+    }
+    normalizeSideQuestLocations(state);
     if (!state.tasks.side.genStatus) state.tasks.side.genStatus = "idle";
     if (!state.tasks.side.source) state.tasks.side.source = "";
     if (!state.tasks.side.pendingRequestId) state.tasks.side.pendingRequestId = "";
@@ -207,6 +287,13 @@
         Vi: Number(state.Vi) || 80,
         stamina: Number(state.stamina) || 100
       };
+    }
+    if (state.tasks.main.scout_temari?.status === "completed") {
+      Object.keys(MAIN_QUEST_META).forEach((id) => {
+        if (id !== "scout_temari" && state.tasks.main[id]?.status === "locked") {
+          state.tasks.main[id].status = "active";
+        }
+      });
     }
     return state;
   }
@@ -367,6 +454,74 @@
     return { notices: [...new Set(notices)], completions: [...new Set(completions)] };
   }
 
+  function clampRelationshipScore(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return 0;
+    return Math.round(Math.min(100, Math.max(0, number)));
+  }
+
+  function getCurrentIdolRelationshipEntry(state, create = false) {
+    const idolName = String(state?.idol || "").trim();
+    if (!idolName) return null;
+    if (!state.freeMode || typeof state.freeMode !== "object") {
+      if (!create) return null;
+      state.freeMode = {};
+    }
+    if (!state.freeMode.relationships || typeof state.freeMode.relationships !== "object") {
+      if (!create) return null;
+      state.freeMode.relationships = {};
+    }
+    if (!state.freeMode.relationships[idolName] && create) {
+      state.freeMode.relationships[idolName] = { 好感度: 0, 更新日: 0 };
+    }
+    const entry = state.freeMode.relationships[idolName];
+    if (!entry) return null;
+    if (typeof entry === "number" || typeof entry === "string") {
+      const normalized = { 好感度: clampRelationshipScore(entry), 更新日: 0 };
+      state.freeMode.relationships[idolName] = normalized;
+      return normalized;
+    }
+    entry.好感度 = clampRelationshipScore(entry.好感度);
+    entry.更新日 = Math.max(0, Number(entry.更新日) || 0);
+    return entry;
+  }
+
+  function getCurrentIdolRelationshipScore(state) {
+    return getCurrentIdolRelationshipEntry(state, false)?.好感度 || 0;
+  }
+
+  function addCurrentIdolRelationshipScore(state, delta) {
+    const amount = Number(delta) || 0;
+    if (!amount) return 0;
+    const entry = getCurrentIdolRelationshipEntry(state, true);
+    if (!entry) return 0;
+    entry.好感度 = clampRelationshipScore((entry.好感度 || 0) + amount);
+    entry.更新日 = Math.max(1, Number(state.freeMode?.postLiveDay || 0) || 1);
+    return entry.好感度;
+  }
+
+  function getQuestProgressRatio(state, meta) {
+    if (meta.trustTarget) return Math.min(1, getCurrentIdolRelationshipScore(state) / meta.trustTarget);
+    if (meta.stat && meta.target) return Math.min(1, (Number(state[meta.stat]) || 0) / meta.target);
+    if (meta.fameTarget) return Math.min(1, (Number(state.tasks?.wallet?.fame) || 0) / meta.fameTarget);
+    if (meta.category === "final") return state.firstLive?.success ? 1 : 0;
+    return 0;
+  }
+
+  function syncAsariStageQuestSteps(state) {
+    Object.entries(MAIN_QUEST_META).forEach(([id, meta]) => {
+      if (id === "scout_temari" || TEMARI_PERSONAL_IDS.includes(id)) return;
+      const quest = state.tasks.main[id];
+      if (!quest || quest.status !== "active") return;
+      const ratio = getQuestProgressRatio(state, meta);
+      quest.step = Math.max(0, Math.min(3, Math.floor(ratio * 3)));
+      if (ratio >= 1) {
+        quest.step = 3;
+        completeMainQuest(state, id);
+      }
+    });
+  }
+
   function syncMainQuestSteps(state) {
     if (!isSandboxTasksActive(state)) return;
     ensureTasksShape(state);
@@ -391,8 +546,8 @@
       else if (Number(quest03.flags.healthy_meal_count) > 0) quest03.step = 1;
       else quest03.step = 0;
     }
+    syncAsariStageQuestSteps(state);
   }
-
   function buildSandboxMainQuestPromptBlock(state, locationId) {
     if (!isSandboxTasksActive(state) || !state.sandbox?.inviteComplete) return "";
     ensureTasksShape(state);
@@ -401,7 +556,7 @@
     const quest01 = state.tasks.main.temari_main_01;
     if (quest01?.status === "active") {
       blocks.push(
-        `【沙盒主线 · 舞台唱完】
+        `【亚纱里课题 · 舞台唱完】
 手毬的迫切矛盾：她担心自己体力撑不住，无法在舞台上唱完整首歌（参考 GKMS 第5/6/9话：SyngUp 训练后的疲惫、登台前「说不定会失败」的不安）。
 当前进度：${progressHint(state, "temari_main_01")}
 叙事要求：若在野外舞台或讲堂引导完整试唱/排练，可写她咬牙唱完一曲后的虚脱与决心；不要在数值未达标前写矛盾已彻底解决。
@@ -414,7 +569,7 @@
         ? "本地点可能出现秦谷美铃。可写她与手毬关于 SyngUp 解散的别扭同场、冷战或互相刺探。"
         : "若场景涉及秦谷美铃，可写 SyngUp 旧事与心结，但不要提前宣布和好完成。";
       blocks.push(
-        `【沙盒主线 · 与美铃和好】
+        `【亚纱里课题 · 与美铃和好】
 手毬与秦谷美铃因 SyngUp 解散心结未解（参考 GKMS 第8～10话）。
 ${misakiLine}
 和好完成时请在正文末尾输出【初星任务完成】temari_main_02（或 <quest_complete id="temari_main_02" />），不要由旁白直接宣布任务完成。`
@@ -426,7 +581,7 @@ ${misakiLine}
         ? "本场景在食堂：可写营养沟通、健康餐选择或体重管理；制作人可带她制定饮食方案。"
         : "若在食堂或 P 科教室，可写饮食与体态相关的讨论。";
       blocks.push(
-        `【沙盒主线 · 饮食与体态】
+        `【亚纱里课题 · 饮食与体态】
 手毬在意饮食控制与舞台体态（参考 GKMS 第1～3话）。
 ${dietLine}
 当前进度：${progressHint(state, "temari_main_03")}
@@ -456,9 +611,10 @@ ${dietLine}
     if (!isSandboxTasksActive(state)) return;
     ensureTasksShape(state);
     if (!state.tasks.baseline) captureBaseline(state);
-    TEMARI_PERSONAL_IDS.forEach((id) => {
+    Object.keys(MAIN_QUEST_META).forEach((id) => {
+      if (id === "scout_temari") return;
       const quest = state.tasks.main[id];
-      if (quest.status === "locked") quest.status = "active";
+      if (quest?.status === "locked") quest.status = "active";
     });
   }
 
@@ -479,17 +635,13 @@ ${dietLine}
   }
 
   function completeScoutTemariOnLocationTalk(state) {
-    if (!isSandboxTasksActive(state)) return [];
-    ensureTasksShape(state);
-    const scout = state.tasks.main.scout_temari;
-    if (!scout || scout.status !== "active") return [];
-    const completed = [];
-    if (completeMainQuest(state, "scout_temari")) completed.push("scout_temari");
-    if (completed.length) {
-      if (!state.tasks.baseline) captureBaseline(state);
-      activateTemariPersonalQuests(state);
-    }
-    return completed;
+    return [];
+  }
+
+  function onScoutTemariQuestCompleted(state) {
+    if (!isSandboxTasksActive(state)) return;
+    if (!state.tasks.baseline) captureBaseline(state);
+    activateTemariPersonalQuests(state);
   }
 
   function syncSandboxQuestProgress(state) {
@@ -524,7 +676,10 @@ ${dietLine}
     const ids = parseQuestCompletionsFromText(text);
     const completed = [];
     ids.forEach((id) => {
-      if (completeMainQuest(state, id)) completed.push(id);
+      if (completeMainQuest(state, id)) {
+        completed.push(id);
+        if (id === "scout_temari") onScoutTemariQuestCompleted(state);
+      }
     });
     return completed;
   }
@@ -550,16 +705,30 @@ ${dietLine}
     return completeMainQuest(state, "temari_main_03");
   }
 
+  function evaluateAsariStageQuests(state) {
+    const completed = [];
+    Object.keys(MAIN_QUEST_META).forEach((id) => {
+      if (id === "scout_temari" || TEMARI_PERSONAL_IDS.includes(id)) return;
+      const quest = state.tasks.main[id];
+      const meta = MAIN_QUEST_META[id];
+      if (!quest || quest.status !== "active") return;
+      if (getQuestProgressRatio(state, meta) >= 1 && completeMainQuest(state, id)) {
+        completed.push(id);
+      }
+    });
+    return completed;
+  }
+
   function evaluateNumericMainQuests(state) {
     if (!isSandboxTasksActive(state)) return [];
     ensureTasksShape(state);
     const completed = [];
     if (evaluateTemariMain01(state)) completed.push("temari_main_01");
     if (evaluateTemariMain03(state)) completed.push("temari_main_03");
+    completed.push(...evaluateAsariStageQuests(state));
     syncMainQuestSteps(state);
-    return completed;
+    return [...new Set(completed)];
   }
-
   function markOutstageFullSong(state) {
     if (!isSandboxTasksActive(state)) return false;
     ensureTasksShape(state);
@@ -586,6 +755,28 @@ ${dietLine}
     return global.HatsuSideQuestPool || null;
   }
 
+  function resolveSideQuestLocation(quest, state) {
+    const pool = getSideQuestPool();
+    return pool?.inferSideQuestLocation?.(quest, Number(state?.tasks?.wallet?.fame) || 0) || {
+      locationId: String(quest?.locationId || "shopping_street"),
+      locationName: String(quest?.locationName || "商店街")
+    };
+  }
+
+  function normalizeSideQuestLocations(state) {
+    if (!Array.isArray(state?.tasks?.side?.slots)) return;
+    state.tasks.side.slots.forEach((slot) => {
+      if (!slot || typeof slot !== "object" || slot.loading) return;
+      const location = resolveSideQuestLocation(slot, state);
+      slot.locationId = location.locationId || "shopping_street";
+      slot.locationName = location.locationName || "商店街";
+    });
+    const activeIndex = state.tasks.side.activeSlotIndex;
+    if (activeIndex !== null && (!state.tasks.side.slots[activeIndex] || state.tasks.side.slots[activeIndex]?.status === "done")) {
+      state.tasks.side.activeSlotIndex = null;
+    }
+  }
+
   function shouldUseSecondarySideGen(state) {
     if (!isSandboxTasksActive(state)) return false;
     if (!state.sandbox?.inviteComplete) return false;
@@ -599,7 +790,7 @@ ${dietLine}
       slotIndex,
       poolId: "",
       title: "生成中",
-      desc: "次 API 正在生成本日偶像工作…",
+      desc: "次 API 正在生成本日委托…",
       tag: "general",
       status: "open",
       resultTier: null,
@@ -613,23 +804,72 @@ ${dietLine}
     if (!isSandboxTasksActive(state)) return false;
     ensureTasksShape(state);
     const dayKey = getCampusDayKey(state);
-    if (!Array.isArray(quests) || quests.length !== SIDE_SLOTS_PER_DAY) return false;
+    if (!Array.isArray(quests)) return false;
+    // 容错：只要有可用条目就采用；多于 3 条截断，少于 3 条用静态池补齐到固定槽位数。
+    const valid = quests
+      .map((quest) => {
+        const title = String(quest?.title || "").trim();
+        const desc = String(quest?.desc || "").trim();
+        const location = resolveSideQuestLocation({ ...quest, title, desc }, state);
+        return {
+          title,
+          desc,
+          tag: SIDE_QUEST_TAGS.includes(quest?.tag) ? quest.tag : "general",
+          poolId: String(quest?.poolId || "").trim(),
+          tierHints: quest?.tierHints || null,
+          locationId: location.locationId,
+          locationName: location.locationName
+        };
+      })
+      .filter((quest) => quest.title && quest.desc)
+      .slice(0, SIDE_SLOTS_PER_DAY);
+    if (!valid.length) return false;
+
+    if (valid.length < SIDE_SLOTS_PER_DAY) {
+      const pool = getSideQuestPool();
+      const filler = pool?.pickDailyQuests
+        ? pool.pickDailyQuests(dayKey, state.idol, SIDE_SLOTS_PER_DAY, Number(state.tasks?.wallet?.fame) || 0)
+        : [];
+      let fillerIndex = 0;
+      while (valid.length < SIDE_SLOTS_PER_DAY && fillerIndex < filler.length) {
+        const slot = filler[fillerIndex++];
+        const title = String(slot?.title || "").trim();
+        const desc = String(slot?.desc || "").trim();
+        if (!title || !desc) continue;
+        if (valid.some((quest) => quest.title === title)) continue;
+        valid.push({
+          title,
+          desc,
+          tag: SIDE_QUEST_TAGS.includes(slot?.tag) ? slot.tag : "general",
+          poolId: String(slot?.poolId || "").trim(),
+          locationId: String(slot?.locationId || "").trim(),
+          locationName: String(slot?.locationName || "").trim(),
+          tierHints: null,
+          source: "static"
+        });
+      }
+    }
+    if (!valid.length) return false;
+
     state.tasks.side.dayKey = dayKey;
-    state.tasks.side.slots = quests.map((quest, index) => ({
+    state.tasks.side.slots = valid.map((quest, index) => ({
       slotIndex: index,
-      poolId: String(quest.poolId || `gen_${dayKey}_${index}`),
-      title: String(quest.title || "").trim(),
-      desc: String(quest.desc || "").trim(),
-      tag: SIDE_QUEST_TAGS.includes(quest.tag) ? quest.tag : "general",
+      poolId: quest.poolId || `gen_${dayKey}_${index}`,
+      title: quest.title,
+      desc: quest.desc,
+      tag: quest.tag,
+      locationId: quest.locationId || resolveSideQuestLocation(quest, state).locationId,
+      locationName: quest.locationName || resolveSideQuestLocation(quest, state).locationName,
       status: "open",
       resultTier: null,
-      source,
+      source: quest.source || source,
       tierHints: quest.tierHints || null,
       tierGenStatus: quest.tierHints ? "ready" : "idle"
     }));
     state.tasks.side.genStatus = "ready";
     state.tasks.side.source = source;
     state.tasks.side.pendingRequestId = "";
+    state.tasks.side.activeSlotIndex = null;
     return true;
   }
 
@@ -656,12 +896,14 @@ ${dietLine}
       state.tasks.side.slots = buildLoadingSideSlots();
       state.tasks.side.source = "";
       state.tasks.side.pendingRequestId = "";
+      state.tasks.side.activeSlotIndex = null;
       return "api";
     }
     refreshSideQuestSlots(state);
     state.tasks.side.genStatus = "ready";
     state.tasks.side.source = "static";
     state.tasks.side.pendingRequestId = "";
+    state.tasks.side.activeSlotIndex = null;
     return "static";
   }
 
@@ -670,7 +912,7 @@ ${dietLine}
     if (!pool?.pickDailyQuests) return false;
     const dayKey = getCampusDayKey(state);
     state.tasks.side.dayKey = dayKey;
-    state.tasks.side.slots = pool.pickDailyQuests(dayKey, state.idol, SIDE_SLOTS_PER_DAY).map((slot) => ({
+    state.tasks.side.slots = pool.pickDailyQuests(dayKey, state.idol, SIDE_SLOTS_PER_DAY, Number(state.tasks?.wallet?.fame) || 0).map((slot) => ({
       ...slot,
       source: "static",
       tierGenStatus: "idle",
@@ -679,6 +921,7 @@ ${dietLine}
     state.tasks.side.genStatus = "ready";
     state.tasks.side.source = "static";
     state.tasks.side.pendingRequestId = "";
+    state.tasks.side.activeSlotIndex = null;
     return true;
   }
 
@@ -723,6 +966,39 @@ ${dietLine}
     return state.tasks.side.slots.filter((slot) => slot?.status !== "done").length;
   }
 
+  function setActiveSideQuest(state, slotIndex) {
+    if (!isSandboxTasksActive(state)) return { ok: false, reason: "not_sandbox" };
+    ensureTasksShape(state);
+    syncSideQuestDay(state);
+    const index = Number(slotIndex);
+    const slot = state.tasks.side.slots[index];
+    if (!slot) return { ok: false, reason: "missing_slot" };
+    if (slot.status === "done" || slot.loading) return { ok: false, reason: "slot_unavailable" };
+    normalizeSideQuestLocations(state);
+    state.tasks.side.activeSlotIndex = index;
+    return { ok: true, slotIndex: index, slot: { ...state.tasks.side.slots[index] } };
+  }
+
+  function getActiveSideQuest(state) {
+    if (!isSandboxTasksActive(state)) return null;
+    ensureTasksShape(state);
+    syncSideQuestDay(state);
+    const index = state.tasks.side.activeSlotIndex;
+    if (index === null || index === undefined) return null;
+    const slot = state.tasks.side.slots[Number(index)];
+    if (!slot || slot.status === "done" || slot.loading) {
+      state.tasks.side.activeSlotIndex = null;
+      return null;
+    }
+    return { slotIndex: Number(index), ...slot };
+  }
+
+  function getActiveSideQuestAtLocation(state, locationId) {
+    const active = getActiveSideQuest(state);
+    if (!active) return null;
+    return active.locationId === String(locationId || "") ? active : null;
+  }
+
   function applySideQuestReward(state, reward) {
     if (!reward || typeof reward !== "object") return;
     state.tasks.wallet.money = (Number(state.tasks.wallet.money) || 0) + (Number(reward.money) || 0);
@@ -731,7 +1007,8 @@ ${dietLine}
     if (reward.Vi) state.Vi = Math.max(0, Number(state.Vi) + Number(reward.Vi));
     if (reward.stamina) state.stamina = clampStat(Number(state.stamina) + Number(reward.stamina), 0, 100);
     if (reward.stress) state.stress = clampStat(Number(state.stress) + Number(reward.stress), 0, 100);
-    if (reward.trust) state.trust = Math.max(0, Number(state.trust) + Number(reward.trust));
+    if (reward.trust) addCurrentIdolRelationshipScore(state, reward.trust);
+    if (reward.fame) state.tasks.wallet.fame = Math.max(0, Number(state.tasks.wallet.fame) + Number(reward.fame));
   }
 
   function applySideQuestTier(state, slotIndex, tier) {
@@ -749,6 +1026,7 @@ ${dietLine}
     slot.status = "done";
     slot.resultTier = tier;
     slot.completedAt = Date.now();
+    if (state.tasks.side.activeSlotIndex === index) state.tasks.side.activeSlotIndex = null;
     let healthyMealRecorded = false;
     if (slot.tag === "diet" && SIDE_HEALTHY_MEAL_TIERS.includes(tier)) {
       healthyMealRecorded = Boolean(recordHealthyMeal(state, 1));
@@ -777,6 +1055,7 @@ ${dietLine}
     const quest = state.tasks?.main?.[id];
     if (!quest || quest.status !== "active") return "";
     const baseline = state.tasks.baseline || { Vo: 120, Vi: 80, stamina: 100 };
+    const meta = MAIN_QUEST_META[id] || {};
     if (id === "temari_main_01") {
       return `参考 GKMS 5/6/9 话：SyngUp 训练后疲惫、登台前不安 · 体力 ${state.stamina}/85 · Vo ${state.Vo}/${baseline.Vo + THRESHOLDS.temari_main_01.voGain} · 野外试唱 ${quest.flags.outstage_full_song ? "已完成" : "未完成"}`;
     }
@@ -786,8 +1065,20 @@ ${dietLine}
     if (id === "temari_main_03") {
       return `参考 GKMS 1～3 话：饮食与体态 · Vi ${state.Vi}/${baseline.Vi + THRESHOLDS.temari_main_03.viGain} · 压力 ≤${THRESHOLDS.temari_main_03.stressMax} · 饮食方案 ${quest.flags.diet_plan_active ? "已制定" : "未制定"} · 健康餐 ${quest.flags.healthy_meal_count}/${THRESHOLDS.temari_main_03.healthyMealsMin}`;
     }
+    if (meta.category === "relationship") {
+      return `好感度 ${getCurrentIdolRelationshipScore(state)}/${meta.trustTarget} · 达成后开放对应羁绊课题复盘`;
+    }
+    if (meta.category === "ability") {
+      return `${meta.stat} ${Number(state[meta.stat]) || 0}/${meta.target} · 通过课程、训练和委托继续提升`;
+    }
+    if (meta.category === "work") {
+      return `知名度 ${Number(state.tasks?.wallet?.fame) || 0}/${meta.fameTarget} · 在委托系统承接小型商演与宣传工作`;
+    }
+    if (meta.category === "final") {
+      return state.firstLive?.success ? "First Live 已举办成功" : "等待 First Live 最终演出成功";
+    }
     if (id === "scout_temari") {
-      return "在物色目标所在地点发起搭话并完成首次接触";
+      return "在物色目标所在地点搭话；她同意成为担当时由 AI 输出【初星任务完成】scout_temari";
     }
     return "";
   }
@@ -798,6 +1089,7 @@ ${dietLine}
       id,
       title: MAIN_QUEST_META[id].title,
       conflict: MAIN_QUEST_META[id].conflict,
+      category: MAIN_QUEST_META[id].category || "main",
       status: state.tasks.main[id]?.status || "locked",
       step: Number(state.tasks.main[id]?.step) || 0,
       progressHint: progressHint(state, id)
@@ -809,6 +1101,8 @@ ${dietLine}
       side: {
         dayKey: state.tasks.side.dayKey,
         slots: state.tasks.side.slots,
+        activeSlotIndex: state.tasks.side.activeSlotIndex,
+        activeSlot: getActiveSideQuest(state),
         remainingToday: getSideQuestRemaining(state),
         maxPerDay: SIDE_SLOTS_PER_DAY,
         genStatus: state.tasks.side.genStatus,
@@ -821,11 +1115,12 @@ ${dietLine}
         maxPerDay: state.tasks.campus.maxPerDay,
         remainingToday: getCampusRemaining(state)
       },
-      wallet: { money: state.tasks.wallet.money },
+      wallet: { money: state.tasks.wallet.money, fame: state.tasks.wallet.fame },
       stats: {
         stamina: state.stamina,
         stress: state.stress,
         trust: state.trust,
+        relationship: getCurrentIdolRelationshipScore(state),
         Vo: state.Vo,
         Da: state.Da,
         Vi: state.Vi
@@ -835,10 +1130,10 @@ ${dietLine}
 
   function getQuestCompleteToast(id) {
     const map = {
-      scout_temari: "物色成功，手毬个人主线已解锁",
-      temari_main_01: "主线完成：舞台唱完",
-      temari_main_02: "主线完成：和美铃和好",
-      temari_main_03: "主线完成：饮食与体态"
+      scout_temari: "担当确认，亚纱里老师阶段课题已解锁",
+      temari_main_01: "课题完成：舞台唱完",
+      temari_main_02: "课题完成：和美铃和好",
+      temari_main_03: "课题完成：饮食与体态"
     };
     return map[id] || `任务完成：${MAIN_QUEST_META[id]?.title || id}`;
   }
@@ -872,10 +1167,14 @@ ${dietLine}
     applySideQuestTierHints,
     markSideQuestTierGenPending,
     getSideQuestRemaining,
+    setActiveSideQuest,
+    getActiveSideQuest,
+    getActiveSideQuestAtLocation,
     applySideQuestTier,
     activateScoutQuest,
     onScoutInviteComplete,
     completeScoutTemariOnLocationTalk,
+    onScoutTemariQuestCompleted,
     syncSandboxQuestProgress,
     parseQuestCompletionsFromText,
     parseQuestFlagsFromText,

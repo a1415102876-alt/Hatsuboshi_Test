@@ -24,7 +24,7 @@
 | **初星圈** | 暖白 + 玫瑰/星金 | `is-sns` |
 
 **内容源：** `world.buzz[]`（日常池，非 `events-pool` 广播池）。  
-**人设权重：** `SNS_PROFILES` — 清夏/琴音/祐芽高频，美铃 lurker，手毬炎上 `heat: high`。
+**人设权重：** `SNS_PROFILES` — 清夏/琴音/佑芽高频，美铃 lurker，手毬炎上 `heat: high`。
 
 构建时间线页时 **优先阅读** `pages/feed-timeline.md`。
 

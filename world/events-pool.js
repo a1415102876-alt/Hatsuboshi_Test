@@ -11,7 +11,7 @@
     "葛城リーリヤ": "葛城莉莉娅",
     "篠澤 広": "筱泽广",
     "篠泽广": "筱泽广",
-    "花海佑芽": "花海祐芽",
+    "花海祐芽": "花海佑芽",
     "倉本千奈": "仓本千奈",
     "秦谷美鈴": "秦谷美铃",
     "紫雲清夏": "紫云清夏",
@@ -37,7 +37,7 @@
     { id: "lilya_wake", idol: "葛城莉莉娅", title: "Wake up!!", hooks: ["元气向，和清夏搭档话题可自然互文"] },
     { id: "kiyoka_kira", idol: "紫云清夏", title: "Kira Kira", hooks: ["芭蕾出身与 pop 曲风的公开对比"] },
     { id: "kiyoka_tame", idol: "紫云清夏", title: "Tame-Lie-One-Step", hooks: ["近期较少公开露面，适合以「回归练习室」口吻"] },
-    { id: "ume_riceball", idol: "花海祐芽", title: "The Rolling Riceball", hooks: ["体力系偶像的公开招牌曲之一"] },
+    { id: "ume_riceball", idol: "花海佑芽", title: "The Rolling Riceball", hooks: ["体力系偶像的公开招牌曲之一"] },
     { id: "chiyuki_solf", idol: "仓本千奈", title: "ときめきのソルフェージュ", hooks: ["末位逆袭叙事里的代表曲"] },
     { id: "chiyuki_ws", idol: "仓本千奈", title: "Wonder Scale", hooks: ["适合聊「第一次觉得自己也能做到」"] },
     { id: "misuzu_hyori", idol: "秦谷美铃", title: "フワリ", hooks: ["睡神天才的反差萌代表"] },
@@ -59,7 +59,7 @@
     {
       id: "grade1_class1",
       name: "一年一班的偶像们",
-      idols: ["花海祐芽", "仓本千奈", "秦谷美铃"],
+      idols: ["花海佑芽", "仓本千奈", "秦谷美铃"],
       hooks: ["一年级班级向活动，气氛偏互相打气"]
     },
     {
@@ -107,7 +107,7 @@
     {
       id: "from_scratch",
       name: "もう一度、最初から！",
-      idols: ["花海祐芽", "仓本千奈", "秦谷美铃"],
+      idols: ["花海佑芽", "仓本千奈", "秦谷美铃"],
       hooks: ["星南代理组叙事，公开层只谈「重新开始」"]
     },
     {

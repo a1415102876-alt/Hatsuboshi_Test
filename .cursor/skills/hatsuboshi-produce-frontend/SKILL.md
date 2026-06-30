@@ -36,7 +36,3 @@ Read `references/frontend-notes.md` before changing event flow, AI bridge behavi
 - AI replies can be malformed, partial, regenerated, or stripped by SillyTavern presets. Reply parsing must be defensive and keep regeneration possible.
 - Saves are scoped to the SillyTavern chat when running under the bridge; browser-local state must not silently override meaningful remote chat metadata.
 - Mobile browser behavior matters. Avoid fixed desktop-only panels and make overlays visible within phone viewport constraints.
-
-## Content Boundary
-
-Keep Hatsuboshi Produce suitable for an idol-school fan game. Do not implement sexualized/NSFW mechanics for student or minor-coded idol characters. Prefer wholesome intimacy, trust, recovery, companionship, and character growth.

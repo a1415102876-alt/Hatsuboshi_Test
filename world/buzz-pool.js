@@ -59,7 +59,7 @@
         "失败只是数据。改方案就行。"
       ]
     },
-    "花海祐芽": {
+    "花海佑芽": {
       activity: 0.9,
       lurker: false,
       controversy: 0.08,
@@ -691,6 +691,8 @@
     resolveHeat,
     rollDailyBuzz,
     composeDailyBuzzPosts,
+    buildBuzzPost,
+    fakeTimeLabel,
     hashSeed,
     seededPick
   };

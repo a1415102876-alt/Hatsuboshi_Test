@@ -2,6 +2,7 @@
   "use strict";
 
   const STORAGE_KEY = "hatsuProduceLocalState";
+  const SAVE_BACKUP_STORAGE_KEY = "hatsuProduceLocalState_backup";
   const UI_VERSION = 4;
   const spChance = 35;
   const lessonEventChance = 45;
@@ -58,14 +59,14 @@
         rest: "休息必须被包装成胜利准备。她会确认这不是退让，而是为了下一次压倒性表现。"
       }
     },
-    "花海祐芽": {
+    "花海佑芽": {
       tag: "炽焰咆哮虎 / 赛人娘",
       bio: "候补入学的新生。元气满满、身体能力优越的原运动员。最最最最最喜欢姐姐咲季，从心底尊敬她、将她视为对手以及最大的目标。因为咲季的无私帮助，佑芽的偶像才能才得以绽放。",
       theme: "#ff5f4f",
       background: "./assets/idols/hanami-ume.png",
       avatar: "./assets/avatars/hanami-ume.png",
       core: "直觉型行动力、对姐姐咲季的憧憬与胜负心、压倒性成长欲、把失败立刻转成下一次挑战。",
-      aliases: ["花海佑芽"],
+      aliases: ["花海祐芽"],
       styles: {
         lesson: "把课堂理解成追上姐姐的捷径。她不懂就直问，抓住要点后会立刻想试试看。",
         training: "冲得很快，失败也很快，但不会停下。越接近咲季，她越能感到兴奋和害怕同时存在。",
@@ -225,7 +226,7 @@
     "秦谷美铃": [95, 125, 140, 27, 13, 20, 1480, 1080, 1390, 2180, 1680, 2050],
     "筱泽广": [70, 55, 120, 22, 8, 26, 1180, 820, 1450, 1880, 1420, 2150],
     "十王星南": [175, 125, 140, 15, 8, 20.5, 1280, 1050, 1500, 1930, 1650, 2200],
-    "花海祐芽": [120, 115, 110, 24, 24, 20, 1500, 1480, 1380, 2200, 2180, 2080],
+    "花海佑芽": [120, 115, 110, 24, 24, 20, 1500, 1480, 1380, 2200, 2180, 2080],
     "仓本千奈": [75, 115, 125, 10, 24, 20.5, 1050, 1520, 1450, 1650, 2220, 2150],
     "葛城莉莉娅": [80, 100, 115, 18, 20, 18, 1300, 1380, 1450, 2000, 2080, 2150],
     "紫云清夏": [100, 115, 90, 9, 23, 23, 1050, 1500, 1450, 1650, 2200, 2150],
@@ -236,9 +237,9 @@
 
   const exactPresetIdols = new Set(["藤田琴音", "月村手毬", "花海咲季", "秦谷美铃"]);
   const idolAliases = {
-    "花海佑芽": "花海祐芽",
-    "佑芽": "花海祐芽",
-    "祐芽": "花海祐芽",
+    "花海祐芽": "花海佑芽",
+    "佑芽": "花海佑芽",
+    "祐芽": "花海佑芽",
     "藤田 琴音": "藤田琴音",
     "琴音": "藤田琴音",
     "月村 手毬": "月村手毬",
@@ -278,6 +279,16 @@
   const vnStandees = {
     "亚纱里老师": "./assets/novel-standees/asari-sensei.png"
   };
+  const residentNpcProfiles = {
+    "亚纱里老师": {
+      locationId: "producer_classroom",
+      publicLabel: "制作人科指导教师",
+      statusLabel: "常驻",
+      promptLine: "制作人科指导教师，常驻制作人科教室；可就调查、观察与担当偶像的选择给出建议。",
+      avatar: "./assets/avatars/neo-asari.png",
+      theme: "#6f9cff"
+    }
+  };
   const selectBackgroundCodes = {
     "雨夜燕": "amaya"
   };
@@ -285,7 +296,7 @@
     "藤田琴音": "KOTONE",
     "月村手毬": "TEMARI",
     "花海咲季": "SAKI",
-    "花海祐芽": "UME",
+    "花海佑芽": "UME",
     "筱泽广": "HIRO",
     "十王星南": "SENA",
     "秦谷美铃": "MISUZU",
@@ -296,6 +307,21 @@
     "姬崎莉波": "RINAMI",
     "雨夜燕": "TSUBAME"
   };
+  const idolRomajiNames = {
+    "藤田琴音": "Kotone Fujita",
+    "月村手毬": "Temari Tsukimura",
+    "花海咲季": "Saki Hanami",
+    "花海佑芽": "Ume Hanami",
+    "筱泽广": "Hiro Shinosawa",
+    "十王星南": "Sena Juo",
+    "秦谷美铃": "Misuzu Hataya",
+    "仓本千奈": "China Kuramoto",
+    "葛城莉莉娅": "Lilja Katsuragi",
+    "紫云清夏": "Sumika Shiun",
+    "有村麻央": "Mao Arimura",
+    "姬崎莉波": "Rinami Himesaki",
+    "雨夜燕": "Tsubame Amaya"
+  };
   const idolSchoolClasses = {
     "紫云清夏": "1年1班",
     "葛城莉莉娅": "1年1班",
@@ -303,7 +329,7 @@
     "月村手毬": "1年1班",
     "花海咲季": "1年1班",
     "筱泽广": "1年2班",
-    "花海祐芽": "1年2班",
+    "花海佑芽": "1年2班",
     "秦谷美铃": "1年2班",
     "仓本千奈": "1年2班",
     "十王星南": "3年1班",
@@ -311,7 +337,7 @@
     "有村麻央": "3年1班",
     "姬崎莉波": "3年1班"
   };
-  const interactionCharacters = ["藤田琴音", "月村手毬", "花海咲季", "秦谷美铃", "筱泽广", "十王星南", "花海祐芽", "仓本千奈", "紫云清夏", "葛城莉莉娅", "有村麻央", "姬崎莉波", "雨夜燕"];
+  const interactionCharacters = ["藤田琴音", "月村手毬", "花海咲季", "秦谷美铃", "筱泽广", "十王星南", "花海佑芽", "仓本千奈", "紫云清夏", "葛城莉莉娅", "有村麻央", "姬崎莉波", "雨夜燕"];
   const actionEventPools = {
     lesson: {
       Vo: ["课堂临时试唱", "分组和声练习", "训练员点名示范", "课后换气复盘", "同桌交换声乐笔记"],
@@ -331,20 +357,177 @@
   const outingDestinations = [
     { name: "商店街", description: "小吃、饮料和便宜日用品，适合放学后闲逛与偶遇。" },
     { name: "购物中心", description: "买衣服、逛店，寻找舞台服装或私服灵感。" },
-    { name: "游戏厅", description: "轻松竞技、游戏反差和不服输挑战。" },
+    { name: "地方电台", description: "小型访谈、短口播与清唱宣传常在这里录制。" },
+    { name: "电视台", description: "综艺、音乐节目和正式媒体通告的录制地点。" },
+    { name: "活动会场", description: "品牌发布会、文化节与区域商演的临时会场。" },
+    { name: "音乐节会场", description: "高知名度后才会接到的大型户外舞台档期。" },
+    { name: "摄影棚", description: "杂志、品牌视觉和宣传照拍摄的专业空间。" },
+    { name: "品牌旗舰店", description: "直播站台、代言日与连锁品牌宣传活动的现场。" },
     { name: "游乐园", description: "约会感、胆量与体力对比，适合关系推进。" },
-    { name: "拉面店", description: "高热量美食与饮食管理，尤其容易触发手毬的反应。" },
-    { name: "琴音打工的快餐店", description: "打工、收入、家庭压力，以及努力被看见的地方。" }
+    { name: "水族馆", description: "安静的展厅、蓝色水光和慢节奏对话，适合情绪沉淀。" },
+    { name: "体育中心", description: "校外综合运动设施，适合体能管理、康复与外包训练。" }
   ];
   const FREE_MODE_OUTING_DESTINATIONS = [
-    { name: "商店街", description: "小吃、饮料和便宜日用品，适合放学后闲逛与偶遇。" },
-    { name: "购物中心", description: "买衣服、逛店，寻找舞台服装或私服灵感。" },
-    { name: "游戏厅", description: "轻松竞技、游戏反差和不服输挑战。" },
-    { name: "游乐园", description: "约会感、胆量与体力对比，适合关系推进。" },
-    { name: "拉面店", description: "高热量美食与饮食管理，尤其容易触发手毬的反应。" },
-    { name: "琴音打工的快餐店", description: "打工、收入、家庭压力，以及努力被看见的地方。" }
+    ...outingDestinations
+  ];
+  const OFF_CAMPUS_TRANSIT_STATIONS = [
+    {
+      id: "hatsuboshi_gate",
+      name: "初星学园前",
+      shortLabel: "初星",
+      line: "main",
+      status: "hub",
+      x: 12,
+      y: 66,
+      description: "校外线路的起点。穿过正门后，制作人和担当从这里搭乘初星电铁。",
+      pois: ["校门前站牌", "便利购票口", "返校通道"]
+    },
+    {
+      id: "shopping_street",
+      name: "商店街",
+      shortLabel: "街",
+      line: "main",
+      status: "open",
+      x: 32,
+      y: 66,
+      description: "放学后人流最多的拱廊街，适合采购、打工、街头宣传和偶遇。",
+      pois: ["拉面店", "琴音打工的快餐店", "杂货店", "街头路口"]
+    },
+    {
+      id: "shopping_mall",
+      name: "购物中心",
+      shortLabel: "Mall",
+      line: "main",
+      status: "open",
+      x: 52,
+      y: 66,
+      description: "大型商业设施，甜品、游戏、服装和活动中庭聚在一起。",
+      pois: ["甜品店", "游戏厅", "服装区", "活动中庭"]
+    },
+    {
+      id: "amusement_park",
+      name: "游乐园",
+      shortLabel: "乐园",
+      line: "main",
+      status: "open",
+      x: 72,
+      y: 66,
+      description: "约会感、胆量项目和体力对比明显的校外娱乐区。",
+      pois: ["旋转木马", "鬼屋", "纪念品店", "夜间灯饰"]
+    },
+    {
+      id: "aquarium",
+      name: "水族馆",
+      shortLabel: "水族",
+      line: "main",
+      status: "open",
+      x: 92,
+      y: 66,
+      description: "安静的蓝色展厅，适合外景、沉默对话和关系回温。",
+      pois: ["大水槽", "水母展厅", "纪念商店", "海景走廊"]
+    },
+    {
+      id: "sports_center",
+      name: "体育中心",
+      shortLabel: "运动",
+      line: "sports",
+      status: "open",
+      x: 12,
+      y: 24,
+      description: "校外综合运动设施，适合体能、康复、数据测试与短期集训。",
+      pois: ["训练馆", "康复室", "体测区", "营养补给吧"]
+    },
+    {
+      id: "local_radio",
+      name: "地方电台",
+      shortLabel: "电台",
+      line: "media",
+      status: "open",
+      x: 26,
+      y: 50,
+      description: "社区电台与小演播室，委托系统常见的小型访谈与口播录制点。",
+      pois: ["直播间", "导播台", "等候沙发"]
+    },
+    {
+      id: "tv_station",
+      name: "电视台",
+      shortLabel: "电视",
+      line: "media",
+      status: "open",
+      x: 38,
+      y: 32,
+      description: "综艺与音乐节目的正式录制设施，知名度较高后才会接到档期。",
+      pois: ["演播厅", "候场通道", "化妆间"]
+    },
+    {
+      id: "event_hall",
+      name: "活动会场",
+      shortLabel: "会场",
+      line: "media",
+      status: "open",
+      x: 48,
+      y: 50,
+      description: "品牌发布会、文化节与区域商演常用的临时舞台会场。",
+      pois: ["主舞台", "签售区", "后台通道"]
+    },
+    {
+      id: "photo_studio",
+      name: "摄影棚",
+      shortLabel: "摄影",
+      line: "media",
+      status: "open",
+      x: 58,
+      y: 32,
+      description: "杂志拍摄与品牌视觉宣传的专业摄影空间。",
+      pois: ["无缝背景墙", "灯光架", "换装区"]
+    },
+    {
+      id: "brand_store",
+      name: "品牌旗舰店",
+      shortLabel: "品牌",
+      line: "media",
+      status: "open",
+      x: 68,
+      y: 50,
+      description: "连锁品牌旗舰门店，适合站台、直播带货与代言日活动。",
+      pois: ["中庭展台", "橱窗", "活动区"]
+    },
+    {
+      id: "music_festival",
+      name: "音乐节会场",
+      shortLabel: "音乐节",
+      line: "media",
+      status: "open",
+      x: 82,
+      y: 32,
+      description: "大型户外音乐节与商演场地，高知名度偶像才会受邀。",
+      pois: ["主舞台", "副舞台", "艺人休息室"]
+    },
+    {
+      id: "saki_home",
+      name: "咲季家",
+      shortLabel: "咲季",
+      line: "home",
+      status: "locked",
+      x: 52,
+      y: 24,
+      description: "花海家的生活区域。建议作为咲季相关事件或信赖阶段地点开放。",
+      pois: ["玄关", "客厅", "家庭餐桌"]
+    },
+    {
+      id: "china_home",
+      name: "千奈家",
+      shortLabel: "千奈",
+      line: "home",
+      status: "locked",
+      x: 72,
+      y: 24,
+      description: "千奈相关的私宅地点。建议作为角色事件或特定任务解锁。",
+      pois: ["宅邸门前", "会客室", "庭院"]
+    }
   ];
   const FREE_MODE_OUTING_LOCATION_ID = "free_outing";
+  const DEFAULT_OUTING_SCENE = "./assets/scenes/campus.png";
   const WORLD_MAP_LOCATION_SCENES = {
     school_entrance: "./assets/scenes/School_Entrance.png",
     club_room: "./assets/scenes/campus.png",
@@ -356,9 +539,23 @@
     idol_classroom: "./assets/scenes/IDOL_Class.png",
     special_education: "./assets/scenes/SpecialEducation_Detailed.png",
     producer_classroom: "./assets/scenes/Producer_Class.png",
+    courtyard: "./assets/scenes/courtyard.png",
     dining_hall: "./assets/scenes/Dining.png",
     student_store: "./assets/scenes/Student Store.png",
     [FREE_MODE_OUTING_LOCATION_ID]: "./assets/scenes/campus.png"
+  };
+  // 校外外出地点（按目的地名称）对应的场景图。未单独配图的使用 DEFAULT_OUTING_SCENE。
+  const OUTING_DESTINATION_SCENES = {
+    "商店街": "./assets/scenes/Shopping_Street.png",
+    "购物中心": "./assets/scenes/Shopping_Mall.png",
+    "游乐园": "./assets/scenes/MerryGoRound.png",
+    "体育中心": "./assets/scenes/Sport Studio.png",
+    "地方电台": DEFAULT_OUTING_SCENE,
+    "电视台": DEFAULT_OUTING_SCENE,
+    "活动会场": DEFAULT_OUTING_SCENE,
+    "音乐节会场": DEFAULT_OUTING_SCENE,
+    "摄影棚": DEFAULT_OUTING_SCENE,
+    "品牌旗舰店": DEFAULT_OUTING_SCENE
   };
   const FINAL_LIVE_DAY = 22;
   const SUMMARY_ROUND = 5;
@@ -372,15 +569,16 @@
   const FREE_MODE_MAP_NIGHT_START_MINUTES = 20 * 60;
   const WORLD_MAP_LOCATIONS = [
     { id: "school_entrance", name: "学园正门", shortLabel: "正门", description: "初星学园的入口。新生、访客与偶像们每天经过这里。", x: 52.8, y: 96.8, image: "./assets/MAP/School_Entrance.png" },
-    { id: "club_room", name: "部室栋", shortLabel: "部室", description: "各社团与活动部室所在的楼栋；学生会办公室也在这里，日常练习与公务常在此进行。", x: 17.8, y: 39.6, image: "" },
+    { id: "club_room", name: "部室栋", shortLabel: "部室", description: "各社团与活动部室所在的楼栋；学生会办公室也在这里，公务与会议常在此进行。", x: 17.8, y: 39.6, image: "" },
     { id: "auditorium", name: "讲堂", shortLabel: "讲堂", description: "拥有圆顶的大型讲堂，学园重要集会与发表会在此举行。", x: 50.8, y: 33, image: "./assets/MAP/MeetingRoom.png" },
     { id: "outstage", name: "野外舞台", shortLabel: "野外", description: "学园右上角的公开舞台，适合排练、试演与小型演出。", x: 80.3, y: 13.7, image: "./assets/MAP/OutStage.png" },
     { id: "playground", name: "运动场", shortLabel: "操场", description: "带跑道与足球场的运动区，体能训练与户外练习的主要场地。", x: 26.3, y: 52.3, image: "./assets/MAP/PlayGround.png" },
     { id: "swimming_pool", name: "泳池", shortLabel: "泳池", description: "室内游泳设施，体能与恢复训练时会来到这里。", x: 37.5, y: 84.9, image: "./assets/MAP/SwimmingPool.png" },
     { id: "gymnasium", name: "体育馆", shortLabel: "体育馆", description: "学园中央的室内体育馆，各类体能与舞台基础训练在此进行。", x: 52.2, y: 63.7, image: "./assets/MAP/Gymnasium.png" },
     { id: "idol_classroom", name: "偶像科教室", shortLabel: "偶像", description: "偶像们上课、讨论与彼此较量的教室区域。", x: 82.3, y: 61.2, image: "./assets/MAP/Idol_Classroom_Detailed.png" },
-    { id: "special_education", name: "特别教育栋", shortLabel: "特教", description: "特别教育科与专用训练设施所在楼栋，藏着更多学园内幕。", x: 90, y: 55, image: "./assets/MAP/SpecialEducation_Detailed.png" },
+    { id: "special_education", name: "特别教育栋", shortLabel: "特教", description: "集各种教育资源于一体，支撑学生从日常训练走向舞台表现的专业教学空间。", x: 90, y: 55, image: "./assets/MAP/SpecialEducation_Detailed.png" },
     { id: "producer_classroom", name: "制作人科教室", shortLabel: "P科", description: "培育担当偶像的专属教室，也是日常育成的主舞台。", x: 84.5, y: 93.9, image: "./assets/MAP/Producer_Classroom_Detailed.png" },
+    { id: "courtyard", name: "中庭", shortLabel: "中庭", description: "氛围宁静祥和，是放松身心的好地方。", x: 81.8, y: 86.6, image: "./assets/scenes/courtyard.png" },
     { id: "dining_hall", name: "食堂", shortLabel: "食堂", description: "学园内的用餐区，午餐、点心与偶像们的日常闲聊常在这里发生。", x: 87.2, y: 86.4, image: "./assets/MAP/Dining.png" },
     { id: "student_store", name: "小卖部", shortLabel: "小卖", description: "贩卖零食、文具与小物件的校内商店，适合短暂停留与偶遇。", x: 92.8, y: 85.6, image: "./assets/MAP/Student Store.png" }
   ];
@@ -390,17 +588,29 @@
   const WORLD_MAP_LAYOUT_FILE = "./assets/MAP/world-map-layout.json";
   const FREE_MODE_DAY_START_MINUTES = 8 * 60;
   const FREE_MODE_DAY_END_MINUTES = 22 * 60;
+  const FREE_MODE_LATE_END_MINUTES = 23 * 60;
+  const PRODUCER_APARTMENT_SCENE = "./assets/scenes/Producer_Apartment.png";
+  const PRODUCER_APARTMENT_DAY_SCENE = "./assets/scenes/Producer_Room_Day.png";
   const HYBRID_FACILITY_LESSON_LOCATIONS = ["idol_classroom", "producer_classroom"];
-  const HYBRID_FACILITY_TRAINING_LOCATIONS = ["gymnasium", "club_room", "special_education"];
+  const HYBRID_FACILITY_TRAINING_LOCATIONS = ["gymnasium", "special_education"];
   const HYBRID_FACILITY_ACTION_MINUTES = 60;
   const SANDBOX_SELECTABLE_IDOLS = ["月村手毬"];
   const SANDBOX_ASARI_OPENING_STORY = `【初星正文开始】
 <story>
-<narration>制作人科的新生报到日。阳光透过窗户，在 Producer Class 的课桌上铺开一片暖色。</narration>
-<dialogue char="亚纱里老师">“欢迎来到初星学园，制作人科的一年级新生。”</dialogue>
-<dialogue char="亚纱里老师">“从今天起，你可以按自己的节奏熟悉这所学校——去教学楼上课，去训练室锻炼，在地图上的各处自由行动。”</dialogue>
-<narration>亚纱里老师把一张简易学园地图推到你的面前。上面标注着各处设施，以及今天可能在场的偶像位置。</narration>
-<dialogue char="亚纱里老师">“先把地图收好。选好想接触的偶像后，就去学园里找见她吧。”</dialogue>
+<narration>午后的制作人科教室里，黑板上还留着上一节课的字迹。</narration>
+<narration>【今日课题：调查、观察与担当偶像的选择】</narration>
+<narration>亚纱里老师站在讲台前，用教鞭轻轻点了点黑板。</narration>
+<dialogue char="亚纱里老师">“Producer，并不是只要坐在教室里，就会有命中注定的偶像自己走到你面前哦。”</dialogue>
+<narration>她转过身，目光扫过教室。语气温和，却没有半点玩笑的意思。</narration>
+<dialogue char="亚纱里老师">“作为制作人科的学生，你们要学会观察。她为什么站在那个地方，为什么在这个时候移开视线，为什么明明很累却还要继续训练……这些细节，都会成为判断偶像潜力的重要线索。”</dialogue>
+<narration>粉笔在黑板上写下新的几行字。</narration>
+<narration>【观察】【记录】【判断】【提出培养方针】</narration>
+<dialogue char="亚纱里老师">“当然，调查不是窥探隐私。制作人的工作，是在尊重偶像本人的前提下，发现她自己还没能说出口的可能性。”</dialogue>
+<narration>亚纱里老师停顿了一下，看向坐在教室里的你。</narration>
+<dialogue char="亚纱里老师">“那么，{{user}}。”</dialogue>
+<narration>她的声音比刚才柔和了一点。</narration>
+<dialogue char="亚纱里老师">“从今天开始，你的课题就是在初星学园内进行实地调查。去和偶像科的学生交谈，观察她们的训练，阅读公开资料，必要时也可以向老师提交申请书。”</dialogue>
+<dialogue char="亚纱里老师">“最后，请你找到一位你认为值得负责到底的偶像。”</dialogue>
 </story>
 【初星正文结束】`;
   const SANDBOX_INVITE_STORY = `【初星正文开始】
@@ -409,6 +619,7 @@
 </story>
 【初星正文结束】`;
   const FREE_MODE_MAP_ARRIVAL_MINUTES = 15;
+  const MAP_LOCATION_PRESENCE_COLLAPSE_AT = 2;
   const FREE_MODE_MAP_CHOICE_MINUTES = 15;
   const FREE_MODE_MAP_MINUTES_MAX = 120;
   const FREE_MODE_PRESENCE_CHANCE = 0.2;
@@ -418,6 +629,7 @@
     editorActive: false,
     drag: null
   };
+  let mapLocationPresenceExpanded = false;
   const PHONE_CHAT_LINE_DELAY_MS = 2800;
   const phoneAppRegistry = [
     {
@@ -570,6 +782,105 @@
     return tag ? `好感度阶段标签：${tag}` : "";
   }
 
+  function clampFreeModeRelationshipScore(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return 0;
+    return Math.round(clamp(number, 0, 100));
+  }
+
+  function normalizeFreeModeRelationshipEntry(entry = {}) {
+    const rawScore = typeof entry === "number" || typeof entry === "string"
+      ? entry
+      : entry?.好感度;
+    const rawDay = typeof entry === "object" && entry ? Number(entry.更新日) : 0;
+    return {
+      好感度: clampFreeModeRelationshipScore(rawScore),
+      更新日: Number.isFinite(rawDay) && rawDay > 0 ? Math.floor(rawDay) : 0
+    };
+  }
+
+  function ensureFreeModeRelationships() {
+    if (!state.freeMode) state.freeMode = {};
+    const source = state.freeMode.relationships && typeof state.freeMode.relationships === "object"
+      ? state.freeMode.relationships
+      : {};
+    const normalized = {};
+    Object.entries(source).forEach(([rawName, rawEntry]) => {
+      const idolName = canonicalIdolName(rawName);
+      if (!idolName || !idols[idolName]) return;
+      normalized[idolName] = normalizeFreeModeRelationshipEntry(rawEntry);
+    });
+    state.freeMode.relationships = normalized;
+    return normalized;
+  }
+
+  function getFreeModeRelationship(idolName, options = {}) {
+    const canonical = canonicalIdolName(idolName);
+    if (!canonical || !idols[canonical]) return null;
+    const { create = true } = options;
+    const relationships = ensureFreeModeRelationships();
+    if (!relationships[canonical] && create) {
+      relationships[canonical] = normalizeFreeModeRelationshipEntry();
+    }
+    return relationships[canonical] || null;
+  }
+
+  function getFreeModeRelationshipScore(idolName) {
+    return getFreeModeRelationship(idolName)?.好感度 || 0;
+  }
+
+  function canonicalNpcName(value) {
+    const raw = String(value || "").trim();
+    if (!raw) return "";
+    if (residentNpcProfiles[raw]) return raw;
+    const found = Object.entries(residentNpcProfiles).find(([name, profile]) => {
+      return profile?.id === raw || profile?.alias === raw || name.toLowerCase() === raw.toLowerCase();
+    });
+    return found ? found[0] : "";
+  }
+
+  function ensureFreeModeNpcRelationships() {
+    if (!state.freeMode) state.freeMode = {};
+    const source = state.freeMode.npcRelationships && typeof state.freeMode.npcRelationships === "object"
+      ? state.freeMode.npcRelationships
+      : {};
+    const normalized = {};
+    Object.entries(source).forEach(([rawName, rawEntry]) => {
+      if (typeof canonicalNpcName !== "function" || typeof getFreeModeNpcRelationship !== "function") return;
+      const npcName = canonicalNpcName(rawName);
+      if (!npcName) return;
+      normalized[npcName] = normalizeFreeModeRelationshipEntry(rawEntry);
+    });
+    state.freeMode.npcRelationships = normalized;
+    return normalized;
+  }
+
+  function getFreeModeNpcRelationship(npcName, options = {}) {
+    const canonical = canonicalNpcName(npcName);
+    if (!canonical) return null;
+    const { create = true } = options;
+    const relationships = ensureFreeModeNpcRelationships();
+    if (!relationships[canonical] && create) {
+      relationships[canonical] = normalizeFreeModeRelationshipEntry();
+    }
+    return relationships[canonical] || null;
+  }
+
+  function getFreeModeNpcRelationshipScore(npcName) {
+    return getFreeModeNpcRelationship(npcName)?.好感度 || 0;
+  }
+  function getFreeModeAffinityStageLine(idolName) {
+    return getAffinityStageLine(idolName, getFreeModeRelationshipScore(idolName));
+  }
+
+  // 按当前模式选择好感度来源：沙盒/自由模式用 freeMode 好感度，育成模式用旧的 state.trust。
+  function getContactAffinityStageLine(idolName) {
+    if (isSandboxLaunch() || isFreeModeActive()) {
+      return getFreeModeAffinityStageLine(idolName);
+    }
+    return getAffinityStageLine(idolName, state.trust);
+  }
+
   const affinityNodes = {
     0: { title: "担当开场", theme: "制作人与担当偶像正式建立育成关系，确认 First Live 前的共同目标。", timing: "选择担当后立即触发，读完后进入育成主界面。" },
     20: { title: "相互试探", theme: "围绕“为什么选择她、她为什么愿意接受你”推进早期信任。", timing: "好感度达到 20 后解锁。" },
@@ -627,7 +938,7 @@
       80: "通过观摩手毬演出确认差距与决心，发出回应式的挑战。锚点是：作为“头号粉丝”观摩手毬演出、对不顾一切演出的担忧与胃药关怀、以自身歌声为回击的“战书”、亲口教训并直面手毬。",
       100: "First Live 成功后：自我觉醒、关系重塑。锚点是：Live获得认可、与手毬互相道歉并承认无法回到过去的组合，但确认了新的同伴关系；美铃向制作人吐露成为偶像的根源（并非憧憬，而是对光的占有欲与不甘心）；确认制作人是让自己登上最高峰、并能在那里安稳小睡的唯一共犯。"
     },
-    "花海祐芽": {
+    "花海佑芽": {
       0: "迟到入学后凭直觉请求制作人担当，单纯又热烈地相信对方能成为力量。",
       20: "她的目标极其直接：打败姐姐咲季，成为学园第一。",
       40: "制作人指出她对偶像的热情几乎都来自咲季，她开始分辨追姐姐和成为偶像。",
@@ -1233,6 +1544,7 @@
     uiVersion: UI_VERSION,
     gameMode: "classic",
     launchMode: null,
+    launchMenuPaused: false,
     sandbox: {
       openingComplete: false,
       inviteComplete: false
@@ -1262,9 +1574,13 @@
       clockMinutes: FREE_MODE_DAY_START_MINUTES,
       presenceSlotKey: "",
       presence: {},
+      relationships: {},
+      npcRelationships: {},
       activeLocationId: null,
       facilityKind: null,
       facilityLocationId: null,
+      eveningJournal: null,
+      atApartment: false,
       world: {
         macro_phase: "first_live",
         cast_first_live: {},
@@ -1330,7 +1646,7 @@
   const statShort = { Vo: "Vo.", Da: "Da.", Vi: "Vi." };
   const statIcons = { Vo: "mic", Da: "dance", Vi: "visual" };
   const statColors = { Vo: "#ff4f9a", Da: "#26a9f4", Vi: "#ffca35" };
-  const actionIcons = { lesson: "book", training: "dance", rest: "rest", outing: "map", companion: "chat", intimacy: "heart", freechat: "chat", interaction: "star", bond: "heart", day_summary: "file", phone: "phone", next_day: "calendar", world_map: "map", live: "mic" };
+  const actionIcons = { lesson: "book", training: "dance", rest: "rest", outing: "map", companion: "chat", intimacy: "heart", freechat: "chat", interaction: "star", gift: "heart", bond: "heart", day_summary: "file", phone: "phone", next_day: "calendar", world_map: "map", live: "mic" };
   const promptPanels = { prompt: "tabPrompt", log: "tabLog", debug: "tabDebug" };
   const idolBackgroundStatus = new Map();
   let activePromptTab = "prompt";
@@ -1644,6 +1960,39 @@
     promptHistory: [],
     openingDispatches: []
   };
+  const secondaryApiDebug = {
+    events: [],
+    lastMessage: "尚未发起次 API 请求"
+  };
+
+  function pushSecondaryDebug(entry = {}) {
+    const record = {
+      at: Date.now(),
+      phase: entry.phase || "",
+      kind: entry.kind || "",
+      requestId: entry.requestId || "",
+      transport: entry.transport || "",
+      promptLength: entry.promptLength,
+      ok: entry.ok,
+      error: entry.error || "",
+      textLength: entry.textLength,
+      preview: entry.preview || "",
+      parseOk: entry.parseOk
+    };
+    secondaryApiDebug.events.unshift(record);
+    if (secondaryApiDebug.events.length > 16) {
+      secondaryApiDebug.events.length = 16;
+    }
+    if (entry.phase === "send") {
+      secondaryApiDebug.lastMessage = `已发送 ${record.kind || "请求"}（${record.transport || "?"}），等待回复…`;
+    } else if (entry.phase === "reply") {
+      secondaryApiDebug.lastMessage = record.ok
+        ? `收到 ${record.kind || "回复"}：文本 ${record.textLength ?? 0} 字${record.parseOk === false ? "，但解析失败" : record.parseOk === true ? "，解析成功" : ""}`
+        : `请求 ${record.kind || ""} 失败：${record.error || "无有效回复"}`;
+    }
+    if (typeof renderSecondaryApiDebug === "function") renderSecondaryApiDebug();
+    return record;
+  }
   let state = loadState();
 
   ensureStateShape();
@@ -1694,6 +2043,44 @@
     return `${STORAGE_KEY}:${safe}`;
   }
 
+  function backupStorageKeyForScope(scope = activeStorageKey) {
+    return scope === STORAGE_KEY ? SAVE_BACKUP_STORAGE_KEY : `${scope}:backup`;
+  }
+
+  function backupCurrentSave() {
+    try {
+      localStorage.setItem(backupStorageKeyForScope(), JSON.stringify(state));
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  function hasBackupSave() {
+    try {
+      return Boolean(localStorage.getItem(backupStorageKeyForScope()));
+    } catch {
+      return false;
+    }
+  }
+
+  function restoreBackupSave() {
+    try {
+      const saved = localStorage.getItem(backupStorageKeyForScope());
+      if (!saved) return false;
+      state = { ...clone(baseState), ...JSON.parse(saved) };
+      ensureStateShape();
+      state.launchMenuPaused = false;
+      pendingAiRequestId = "";
+      state.pendingAiRequestId = "";
+      saveState();
+      render();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   function switchStorageScope(scope) {
     const nextKey = storageKeyForScope(scope);
     if (nextKey === activeStorageKey) return false;
@@ -1710,6 +2097,7 @@
   function ensureStateShape() {
     state.gameMode = state.gameMode === "hybrid" ? "hybrid" : "classic";
     state.launchMode = ["produce", "sandbox"].includes(state.launchMode) ? state.launchMode : null;
+    state.launchMenuPaused = Boolean(state.launchMenuPaused);
     state.sandbox = {
       openingComplete: false,
       inviteComplete: false,
@@ -1742,11 +2130,23 @@
       clockMinutes: FREE_MODE_DAY_START_MINUTES,
       presenceSlotKey: "",
       presence: {},
+      relationships: {},
+      npcRelationships: {},
       activeLocationId: null,
       facilityKind: null,
       facilityLocationId: null,
+      eveningJournal: null,
+      atApartment: false,
+      eveningStayExtended: false,
+      eveningGoHomeDeferred: false,
       ...(state.freeMode || {})
     };
+    state.freeMode.atApartment = Boolean(state.freeMode.atApartment);
+    state.freeMode.eveningStayExtended = Boolean(state.freeMode.eveningStayExtended);
+    state.freeMode.eveningGoHomeDeferred = Boolean(state.freeMode.eveningGoHomeDeferred);
+    if (state.freeMode.eveningJournal && typeof state.freeMode.eveningJournal !== "object") {
+      state.freeMode.eveningJournal = null;
+    }
     if (!["lesson", "training"].includes(state.freeMode.facilityKind)) {
       state.freeMode.facilityKind = null;
       state.freeMode.facilityLocationId = null;
@@ -1760,6 +2160,7 @@
     if (!state.freeMode.presence || typeof state.freeMode.presence !== "object") {
       state.freeMode.presence = {};
     }
+    ensureFreeModeRelationships();
     if (state.freeMode.locationId && !state.freeMode.activeLocationId) {
       state.freeMode.activeLocationId = state.freeMode.locationId;
     }
@@ -1804,6 +2205,16 @@
     };
     if (!Array.isArray(state.freeMode.world.buzz.items)) {
       state.freeMode.world.buzz.items = [];
+    }
+    if (!state.freeMode.world.dailyGen || typeof state.freeMode.world.dailyGen !== "object") {
+      state.freeMode.world.dailyGen = { dayKey: "", status: "idle", source: "", pendingRequestId: "" };
+    } else {
+      state.freeMode.world.dailyGen = {
+        dayKey: String(state.freeMode.world.dailyGen.dayKey || ""),
+        status: String(state.freeMode.world.dailyGen.status || "idle"),
+        source: String(state.freeMode.world.dailyGen.source || ""),
+        pendingRequestId: String(state.freeMode.world.dailyGen.pendingRequestId || "")
+      };
     }
     state.activeStoryNode = state.activeStoryNode || null;
     state.producer = {
@@ -1873,7 +2284,9 @@
   function notifyQuestCompletions(questIds) {
     if (!questIds?.length || !globalThis.HatsuTasks) return;
     questIds.forEach((id) => {
-      showToast("任务", globalThis.HatsuTasks.getQuestCompleteToast(id), "gold");
+      const label = globalThis.HatsuTasks.getQuestCompleteToast(id);
+      appendEveningJournalTask("课题完成", label);
+      showToast("任务", label, "gold");
     });
   }
 
@@ -1884,7 +2297,7 @@
     const numericCompleted = globalThis.HatsuTasks.evaluateNumericMainQuests(state);
     const merged = [...new Set([...tagCompleted, ...flagResult.completions || [], ...numericCompleted])];
     if (flagResult.notices?.length) {
-      flagResult.notices.forEach((notice) => showToast("主线进度", notice, "info"));
+      flagResult.notices.forEach((notice) => showToast("课题进度", notice, "info"));
     }
     if (merged.length) {
       saveState();
@@ -1896,7 +2309,7 @@
     if (!globalThis.HatsuTasks?.isSandboxTasksActive(state)) return;
     const result = globalThis.HatsuTasks.processSandboxMainQuestMapChoice(state, locationId, choiceText);
     if (result.notices?.length) {
-      result.notices.forEach((notice) => showToast("主线进度", notice, "info"));
+      result.notices.forEach((notice) => showToast("课题进度", notice, "info"));
     }
     if (result.completions?.length) {
       saveState();
@@ -1968,6 +2381,110 @@
   function isSecondaryApiConfigured() {
     const cfg = getSecondaryApiConfig();
     return cfg.enabled && cfg.baseUrl && cfg.model;
+  }
+
+  function shouldUseSecondaryWorldGen() {
+    return isSecondaryApiConfigured() && isPhoneWorldFeedUnlocked();
+  }
+
+  function getWorldFeedHelpers() {
+    return {
+      ...getHatsuWorldHelpers(),
+      getDayKey: (sourceState) => getWorldFeedDayKey(sourceState),
+      getPresenceSlotKey: (sourceState) => getWorldFeedPresenceSlotKey(sourceState)
+    };
+  }
+
+  function isDailyWorldGenLoading() {
+    const gen = globalThis.HatsuWorld?.worldGen?.ensureDailyGenShape?.(state);
+    return Boolean(gen && globalThis.HatsuWorld?.worldGen?.isDailyGenLoading?.(gen));
+  }
+
+  function fallbackDailyWorldToStatic(reason = "") {
+    const helpers = getWorldFeedHelpers();
+    const tick = globalThis.HatsuWorld?.dailyTick;
+    const dayKey = getWorldFeedDayKey();
+    tick?.rollDailyBroadcast?.(state, helpers);
+    tick?.rollDailyBuzz?.(state, helpers);
+    globalThis.HatsuWorld?.worldGen?.markDailyWorldGenReady?.(state, "static", dayKey);
+    if (globalThis.HatsuTasks?.isSandboxTasksActive(state) && state.sandbox?.inviteComplete) {
+      globalThis.HatsuTasks.refreshSideQuestSlots(state);
+      if (state.tasks?.side) {
+        state.tasks.side.genStatus = "ready";
+        state.tasks.side.source = "static";
+        state.tasks.side.pendingRequestId = "";
+      }
+    }
+    saveState();
+    renderSnsApp();
+    renderBroadcastApp();
+    renderSideQuestOverlay();
+    if (reason) {
+      showToast("已改用静态池", reason, "warn");
+    }
+  }
+
+  function maybeRequestDailyWorldGeneration() {
+    if (!shouldUseSecondaryWorldGen()) return;
+    const worldGen = globalThis.HatsuWorld?.worldGen;
+    if (!worldGen) return;
+    const gen = worldGen.ensureDailyGenShape(state);
+    const dayKey = getWorldFeedDayKey();
+    if (gen.dayKey !== dayKey) return;
+    if (gen.status !== "pending" && gen.status !== "failed") return;
+    if (pendingSecondaryRequestId && pendingSecondaryMeta?.kind === "world") return;
+
+    const helpers = getWorldFeedHelpers();
+    const includeSideQuests = worldGen.shouldIncludeSideQuests(state);
+    const prompt = worldGen.buildDailyWorldPrompt(state, {
+      dayKey,
+      dayLabel: formatWorldFeedDayLabel(),
+      includeSideQuests
+    }, helpers);
+    if (!prompt) return;
+
+    const requestId = createSecondaryRequestId("world");
+    worldGen.markDailyWorldGenLoading(state, requestId, dayKey);
+    saveState();
+    renderSnsApp();
+    renderBroadcastApp();
+    renderSideQuestOverlay();
+
+    if (!requestHostSecondaryPromptSend(prompt, requestId, { kind: "world", dayKey, includeSideQuests })) {
+      fallbackDailyWorldToStatic("次 API 未配置完整，已回退静态池。");
+    }
+  }
+
+  function syncDailyWorldGeneration() {
+    if (!shouldUseSecondaryWorldGen()) return false;
+    const worldGen = globalThis.HatsuWorld?.worldGen;
+    if (!worldGen) return false;
+    const dayKey = getWorldFeedDayKey();
+    const gen = worldGen.ensureDailyGenShape(state);
+
+    if (gen.dayKey === dayKey && gen.status === "ready") {
+      return false;
+    }
+
+    const buzzReady = state.freeMode?.world?.buzz?.buzzDayKey === dayKey
+      && (state.freeMode?.world?.buzz?.items || []).length > 0;
+    const broadcastReady = state.freeMode?.world?.broadcast?.today?.dateKey === dayKey;
+    if ((!gen.dayKey || gen.status === "idle") && buzzReady && broadcastReady) {
+      worldGen.markDailyWorldGenReady(state, "static", dayKey);
+      return false;
+    }
+
+    if (gen.dayKey !== dayKey || gen.status === "idle" || gen.status === "failed") {
+      worldGen.queueDailyWorldGeneration(state, dayKey);
+      if (globalThis.HatsuTasks?.isSandboxTasksActive(state) && state.sandbox?.inviteComplete) {
+        globalThis.HatsuTasks.queueSideQuestRefresh(state);
+      }
+    }
+
+    if (gen.status === "pending" || gen.status === "failed") {
+      maybeRequestDailyWorldGeneration();
+    }
+    return gen.status === "loading";
   }
 
   function saveSecondaryApiSettings(patch = {}) {
@@ -2044,13 +2561,25 @@
     }
   }
 
-  function requestHostSecondaryPromptSend(prompt, requestId, meta = {}) {
+  function requestHostSecondaryPromptSend(prompt, requestId, meta = {}, options = {}) {
     const apiConfig = getSecondaryApiConfig();
-    if (!apiConfig.enabled || !apiConfig.baseUrl || !apiConfig.model) return false;
+    if (meta.kind === "world") {
+      apiConfig.maxTokens = Math.max(apiConfig.maxTokens, 2200);
+    }
+    const allowDisabled = Boolean(options.allowDisabled);
+    if ((!apiConfig.enabled && !allowDisabled) || !apiConfig.baseUrl || !apiConfig.model) return false;
     const promptText = String(prompt || "").trim();
     if (!promptText) return false;
     pendingSecondaryRequestId = String(requestId || createSecondaryRequestId(meta.kind || "misc"));
     pendingSecondaryMeta = { ...(meta || {}) };
+    const transport = isSillyTavernHost() ? "host(ST)" : "local fetch";
+    pushSecondaryDebug({
+      phase: "send",
+      kind: meta.kind || "misc",
+      requestId: pendingSecondaryRequestId,
+      transport,
+      promptLength: promptText.length
+    });
     if (isSillyTavernHost()) {
       window.parent.postMessage({
         source: "hatsuboshi-produce",
@@ -2066,6 +2595,10 @@
   }
 
   function maybeRequestSideQuestGeneration() {
+    if (shouldUseSecondaryWorldGen()) {
+      maybeRequestDailyWorldGeneration();
+      return;
+    }
     if (!globalThis.HatsuTasks?.isSandboxTasksActive(state)) return;
     if (!globalThis.HatsuTasks.shouldUseSecondarySideGen(state)) return;
     const status = globalThis.HatsuTasks.getSideQuestGenStatus(state);
@@ -2093,7 +2626,7 @@
     const requestId = createSecondaryRequestId(`tier-${slotIndex}`);
     globalThis.HatsuTasks.markSideQuestTierGenPending(state, slotIndex, requestId);
     saveState();
-    renderSideQuestTierPanel(slotIndex, { keepOpen: true });
+    openSideQuestTierPanel(slotIndex, { keepOpen: true });
     if (!requestHostSecondaryPromptSend(prompt, requestId, { kind: "tier", slotIndex })) {
       slot.tierGenStatus = "idle";
       saveState();
@@ -2109,15 +2642,76 @@
     pendingSecondaryRequestId = "";
     pendingSecondaryMeta = null;
 
+    const debugEvent = pushSecondaryDebug({
+      phase: "reply",
+      kind: meta.kind || "?",
+      requestId,
+      ok,
+      error: ok ? "" : String(payload?.error || "empty_response"),
+      textLength: text.length,
+      preview: text.slice(0, 600),
+      parseOk: null
+    });
+
+    if (meta.kind === "test") {
+      if (debugEvent) debugEvent.parseOk = ok;
+      secondaryApiDebug.lastMessage = ok
+        ? `测试成功：收到 ${text.length} 字回复`
+        : `测试失败：${payload?.error || "无有效回复"}`;
+      renderSecondaryApiDebug();
+      showToast(ok ? "次 API 测试成功" : "次 API 测试失败", ok ? `收到 ${text.length} 字有效回复，详见调试日志。` : `${payload?.error || "无有效回复"}`, ok ? "info" : "warn");
+      return;
+    }
+
     if (!ok) {
-      if (meta.kind === "daily") {
+      if (debugEvent) debugEvent.parseOk = false;
+      if (meta.kind === "world") {
+        fallbackDailyWorldToStatic(payload?.error ? `次 API 失败：${payload.error}` : "次 API 无有效回复");
+      } else if (meta.kind === "daily") {
         fallbackSideQuestToStatic(payload?.error ? `次 API 失败：${payload.error}` : "次 API 无有效回复");
       } else if (meta.kind === "tier" && Number.isFinite(Number(meta.slotIndex))) {
         const slot = state.tasks?.side?.slots?.[meta.slotIndex];
         if (slot) slot.tierGenStatus = "idle";
         saveState();
-        renderSideQuestTierPanel(meta.slotIndex, { keepOpen: true });
+        openSideQuestTierPanel(meta.slotIndex, { keepOpen: true });
       }
+      return;
+    }
+
+    if (meta.kind === "world") {
+      const worldGen = globalThis.HatsuWorld?.worldGen;
+      const helpers = getWorldFeedHelpers();
+      const dayKey = meta.dayKey || getWorldFeedDayKey();
+      const parsed = worldGen?.parseDailyWorldResponse(text, {
+        dayKey,
+        includeSideQuests: Boolean(meta.includeSideQuests),
+        idolNames: helpers.idolNames,
+        canonicalIdolName: helpers.canonicalIdolName,
+        idol: state.idol
+      });
+      if (!parsed || !worldGen?.applyDailyWorldGeneration(state, parsed, helpers, dayKey)) {
+        if (debugEvent) debugEvent.parseOk = false;
+        fallbackDailyWorldToStatic("次 API 返回格式无效，已回退静态池。");
+        return;
+      }
+      if (debugEvent) debugEvent.parseOk = true;
+      // 次 API 未给出委托或委托不可用时，避免委托卡在“生成中”，用静态池补齐。
+      let sideQuestFellBack = false;
+      if (meta.includeSideQuests
+        && globalThis.HatsuTasks?.isSandboxTasksActive(state)
+        && globalThis.HatsuTasks.getSideQuestGenStatus(state) !== "ready") {
+        globalThis.HatsuTasks.refreshSideQuestSlots(state);
+        sideQuestFellBack = true;
+      }
+      saveState();
+      render();
+      renderSnsApp();
+      renderBroadcastApp();
+      renderSideQuestOverlay();
+      maybeAutoRequestBroadcastFullScript("daily_tick");
+      const parts = ["广播主题", "初星圈"];
+      if (meta.includeSideQuests && !sideQuestFellBack) parts.push("委托系统");
+      showToast("每日世界层已生成", `次 API 已生成${parts.join("、")}${sideQuestFellBack ? "；委托回退静态池" : ""}。`, "info");
       return;
     }
 
@@ -2128,28 +2722,32 @@
         state.idol
       );
       if (!parsed || !globalThis.HatsuTasks.applyGeneratedSideQuests(state, parsed.quests, "secondary")) {
+        if (debugEvent) debugEvent.parseOk = false;
         fallbackSideQuestToStatic("次 API 返回格式无效，已回退静态池。");
         return;
       }
+      if (debugEvent) debugEvent.parseOk = true;
       saveState();
       render();
       renderSideQuestOverlay();
-      showToast("今日工作已生成", "次 API 已生成本日 3 条偶像工作。", "info");
+      showToast("委托已生成", "次 API 已生成本日 3 条小型商演委托。", "info");
       return;
     }
 
     if (meta.kind === "tier" && Number.isFinite(Number(meta.slotIndex))) {
       const hints = globalThis.HatsuSideQuestApi?.parseSideQuestTierResponse(text);
       if (!hints) {
+        if (debugEvent) debugEvent.parseOk = false;
         const slot = state.tasks?.side?.slots?.[meta.slotIndex];
         if (slot) slot.tierGenStatus = "idle";
         saveState();
-        renderSideQuestTierPanel(meta.slotIndex, { keepOpen: true });
+        openSideQuestTierPanel(meta.slotIndex, { keepOpen: true });
         return;
       }
+      if (debugEvent) debugEvent.parseOk = true;
       globalThis.HatsuTasks.applySideQuestTierHints(state, meta.slotIndex, hints);
       saveState();
-      renderSideQuestTierPanel(meta.slotIndex, { keepOpen: true });
+      openSideQuestTierPanel(meta.slotIndex, { keepOpen: true });
     }
   }
 
@@ -2165,11 +2763,103 @@
     if (model) model.value = cfg.model;
     if (key) key.value = cfg.apiKey;
     if (status) {
+      const worldGen = globalThis.HatsuWorld?.worldGen?.ensureDailyGenShape?.(state);
+      const worldSource = worldGen?.source || "static";
+      const worldStatus = worldGen?.status || "idle";
       const source = state.tasks?.side?.source || "static";
       const genStatus = state.tasks?.side?.genStatus || "idle";
       status.textContent = cfg.enabled
-        ? `次 API 已启用 · 今日来源：${source} · 状态：${genStatus}${cfg.apiKey ? " · Key 已保存" : " · 未保存 Key"}`
+        ? `次 API 已启用 · 世界层：${worldSource}（${worldStatus}） · 委托系统：${source}（${genStatus}）${cfg.apiKey ? " · Key 已保存" : " · 未保存 Key"}`
         : "未启用次 API 时将使用静态工作池。";
+    }
+    renderSecondaryApiDebug();
+  }
+
+  function formatSecondaryDebugTime(ts) {
+    if (!ts) return "--:--:--";
+    try {
+      return new Date(ts).toLocaleTimeString("zh-CN", { hour12: false });
+    } catch {
+      return "--:--:--";
+    }
+  }
+
+  function renderSecondaryApiDebug() {
+    const summaryEl = document.getElementById("sideQuestApiDebugSummary");
+    const logEl = document.getElementById("sideQuestApiDebugLog");
+    if (summaryEl) {
+      const pending = pendingSecondaryRequestId
+        ? `（在途：${pendingSecondaryMeta?.kind || "?"}）`
+        : "（无在途请求）";
+      summaryEl.textContent = `${secondaryApiDebug.lastMessage} ${pending}`;
+    }
+    if (!logEl) return;
+    const events = secondaryApiDebug.events;
+    if (!events.length) {
+      logEl.textContent = "暂无次 API 收发记录。点击「测试次 API 连接」或在沙盒中打开委托面板触发生成。";
+      return;
+    }
+    logEl.textContent = events.map((event) => {
+      const time = formatSecondaryDebugTime(event.at);
+      if (event.phase === "send") {
+        return `[${time}] ▶ 发送 ${event.kind}｜通道 ${event.transport || "?"}｜prompt ${event.promptLength ?? "?"} 字`;
+      }
+      const okLabel = event.ok ? "有效回复" : "无有效回复";
+      const parseLabel = event.parseOk === true ? "解析成功" : event.parseOk === false ? "解析失败" : "未解析";
+      const head = `[${time}] ◀ 回复 ${event.kind}｜${okLabel}｜${parseLabel}｜文本 ${event.textLength ?? 0} 字${event.error ? `｜错误 ${event.error}` : ""}`;
+      const preview = event.preview ? `\n    ${String(event.preview).replace(/\s*\n\s*/g, " ⏎ ").slice(0, 600)}` : "";
+      return head + preview;
+    }).join("\n\n");
+  }
+
+  function forceSecondaryRegeneration() {
+    if (!isSecondaryApiConfigured()) {
+      showToast("无法生成", "请先启用并填写完整的次 API 配置。", "warn");
+      return;
+    }
+    if (!globalThis.HatsuTasks?.isSandboxTasksActive(state)) {
+      showToast("仅沙盒可用", "委托生成仅在沙盒模式开放。", "warn");
+      return;
+    }
+    if (pendingSecondaryRequestId) {
+      showToast("请求进行中", "已有次 API 请求在途，请稍候。", "warn");
+      return;
+    }
+    secondaryApiDebug.lastMessage = "已请求用次 API 重新生成本日委托…";
+    renderSecondaryApiDebug();
+    if (shouldUseSecondaryWorldGen()) {
+      globalThis.HatsuWorld?.worldGen?.queueDailyWorldGeneration?.(state, getWorldFeedDayKey(), { force: true });
+      globalThis.HatsuTasks.queueSideQuestRefresh(state);
+      saveState();
+      renderSideQuestOverlay();
+      maybeRequestDailyWorldGeneration();
+    } else {
+      globalThis.HatsuTasks.queueSideQuestRefresh(state);
+      saveState();
+      renderSideQuestOverlay();
+      maybeRequestSideQuestGeneration();
+    }
+  }
+
+  function runSecondaryApiTest() {
+    const cfg = getSecondaryApiConfig();
+    if (!cfg.baseUrl || !cfg.model) {
+      showToast("无法测试", "请先填写接口地址与模型后再测试。", "warn");
+      return;
+    }
+    if (pendingSecondaryRequestId) {
+      showToast("请求进行中", "已有次 API 请求在途，请稍候再测试。", "warn");
+      return;
+    }
+    const prompt = "这是一次连接测试。请只回复一行中文：初星次API连接正常。";
+    const requestId = createSecondaryRequestId("test");
+    secondaryApiDebug.lastMessage = "测试请求发送中…";
+    renderSecondaryApiDebug();
+    const sent = requestHostSecondaryPromptSend(prompt, requestId, { kind: "test" }, { allowDisabled: true });
+    if (!sent) {
+      secondaryApiDebug.lastMessage = "测试未发出：接口地址或模型缺失。";
+      renderSecondaryApiDebug();
+      showToast("测试未发出", "接口地址或模型缺失，请检查配置。", "warn");
     }
   }
 
@@ -2180,8 +2870,16 @@
       model: document.getElementById("sideQuestApiModel")?.value,
       apiKey: document.getElementById("sideQuestApiKey")?.value
     });
-    showToast("次 API 配置已保存", isSecondaryApiConfigured() ? "下次刷新将尝试次 API 生成支线。" : "未启用或未填完整接口信息。", "info");
-    if (globalThis.HatsuTasks?.shouldUseSecondarySideGen(state)) {
+    showToast("次 API 配置已保存", isSecondaryApiConfigured() ? "已尝试用次 API 重新生成本日世界层内容。" : "未启用或未填完整接口信息。", "info");
+    if (isSecondaryApiConfigured() && isPhoneWorldFeedUnlocked()) {
+      // 启用后强制重排当天世界层，避免因当天已是静态 ready 而不再发起次 API 请求。
+      globalThis.HatsuWorld?.worldGen?.queueDailyWorldGeneration?.(state, getWorldFeedDayKey(), { force: true });
+      if (globalThis.HatsuTasks?.isSandboxTasksActive(state)) {
+        globalThis.HatsuTasks.queueSideQuestRefresh(state);
+      }
+      saveState();
+      maybeRequestDailyWorldGeneration();
+    } else if (globalThis.HatsuTasks?.shouldUseSecondarySideGen(state)) {
       globalThis.HatsuTasks.queueSideQuestRefresh(state);
       saveState();
       maybeRequestSideQuestGeneration();
@@ -2206,7 +2904,36 @@
   function formatSideQuestWalletLabel() {
     ensureStateShape();
     const money = Number(state.tasks?.wallet?.money) || 0;
-    return `${money} 初星币`;
+    const fame = Number(state.tasks?.wallet?.fame) || 0;
+    return `${money} 初星币 · 知名度 ${fame}`;
+  }
+
+  function isAtSideQuestLocation(slot) {
+    if (!slot || state.pendingActionContext?.action !== "map_location") return false;
+    const actionContext = state.pendingActionContext?.actionContext || {};
+    if (actionContext.isOffCampus) {
+      return String(actionContext.outingDestination || actionContext.locationName || "") === String(slot.locationName || "");
+    }
+    return String(actionContext.locationId || "") === String(slot.locationId || "");
+  }
+
+  function startSideQuestJourney(slotIndex) {
+    const result = globalThis.HatsuTasks?.setActiveSideQuest(state, slotIndex);
+    if (!result?.ok) {
+      showToast("无法设为目标", "该委托已完成或尚未刷新。", "warn");
+      return;
+    }
+    saveState();
+    closeSideQuestOverlay();
+    const destination = result.slot?.locationName || "商店街";
+    render();
+    showToast("委托目标已设定", `请前往 ${destination} 触发「${result.slot?.title || "今日委托"}」。`, "info");
+  }
+
+  function getArrivedSideQuest(locationName) {
+    const active = globalThis.HatsuTasks?.getActiveSideQuest(state);
+    if (!active || active.locationName !== locationName) return null;
+    return active;
   }
 
   function renderSideQuestOverlay() {
@@ -2223,8 +2950,8 @@
 
     if (hint) {
       const sourceLabel = snapshot?.side?.source === "secondary" ? "次 API" : "静态池";
-      const genStatus = snapshot?.side?.genStatus || "ready";
-      hint.textContent = `今日剩余 ${remaining}/3 条 · 钱包 ${formatSideQuestWalletLabel()} · 来源 ${sourceLabel} · ${genStatus === "loading" || genStatus === "pending" ? "生成中…" : "完成后自选档位领取报酬"}`;
+      const fameTier = pool.getSideQuestFameTier?.(Number(snapshot?.wallet?.fame) || 0)?.label || "商演委托";
+      hint.textContent = `今日委托剩余 ${remaining}/3 条 · ${formatSideQuestWalletLabel()} · 档位 ${fameTier} · 来源 ${sourceLabel} · ${genStatus === "loading" || genStatus === "pending" ? "生成中…" : "设为目标后前往对应地点触发"}`;
     }
 
     if (sideQuestOverlaySlotIndex === null || !slots[sideQuestOverlaySlotIndex]) {
@@ -2242,8 +2969,11 @@
         const tagLabel = pool.getTagLabel(slot.tag);
         const statusLabel = slot.status === "done"
           ? `已结算 · ${pool.SIDE_TIER_META[slot.resultTier]?.label || slot.resultTier || "完成"}`
-          : "待结算";
-        button.innerHTML = `<strong>${slot.title}</strong><span class="side-quest-slot-tag">${tagLabel}</span><span class="side-quest-slot-status">${statusLabel}</span><span class="side-quest-slot-desc">${slot.desc}</span>`;
+          : state.tasks?.side?.activeSlotIndex === index
+            ? "当前目标"
+            : "待前往";
+        const locationLabel = slot.locationName ? `地点 · ${slot.locationName}` : "地点 · 待确认";
+        button.innerHTML = `<strong>${slot.title}</strong><span class="side-quest-slot-tag">${tagLabel} · ${locationLabel}</span><span class="side-quest-slot-status">${statusLabel}</span><span class="side-quest-slot-desc">${slot.desc}</span>`;
         button.addEventListener("click", () => openSideQuestTierPanel(index));
         slotList.appendChild(button);
       });
@@ -2279,32 +3009,24 @@
     const apiPanel = document.getElementById("sideQuestApiPanel");
     if (apiPanel) apiPanel.hidden = true;
     if (titleEl) titleEl.textContent = slot.title;
-    if (descEl) descEl.textContent = `${pool.getTagLabel(slot.tag)} · ${slot.desc}`;
+    const locationLabel = slot.locationName ? `完成地点：${slot.locationName}` : "完成地点：待确认";
+    if (descEl) descEl.textContent = `${pool.getTagLabel(slot.tag)} · ${locationLabel} · ${slot.desc}`;
 
     buttonsEl.innerHTML = "";
-    pool.SIDE_TIER_IDS.forEach((tier) => {
-      const meta = pool.SIDE_TIER_META[tier] || {};
-      const hintText = slot.tierHints?.[tier] || meta.hint || "";
-      const loadingTier = slot.tierGenStatus === "loading";
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "side-quest-tier-button";
-      button.dataset.tier = tier;
-      button.disabled = loadingTier;
-      button.innerHTML = `<strong>${meta.label || tier}</strong><span>${loadingTier ? "次 API 生成档位文案中…" : hintText}</span><span class="side-quest-tier-reward">${pool.formatTierRewardSummary(tier)}</span>`;
-      button.addEventListener("click", () => applySideQuestTierChoice(slotIndex, tier));
-      buttonsEl.appendChild(button);
-    });
-    if (isSecondaryApiConfigured() && !slot.tierHints && slot.tierGenStatus !== "loading") {
-      requestSideQuestTierGeneration(slotIndex);
-    }
+    const active = state.tasks?.side?.activeSlotIndex === slotIndex;
+    const targetButton = document.createElement("button");
+    targetButton.type = "button";
+    targetButton.className = "side-quest-tier-button";
+    targetButton.innerHTML = `<strong>${active ? "已设为当前目标" : "设为当前目标"}</strong><span>之后从地图前往 ${slot.locationName || "委托地点"} 触发该商业委托。</span><span class="side-quest-tier-reward">抵达后进入委托现场</span>`;
+    targetButton.addEventListener("click", () => startSideQuestJourney(slotIndex));
+    buttonsEl.appendChild(targetButton);
   }
 
   function applySideQuestTierChoice(slotIndex, tier) {
     const pool = getSideQuestPoolApi();
     const result = globalThis.HatsuTasks?.applySideQuestTier(state, slotIndex, tier);
     if (!result?.ok) {
-      showToast("无法结算", "该工作已完成或档位无效。", "warn");
+      showToast("无法结算", "该委托已完成或档位无效。", "warn");
       return;
     }
     saveState();
@@ -2316,12 +3038,15 @@
     if (taskPanelOverlay && !taskPanelOverlay.hidden) renderTaskPanelOverlay();
     const tierLabel = pool?.SIDE_TIER_META[tier]?.label || tier;
     const money = result.reward?.money || 0;
-    showToast("工作结算完成", `${tierLabel} · 获得 ${money} 初星币`, "gold");
+    const fame = result.reward?.fame || 0;
+    const slot = state.tasks?.side?.slots?.[slotIndex];
+    appendEveningJournalTask("商业委托", slot?.title ? `${slot.title} · ${tierLabel}` : tierLabel);
+    showToast("委托结算完成", `${tierLabel} · 获得 ${money} 初星币 · 知名度+${fame}`, "gold");
   }
 
   function openSideQuestOverlay() {
     if (!canOpenSideQuestOverlay()) {
-      showToast("尚未开放", "完成担当邀请剧情后可接今日偶像工作。", "warn");
+      showToast("尚未开放", "完成担当邀请剧情后可接亚纱里老师登记的委托。", "warn");
       return;
     }
     globalThis.HatsuTasks?.syncSideQuestDay(state);
@@ -2358,25 +3083,74 @@
     if (!snapshot) return;
     const pool = getSideQuestPoolApi();
     const summary = document.getElementById("taskPanelSummary");
+    const metrics = document.getElementById("taskPanelMetrics");
     const mainList = document.getElementById("taskPanelMainList");
     const sideList = document.getElementById("taskPanelSideList");
     const sideMeta = document.getElementById("taskPanelSideMeta");
     const campusMeta = document.getElementById("taskPanelCampusMeta");
     const campusHint = document.getElementById("taskPanelCampusHint");
     const openSideBtn = document.getElementById("taskPanelOpenSideQuestBtn");
+    const adviceEl = document.getElementById("taskPanelAdvice");
     if (!mainList || !sideList) return;
 
     const wallet = Number(snapshot.wallet?.money) || 0;
+    const fame = Number(snapshot.wallet?.fame) || 0;
     const sideRemaining = snapshot.side?.remainingToday ?? 0;
     const sideMax = snapshot.side?.maxPerDay ?? 3;
     const campusRemaining = snapshot.campus?.remainingToday ?? 3;
     const campusMax = snapshot.campus?.maxPerDay ?? 3;
-    const sideSource = snapshot.side?.source === "secondary" ? "次 API" : snapshot.side?.source === "static" ? "静态池" : "—";
+    const sideSource = snapshot.side?.source === "secondary" ? "次 API" : snapshot.side?.source === "static" ? "静态池" : "待刷新";
     const genStatus = snapshot.side?.genStatus || "idle";
 
+    const categoryMeta = {
+      scout: { index: "01", title: "担当确认", subtitle: "调查、观察与担当选择", tone: "pink" },
+      relationship: { index: "02", title: "培养与担当关系", subtitle: "好感度里程碑课题", tone: "blue" },
+      conflict: { index: "03", title: "主线矛盾课题", subtitle: "解决担当面对的问题", tone: "violet" },
+      ability: { index: "04", title: "偶像能力培养", subtitle: "数值阶段目标", tone: "mint" },
+      work: { index: "05", title: "工作邀约", subtitle: "知名度与外部委托", tone: "gold" },
+      final: { index: "06", title: "舞台终极任务", subtitle: "First Live 与最终成果", tone: "red" },
+      main: { index: "00", title: "阶段课题", subtitle: "亚纱里老师记录", tone: "blue" }
+    };
+    const categoryOrder = ["scout", "relationship", "conflict", "ability", "work", "final", "main"];
+    const adviceLines = [
+      "至少让我帮上你一点忙吧。多多依赖老师一些也可以的哦？",
+      "Producer同伴之间的横向联系，说不定会成为拯救你手下偶像的关键力量。",
+      "老师我可是认真的哦！先整理课题，再决定今天的行动。",
+      "你是让我引以为傲的学生。不过报告书，还是要按时交哦？",
+      "真是不错的回答。接下来，把观察记录变成能执行的培养方针吧。"
+    ];
+
+    const activeCount = (snapshot.main || []).filter((quest) => quest.status === "active").length;
+    const completedCount = (snapshot.main || []).filter((quest) => quest.status === "completed").length;
+    const adviceIndex = Math.abs((Number(state.freeMode?.postLiveDay || state.day || 0) + activeCount + completedCount) % adviceLines.length);
+
     if (summary) {
-      summary.textContent = `${snapshot.idol || "担当偶像"} · 初星币 ${wallet} · 今日工作剩余 ${sideRemaining}/${sideMax} · 校园剩余 ${campusRemaining}/${campusMax}`;
+      summary.textContent = `${snapshot.idol || "担当偶像"} 的课题档案 · 已完成 ${completedCount}/${(snapshot.main || []).length} · 知名度 ${fame}`;
     }
+    if (adviceEl) {
+      adviceEl.textContent = `“${adviceLines[adviceIndex]}”`;
+    }
+
+    if (metrics) {
+      metrics.innerHTML = "";
+      [
+        ["担当", snapshot.idol || "未确认"],
+        ["初星币", wallet],
+        ["知名度", fame],
+        ["委托", `${sideRemaining}/${sideMax}`],
+        ["校园", `${campusRemaining}/${campusMax}`]
+      ].forEach(([label, value]) => {
+        const pill = document.createElement("span");
+        pill.className = "task-panel-metric";
+        const labelEl = document.createElement("b");
+        labelEl.textContent = label;
+        const valueEl = document.createElement("span");
+        valueEl.textContent = String(value);
+        pill.append(labelEl, valueEl);
+        metrics.appendChild(pill);
+      });
+    }
+
     if (sideMeta) {
       sideMeta.textContent = `剩 ${sideRemaining}/${sideMax} · ${sideSource}`;
     }
@@ -2385,31 +3159,96 @@
     }
     if (campusHint) {
       campusHint.textContent = campusRemaining > 0
-        ? "在地图进入教学楼上课，或体育馆/部室栋/特教栋训练。上课与训练合计每日 3 次。"
+        ? "在地图进入教学楼上课，或体育馆、部门楼、特教楼训练。上课与训练合计每日 3 次。"
         : "今日校园次数已用完，明日可继续在教学楼或训练设施成长。";
     }
     if (openSideBtn) {
       openSideBtn.disabled = !canOpenSideQuestOverlay() || genStatus === "loading" || genStatus === "pending";
-      openSideBtn.textContent = sideRemaining > 0 ? "打开今日工作结算" : "今日工作已全部结算";
+      openSideBtn.textContent = sideRemaining > 0 ? "打开委托结算" : "今日委托已全部结算";
     }
 
-    mainList.innerHTML = "";
+    const grouped = categoryOrder.reduce((acc, key) => ({ ...acc, [key]: [] }), {});
     (snapshot.main || []).forEach((quest) => {
-      const item = document.createElement("article");
-      item.className = "task-panel-main-item";
-      const statusClass = formatMainQuestStatusClass(quest.status);
-      const statusLabel = formatMainQuestStatusLabel(quest.status);
-      const stepLine = quest.status === "active" && Number(quest.step) > 0 ? `阶段 ${quest.step}` : "";
-      const hint = quest.progressHint ? `<span>${quest.progressHint}</span>` : "";
-      const conflict = quest.conflict ? `<span>${quest.conflict}</span>` : "";
-      item.innerHTML = `<span class="task-panel-status ${statusClass}">${statusLabel}${stepLine ? ` · ${stepLine}` : ""}</span><strong>${quest.title || quest.id}</strong>${conflict}${hint}`;
-      mainList.appendChild(item);
+      const key = categoryMeta[quest.category] ? quest.category : "main";
+      grouped[key].push(quest);
+    });
+    const firstActiveCategory = categoryOrder.find((key) => grouped[key]?.some((quest) => quest.status === "active"));
+    const fallbackOpenCategory = categoryOrder.find((key) => grouped[key]?.length);
+
+    mainList.innerHTML = "";
+    categoryOrder.forEach((key) => {
+      const quests = grouped[key] || [];
+      if (!quests.length) return;
+      const meta = categoryMeta[key] || categoryMeta.main;
+      const completed = quests.filter((quest) => quest.status === "completed").length;
+      const active = quests.filter((quest) => quest.status === "active").length;
+      const details = document.createElement("details");
+      details.className = `task-panel-group is-${meta.tone}`;
+      details.open = key === (firstActiveCategory || fallbackOpenCategory);
+
+      const groupSummary = document.createElement("summary");
+      groupSummary.className = "task-panel-group-summary";
+      const indexEl = document.createElement("span");
+      indexEl.className = "task-panel-group-index";
+      indexEl.textContent = meta.index;
+      const textWrap = document.createElement("span");
+      textWrap.className = "task-panel-group-text";
+      const titleEl = document.createElement("strong");
+      titleEl.textContent = meta.title;
+      const subtitleEl = document.createElement("span");
+      subtitleEl.textContent = active > 0 ? `${meta.subtitle} · 进行中 ${active}` : meta.subtitle;
+      textWrap.append(titleEl, subtitleEl);
+      const countEl = document.createElement("b");
+      countEl.className = "task-panel-group-count";
+      countEl.textContent = `${completed}/${quests.length}`;
+      groupSummary.append(indexEl, textWrap, countEl);
+      details.appendChild(groupSummary);
+
+      const questList = document.createElement("div");
+      questList.className = "task-panel-group-list";
+      quests.forEach((quest) => {
+        const item = document.createElement("article");
+        item.className = `task-panel-main-item ${formatMainQuestStatusClass(quest.status)}`;
+        const statusClass = formatMainQuestStatusClass(quest.status);
+        const statusLabel = formatMainQuestStatusLabel(quest.status);
+        const stepLine = quest.status === "active" && Number(quest.step) > 0 ? ` · 阶段 ${quest.step}` : "";
+        const statusEl = document.createElement("span");
+        statusEl.className = `task-panel-status ${statusClass}`;
+        statusEl.textContent = `${statusLabel}${stepLine}`;
+        const title = document.createElement("strong");
+        title.textContent = quest.title || quest.id;
+        item.append(statusEl, title);
+        if (quest.conflict) {
+          const conflict = document.createElement("span");
+          conflict.textContent = quest.conflict;
+          item.appendChild(conflict);
+        }
+        if (quest.progressHint) {
+          const hint = document.createElement("span");
+          hint.className = "task-panel-progress-hint";
+          hint.textContent = quest.progressHint;
+          item.appendChild(hint);
+        }
+        const progress = document.createElement("span");
+        progress.className = "task-panel-progress-bar";
+        const fill = document.createElement("i");
+        const ratio = quest.status === "completed" ? 1 : quest.status === "active" ? Math.max(0.16, Math.min(0.85, (Number(quest.step) || 1) / 3)) : 0.05;
+        fill.style.width = `${Math.round(ratio * 100)}%`;
+        progress.appendChild(fill);
+        item.appendChild(progress);
+        questList.appendChild(item);
+      });
+      details.appendChild(questList);
+      mainList.appendChild(details);
     });
 
     sideList.innerHTML = "";
     const slots = snapshot.side?.slots || [];
     if (!slots.length) {
-      sideList.innerHTML = "<p class=\"task-panel-hint\">今日工作尚未刷新。</p>";
+      const empty = document.createElement("p");
+      empty.className = "task-panel-hint";
+      empty.textContent = "今日委托尚未刷新。";
+      sideList.appendChild(empty);
     } else {
       slots.forEach((slot, index) => {
         const item = document.createElement("article");
@@ -2419,16 +3258,23 @@
           ? `已结算 · ${pool?.SIDE_TIER_META?.[slot.resultTier]?.label || slot.resultTier || "完成"}`
           : slot.loading || genStatus === "loading" || genStatus === "pending"
             ? "生成中"
-            : "待结算";
-        item.innerHTML = `<strong>${slot.title || `工作 ${index + 1}`}</strong><span>${tagLabel} · ${statusLabel}</span><span>${slot.desc || ""}</span>`;
+            : snapshot.side?.activeSlotIndex === index
+              ? "当前目标"
+              : "待前往";
+        const title = document.createElement("strong");
+        title.textContent = slot.title || `委托 ${index + 1}`;
+        const meta = document.createElement("span");
+        meta.textContent = `${tagLabel} · ${statusLabel} · ${slot.locationName ? `地点：${slot.locationName}` : "地点：待确认"}`;
+        const desc = document.createElement("span");
+        desc.textContent = slot.desc || "";
+        item.append(title, meta, desc);
         sideList.appendChild(item);
       });
     }
   }
-
   function openTaskPanelOverlay() {
     if (!canOpenTaskPanelOverlay()) {
-      showToast("尚未开放", "完成担当邀请剧情后可查看任务面板。", "warn");
+      showToast("尚未开放", "完成担当邀请剧情后可查看亚纱里老师课题。", "warn");
       return;
     }
     globalThis.HatsuTasks?.syncSideQuestDay(state);
@@ -2440,9 +3286,628 @@
     setElementHidden("taskPanelOverlay", true);
   }
 
+  const giftShopUi = { tab: "shop", pendingItemId: "" };
+
+  function getGiftShopApi() {
+    return globalThis.HatsuGiftShop || null;
+  }
+
+  function canOpenGiftShop() {
+    return isFreeModeActive() && Boolean(getGiftShopApi());
+  }
+
+  function setGiftShopTab(tab) {
+    giftShopUi.tab = tab === "bag" ? "bag" : "shop";
+    giftShopUi.pendingItemId = "";
+    renderGiftShopOverlay();
+  }
+
+  function openGiftShopOverlay(tab = "shop") {
+    if (!canOpenGiftShop()) {
+      showToast("尚未开放", "进入学园地图后可使用小卖部商店。", "warn");
+      return;
+    }
+    giftShopUi.tab = tab === "bag" ? "bag" : "shop";
+    giftShopUi.pendingItemId = "";
+    setElementHidden("giftShopOverlay", false);
+    renderGiftShopOverlay();
+  }
+
+  function closeGiftShopOverlay() {
+    setElementHidden("giftShopOverlay", true);
+    giftShopUi.pendingItemId = "";
+  }
+
+  function openGiftShopFromMapLocation() {
+    closeMapLocationOverlay();
+    openGiftShopOverlay("shop");
+  }
+
+  function openGiftBagFromFreeMode() {
+    openGiftShopOverlay("bag");
+  }
+
+  function buildGiftShopRecipients() {
+    ensureFreeModeRelationships();
+    if (typeof ensureFreeModeNpcRelationships === "function") ensureFreeModeNpcRelationships();
+    const current = getCurrentAffinityIdolName();
+    const idolRows = Object.keys(idols).map((idolName) => {
+      const relationship = getFreeModeRelationship(idolName, { create: false });
+      const score = clampFreeModeRelationshipScore(relationship?.好感度 || 0);
+      return {
+        type: "idol",
+        key: getGiftShopApi()?.buildRecipientKey("idol", idolName) || `idol:${idolName}`,
+        name: idolName,
+        role: idolName === current ? "担当偶像" : (idolSchoolClasses[idolName] || "偶像科"),
+        score,
+        avatar: idols[idolName]?.avatar || "",
+        theme: idols[idolName]?.theme || "#ff7bb0"
+      };
+    });
+    const npcRows = Object.entries(residentNpcProfiles).map(([npcName, profile]) => {
+      const relationship = getFreeModeNpcRelationship(npcName, { create: false });
+      const score = clampFreeModeRelationshipScore(relationship?.好感度 || 0);
+      return {
+        type: "npc",
+        key: getGiftShopApi()?.buildRecipientKey("npc", npcName) || `npc:${npcName}`,
+        name: npcName,
+        role: profile.publicLabel || profile.statusLabel || "NPC",
+        score,
+        avatar: profile.avatar || "",
+        theme: profile.theme || "#6f9cff"
+      };
+    });
+    return [...idolRows, ...npcRows].sort((a, b) => {
+      if (a.name === current) return -1;
+      if (b.name === current) return 1;
+      return b.score - a.score || a.type.localeCompare(b.type) || a.name.localeCompare(b.name, "zh-Hans-CN");
+    });
+  }
+
+  function applyGiftShopAffinity(recipient, affinity) {
+    if (!recipient?.name || !affinity) return null;
+    if (recipient.type === "npc") {
+      if (typeof getFreeModeNpcRelationship !== "function") return null;
+      const entry = getFreeModeNpcRelationship(recipient.name);
+      if (!entry) return null;
+      entry.好感度 = clampFreeModeRelationshipScore((entry.好感度 || 0) + affinity);
+      entry.更新日 = Number(state.freeMode?.postLiveDay || state.day || 1);
+      return { type: "npc", name: recipient.name, score: entry.好感度, delta: affinity };
+    }
+    const entry = getFreeModeRelationship(recipient.name);
+    if (!entry) return null;
+    entry.好感度 = clampFreeModeRelationshipScore((entry.好感度 || 0) + affinity);
+    entry.更新日 = Number(state.freeMode?.postLiveDay || state.day || 1);
+    if (recipient.name === state.idol) {
+      state.trust = clamp(entry.好感度, 0, 100);
+    }
+    return { type: "idol", name: recipient.name, score: entry.好感度, delta: affinity };
+  }
+
+  function renderGiftShopOverlay() {
+    const shop = getGiftShopApi();
+    if (!shop) return;
+    shop.ensureInventory(state);
+    const walletBadge = document.getElementById("giftShopWalletBadge");
+    const hint = document.getElementById("giftShopHint");
+    const catalog = document.getElementById("giftShopCatalog");
+    const bag = document.getElementById("giftShopBag");
+    const givePanel = document.getElementById("giftShopGivePanel");
+    const tabBuy = document.getElementById("giftShopTabBuy");
+    const tabBag = document.getElementById("giftShopTabBag");
+    const money = shop.getWalletMoney(state);
+    if (walletBadge) walletBadge.textContent = `初星币 ${money}`;
+    if (tabBuy) tabBuy.classList.toggle("is-active", giftShopUi.tab === "shop" && !giftShopUi.pendingItemId);
+    if (tabBag) tabBag.classList.toggle("is-active", giftShopUi.tab === "bag" || Boolean(giftShopUi.pendingItemId));
+    const choosingRecipient = Boolean(giftShopUi.pendingItemId);
+    if (catalog) catalog.hidden = giftShopUi.tab !== "shop" || choosingRecipient;
+    if (bag) bag.hidden = giftShopUi.tab !== "bag" || choosingRecipient;
+    if (givePanel) givePanel.hidden = !choosingRecipient;
+    if (hint) {
+      hint.hidden = choosingRecipient;
+      hint.textContent = giftShopUi.tab === "bag"
+        ? "背包中的礼物可赠送给担当、其他偶像或 NPC，提升好感度。"
+        : "用任务获得的初星币购买礼物。购买后可在背包中赠送给在场或不在场的对象。";
+    }
+    if (giftShopUi.tab === "shop" && !choosingRecipient) renderGiftShopCatalog();
+    if (giftShopUi.tab === "bag" && !choosingRecipient) renderGiftShopBag();
+    if (choosingRecipient) renderGiftShopGivePanel();
+    updateFreeModeBagButton();
+  }
+
+  function renderGiftShopCatalog() {
+    const shop = getGiftShopApi();
+    const catalog = document.getElementById("giftShopCatalog");
+    if (!shop || !catalog) return;
+    catalog.innerHTML = "";
+    const money = shop.getWalletMoney(state);
+    shop.GIFT_CATALOG.forEach((item) => {
+      const card = document.createElement("article");
+      card.className = "gift-shop-card";
+      const icon = document.createElement("span");
+      icon.className = "gift-shop-card-icon";
+      icon.style.background = `linear-gradient(145deg, ${item.tone || "#ff9fbe"}, rgba(255,255,255,0.2))`;
+      icon.textContent = item.short || item.name.slice(0, 1);
+      const copy = document.createElement("div");
+      copy.className = "gift-shop-card-copy";
+      const title = document.createElement("strong");
+      title.textContent = item.name;
+      const desc = document.createElement("span");
+      desc.className = "gift-shop-card-desc";
+      desc.textContent = item.desc;
+      const meta = document.createElement("span");
+      meta.className = "gift-shop-card-meta";
+      meta.textContent = `${item.price} 初星币 · 好感 +${item.affinity}`;
+      copy.append(title, desc, meta);
+      const buyBtn = document.createElement("button");
+      buyBtn.type = "button";
+      buyBtn.className = "event-button primary gift-shop-buy-btn";
+      buyBtn.textContent = money >= item.price ? "购买" : "初星币不足";
+      buyBtn.disabled = money < item.price;
+      buyBtn.addEventListener("click", () => handleGiftShopBuy(item.id));
+      card.append(icon, copy, buyBtn);
+      catalog.appendChild(card);
+    });
+  }
+
+  function renderGiftShopBag() {
+    const shop = getGiftShopApi();
+    const bag = document.getElementById("giftShopBag");
+    if (!shop || !bag) return;
+    bag.innerHTML = "";
+    const entries = shop.getInventoryList(state);
+    if (!entries.length) {
+      const empty = document.createElement("p");
+      empty.className = "gift-shop-empty";
+      empty.textContent = "背包还是空的。先去购买礼物吧。";
+      bag.appendChild(empty);
+      return;
+    }
+    entries.forEach((entry) => {
+      const row = document.createElement("article");
+      row.className = "gift-shop-bag-item";
+      const icon = document.createElement("span");
+      icon.className = "gift-shop-card-icon";
+      icon.style.background = `linear-gradient(145deg, ${entry.tone || "#ff9fbe"}, rgba(255,255,255,0.2))`;
+      icon.textContent = entry.short || entry.name.slice(0, 1);
+      const copy = document.createElement("div");
+      copy.className = "gift-shop-card-copy";
+      const title = document.createElement("strong");
+      title.textContent = `${entry.name} x${entry.count}`;
+      const meta = document.createElement("span");
+      meta.className = "gift-shop-card-meta";
+      meta.textContent = `赠送后好感 +${entry.affinity}`;
+      copy.append(title, meta);
+      const giveBtn = document.createElement("button");
+      giveBtn.type = "button";
+      giveBtn.className = "event-button secondary gift-shop-give-btn";
+      giveBtn.textContent = "赠送";
+      giveBtn.addEventListener("click", () => {
+        giftShopUi.pendingItemId = entry.id;
+        renderGiftShopOverlay();
+      });
+      row.append(icon, copy, giveBtn);
+      bag.appendChild(row);
+    });
+  }
+
+  function renderGiftShopGivePanel() {
+    const shop = getGiftShopApi();
+    const item = shop?.getCatalogItem(giftShopUi.pendingItemId);
+    const title = document.getElementById("giftShopGiveTitle");
+    const hint = document.getElementById("giftShopGiveHint");
+    const list = document.getElementById("giftShopRecipientList");
+    if (!shop || !item || !list) return;
+    if (title) title.textContent = `赠送 ${item.name}`;
+    if (hint) hint.textContent = `选择赠送对象。偶像好感 +${item.affinity}，NPC 好感 +${shop.getGiftAffinityGain(item, "npc")}。`;
+    list.innerHTML = "";
+    buildGiftShopRecipients().forEach((row) => {
+      const gain = shop.getGiftAffinityGain(item, row.type);
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `gift-shop-recipient-btn is-${row.type}`;
+      if (row.avatar) {
+        const avatar = document.createElement("img");
+        avatar.className = "gift-shop-recipient-avatar";
+        avatar.src = row.avatar;
+        avatar.alt = row.name;
+        button.appendChild(avatar);
+      }
+      const copy = document.createElement("span");
+      copy.className = "gift-shop-recipient-copy";
+      const name = document.createElement("strong");
+      name.textContent = row.name;
+      const role = document.createElement("span");
+      role.textContent = `${row.role} · 当前 ${row.score}/100 · 赠送 +${gain}`;
+      copy.append(name, role);
+      button.append(copy);
+      button.addEventListener("click", () => handleGiftShopGive(item.id, row.key));
+      list.appendChild(button);
+    });
+  }
+
+  function handleGiftShopBuy(itemId) {
+    const shop = getGiftShopApi();
+    if (!shop) return;
+    const result = shop.buyGift(state, itemId, 1);
+    if (!result.ok) {
+      showToast("购买失败", result.error || "无法购买这件礼物。", "warn");
+      return;
+    }
+    saveState();
+    renderGiftShopOverlay();
+    render();
+    showToast("购买成功", `获得 ${result.item.name}，花费 ${result.spent} 初星币。`, "gold");
+  }
+
+  function buildGiftGivingPrompt(item, recipient, applied) {
+    const recipientName = String(recipient?.name || "").trim();
+    const isNpc = recipient?.type === "npc";
+    const profile = isNpc
+      ? residentNpcProfiles[recipientName] || {}
+      : idols[canonicalIdolName(recipientName)] || {};
+    const role = isNpc
+      ? (profile.publicLabel || profile.statusLabel || "NPC")
+      : (recipientName === state.idol ? "担当偶像" : (idolSchoolClasses[recipientName] || "偶像科"));
+    const core = isNpc
+      ? (profile.promptLine || profile.publicLabel || "")
+      : (profile.core || "");
+    const affinityLine = isNpc
+      ? `当前好感度：${applied?.score ?? getFreeModeNpcRelationshipScore(recipientName)}/100`
+      : `${getContactAffinityStageLine(recipientName)}（当前好感度：${applied?.score ?? getFreeModeRelationshipScore(recipientName)}/100）`;
+    const locationId = state.freeMode?.activeLocationId || "student_store";
+    const location = getWorldMapLocation(locationId);
+    const locationName = location?.name || "初星学园";
+    const locationDesc = location?.description || "学园内的日常场所。";
+    const producerIdol = getCurrentAffinityIdolName() || state.idol || "未确认担当";
+    const castLine = isNpc
+      ? `登场角色：制作人、${recipientName}`
+      : recipientName === producerIdol
+        ? `登场角色：制作人、担当偶像 ${recipientName}`
+        : `登场角色：制作人、${recipientName}（非担当偶像）`;
+    return `[初星育成系统：礼物赠送]
+
+${castLine}
+制作人担当：${producerIdol}
+赠送对象：${recipientName}（${role}）
+${affinityLine}
+绑定角色卡：${state.boundCharacter?.name || "未绑定，按赠送对象写"}
+当前阶段：${getPhase()}
+当前时间：${formatCampusDayLabel()} ${formatFreeModeClock()}
+地点：${locationName}
+地点说明：${locationDesc}
+
+礼物名称：${item.name}
+礼物说明：${item.desc}
+前端已结算：赠送完成后好感 +${applied?.delta || 0}（当前 ${applied?.score ?? 0}/100）
+
+对象设定：
+${core || "按学园公开人设自然发挥。"}
+${buildProducerPromptSection()}
+
+叙事要求：
+- 写制作人找到对方并当面赠送 ${item.name} 的短场景，重点写对方收到礼物后的反应与互动。
+- 不消耗行动、不推进日程；不要改算前端已结算的好感数值，也不要输出 relationship_update。
+- 若对方是 NPC，以日常对话与反应为主；若对方是非担当偶像，保持学园内的自然距离感。
+- 礼物描写要贴合「${item.name}」与说明，不要写成其他物品。
+
+${outputContract("请写 700 字以内的完整送礼场景，自然收束，不要待续。")}`;
+  }
+
+  function beginGiftGivingStory(item, recipient, applied) {
+    const recipientName = String(recipient?.name || "").trim();
+    if (!item || !recipientName) return;
+    const prompt = buildGiftGivingPrompt(item, recipient, applied);
+    const requestId = createRequestId();
+    state.activeStoryNode = {
+      type: "gift",
+      itemId: item.id,
+      recipientType: recipient.type === "npc" ? "npc" : "idol",
+      recipientName,
+      affinityDelta: Number(applied?.delta) || 0,
+      ready: false
+    };
+    state.lastPrompt = prompt;
+    state.lastStory = `正在将 ${item.name} 送给 ${recipientName}...`;
+    saveState();
+    renderNotebook();
+    closeGiftShopOverlay();
+    giftShopUi.pendingItemId = "";
+    pendingAiRequestId = requestId;
+    openEventOverlay(
+      `赠送礼物 · ${recipientName}`,
+      "礼物已送出，好感已由前端结算。正在生成对方收到礼物后的反应剧情。",
+      buildAiWaitingStory(`正在等待 ${recipientName} 收到 ${item.name} 后的反应。`)
+    );
+    if (!requestHostPromptSend(prompt, requestId)) {
+      openAiPromptOverlay("当前页面未连接 SillyTavern。请编辑或复制送礼剧情提示词后手动发送。");
+    }
+  }
+
+  function handleGiftShopGive(itemId, recipientKey) {
+    const shop = getGiftShopApi();
+    if (!shop) return;
+    const result = shop.giveGift(state, itemId, recipientKey);
+    if (!result.ok) {
+      showToast("赠送失败", result.error || "无法赠送这件礼物。", "warn");
+      return;
+    }
+    const applied = applyGiftShopAffinity(result.recipient, result.affinity);
+    if (!applied) {
+      showToast("赠送失败", "未能更新好感度。", "warn");
+      return;
+    }
+    saveState();
+    render();
+    const affinityOverlay = document.getElementById("affinityOverlay");
+    if (affinityOverlay && !affinityOverlay.hidden) renderAffinityOverlay();
+    beginGiftGivingStory(result.item, result.recipient, applied);
+  }
+
+  function updateFreeModeBagButton() {
+    const bagBtn = document.getElementById("freeModeBagBtn");
+    const bagBadge = document.getElementById("freeModeBagBadge");
+    const shop = getGiftShopApi();
+    if (!bagBtn) return;
+    const show = canOpenGiftShop();
+    bagBtn.hidden = !show;
+    if (!show) return;
+    const total = shop?.getTotalInventoryCount(state) || 0;
+    if (bagBadge) {
+      bagBadge.textContent = total > 0 ? String(total) : "";
+      bagBadge.hidden = total <= 0;
+    }
+  }
+
+  function updateMapLocationShopButton(locationId) {
+    const shopBtn = document.getElementById("mapLocationShopBtn");
+    if (!shopBtn) return;
+    shopBtn.hidden = locationId !== "student_store" || !canOpenGiftShop();
+  }
+
   function openSideQuestFromTaskPanel() {
     closeTaskPanelOverlay();
     openSideQuestOverlay();
+  }
+
+  function getCurrentAffinityIdolName() {
+    const canonical = canonicalIdolName(state.idol);
+    return canonical && idols[canonical] ? canonical : "";
+  }
+
+  function canOpenAffinityOverlay() {
+    return isFreeModeActive() && Boolean(getCurrentAffinityIdolName());
+  }
+
+  function getSelectBackgroundUrl(idolName) {
+    const code = selectBackgroundCodes[idolName] || affinityIdolCodes[idolName]?.toLowerCase();
+    if (!code) return "";
+    return `./assets/select-bg/${code}.jpg`;
+  }
+
+  let activeAffinityTab = "current";
+
+  function buildAffinityStatusRows(idolName, score, threshold) {
+    const node = affinityNodes[threshold] || {};
+    const nextThreshold = affinityThresholds.find((value) => value > score);
+    const relationship = getFreeModeRelationship(idolName, { create: false });
+    const updateDay = Number(relationship?.更新日) || 0;
+    return [
+      { icon: "icon-heart", label: "好感阶段", value: node.title || "初识" },
+      { icon: "icon-book", label: "班级", value: idolSchoolClasses[idolName] || "初星学园" },
+      { icon: "icon-star", label: "性格标签", value: idols[idolName]?.tag || "—" },
+      { icon: "icon-calendar", label: "最近互动", value: updateDay > 0 ? `第 ${updateDay} 日` : "尚未互动" },
+      {
+        icon: "icon-point",
+        label: "距下一阶段",
+        value: nextThreshold ? `还需 ${nextThreshold - score} 点` : "已达满阶"
+      }
+    ];
+  }
+
+  function getRelationshipLevelLabel(score) {
+    if (score >= 80) return "亲密";
+    if (score >= 60) return "信赖";
+    if (score >= 40) return "熟悉";
+    if (score >= 20) return "认识";
+    return "初识";
+  }
+
+  function buildSecondaryRelationshipRows() {
+    ensureFreeModeRelationships();
+    if (typeof ensureFreeModeNpcRelationships === "function") ensureFreeModeNpcRelationships();
+    const current = getCurrentAffinityIdolName();
+    const idolRows = Object.keys(idols)
+      .filter((idolName) => idolName !== current)
+      .map((idolName) => {
+        const relationship = getFreeModeRelationship(idolName, { create: false });
+        const score = clampFreeModeRelationshipScore(relationship?.好感度 || 0);
+        return {
+          type: "idol",
+          name: idolName,
+          role: idolSchoolClasses[idolName] || "偶像科",
+          score,
+          updateDay: Number(relationship?.更新日) || 0,
+          avatar: idols[idolName]?.avatar || "",
+          theme: idols[idolName]?.theme || "#ff7bb0"
+        };
+      });
+    const npcRows = Object.entries(residentNpcProfiles).map(([npcName, profile]) => {
+      const relationship = getFreeModeNpcRelationship(npcName, { create: false });
+      const score = clampFreeModeRelationshipScore(relationship?.好感度 || 0);
+      return {
+        type: "npc",
+        name: npcName,
+        role: profile.publicLabel || profile.statusLabel || "NPC",
+        score,
+        updateDay: Number(relationship?.更新日) || 0,
+        avatar: profile.avatar || "",
+        theme: profile.theme || "#6f9cff"
+      };
+    });
+    return [...idolRows, ...npcRows].sort((a, b) => b.score - a.score || a.type.localeCompare(b.type) || a.name.localeCompare(b.name, "zh-Hans-CN"));
+  }
+
+  function buildRelationshipNetworkRows() {
+    const current = getCurrentAffinityIdolName();
+    const rows = [];
+    buildSecondaryRelationshipRows()
+      .filter((row) => row.score > 0 || row.name === current || row.type === "npc")
+      .forEach((row) => {
+        rows.push({ source: "制作人", target: row.name, label: `${getRelationshipLevelLabel(row.score)} ${row.score}/100`, type: row.type });
+      });
+    if (current) {
+      rows.unshift({ source: "制作人", target: current, label: `担当 · ${getFreeModeRelationshipScore(current)}/100`, type: "producer" });
+    }
+    const staticEdges = [
+      ["月村手毬", "秦谷美铃", "SyngUp 旧友"],
+      ["花海咲季", "花海佑芽", "姐妹与竞争"],
+      ["葛城莉莉娅", "紫云清夏", "好友"],
+      ["有村麻央", "十王星南", "学生会与竞争"],
+      ["姬崎莉波", "有村麻央", "宿舍照顾"],
+      ["亚纱里老师", "制作人", "课题指导"]
+    ];
+    staticEdges.forEach(([source, target, label]) => rows.push({ source, target, label, type: "static" }));
+    return rows;
+  }
+
+  function renderAffinityRelationshipBar(container, score) {
+    const fill = document.createElement("span");
+    fill.className = "affinity-relation-fill";
+    fill.style.width = `${clamp(score, 0, 100)}%`;
+    container.appendChild(fill);
+  }
+
+  function renderAffinitySecondaryPanel() {
+    const list = document.getElementById("affinitySecondaryList");
+    if (!list) return;
+    const rows = buildSecondaryRelationshipRows();
+    list.innerHTML = "";
+    rows.forEach((row) => {
+      const item = document.createElement("article");
+      item.className = `affinity-relation-item is-${row.type}`;
+      item.style.setProperty("--relation-theme", row.theme);
+      const dayText = row.updateDay > 0 ? `第 ${row.updateDay} 日互动` : "尚未互动";
+      item.innerHTML = `<div class="affinity-relation-avatar">${row.avatar ? `<img src="${row.avatar}" alt="" loading="lazy" decoding="async">` : `<b>${row.name.slice(0, 1)}</b>`}</div><div class="affinity-relation-main"><strong>${row.name}</strong><span>${row.type === "npc" ? "NPC" : "偶像"} · ${row.role} · ${dayText}</span><div class="affinity-relation-bar" aria-hidden="true"></div></div><div class="affinity-relation-score"><b>${row.score}</b><span>${getRelationshipLevelLabel(row.score)}</span></div>`;
+      const bar = item.querySelector(".affinity-relation-bar");
+      if (bar) renderAffinityRelationshipBar(bar, row.score);
+      list.appendChild(item);
+    });
+  }
+
+  function renderAffinityNetworkPanel() {
+    const list = document.getElementById("affinityNetworkList");
+    if (!list) return;
+    const rows = buildRelationshipNetworkRows();
+    list.innerHTML = "";
+    rows.forEach((row) => {
+      const item = document.createElement("article");
+      item.className = `affinity-network-edge is-${row.type}`;
+      item.innerHTML = `<span class="affinity-network-node">${row.source}</span><span class="affinity-network-link">${row.label}</span><span class="affinity-network-node">${row.target}</span>`;
+      list.appendChild(item);
+    });
+  }
+
+  function setAffinityTab(tab) {
+    activeAffinityTab = ["current", "secondary", "network"].includes(tab) ? tab : "current";
+    document.querySelectorAll("[data-affinity-tab]").forEach((button) => {
+      const active = button.dataset.affinityTab === activeAffinityTab;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-selected", active ? "true" : "false");
+    });
+    const primary = document.getElementById("affinityPrimaryPanel");
+    const secondary = document.getElementById("affinitySecondaryPanel");
+    const network = document.getElementById("affinityNetworkPanel");
+    if (primary) primary.hidden = activeAffinityTab !== "current";
+    if (secondary) secondary.hidden = activeAffinityTab !== "secondary";
+    if (network) network.hidden = activeAffinityTab !== "network";
+  }
+  function renderAffinityOverlay() {
+    const idolName = getCurrentAffinityIdolName();
+    if (!idolName) return;
+    const idol = idols[idolName] || {};
+    const score = clampFreeModeRelationshipScore(getFreeModeRelationshipScore(idolName));
+    const threshold = getAffinityStageThreshold(score);
+    const node = affinityNodes[threshold] || {};
+    const theme = idol.theme || "#ff7bb0";
+
+    const panel = document.querySelector("#affinityOverlay .affinity-panel");
+    if (panel) panel.style.setProperty("--affinity-theme", theme);
+
+    const bg = document.getElementById("affinityBg");
+    if (bg) {
+      const url = getSelectBackgroundUrl(idolName);
+      bg.style.backgroundImage = url ? `url("${url}")` : "";
+    }
+
+    const nameEl = document.getElementById("affinityIdolName");
+    if (nameEl) nameEl.textContent = idolName;
+    const romajiEl = document.getElementById("affinityIdolRomaji");
+    if (romajiEl) romajiEl.textContent = idolRomajiNames[idolName] || "";
+    const tagEl = document.getElementById("affinityIdolTag");
+    if (tagEl) tagEl.textContent = idol.tag ? `担当 · ${idol.tag}` : "担当偶像";
+
+    const hearts = document.getElementById("affinityHearts");
+    if (hearts) {
+      const filled = clamp(Math.round(score / 20), 0, 5);
+      hearts.innerHTML = "";
+      for (let i = 0; i < 5; i += 1) {
+        const heart = document.createElement("span");
+        heart.className = `affinity-heart${i < filled ? " is-filled" : ""}`;
+        heart.innerHTML = '<svg aria-hidden="true"><use href="#icon-heart"></use></svg>';
+        hearts.appendChild(heart);
+      }
+    }
+
+    const fill = document.getElementById("affinityScoreFill");
+    if (fill) fill.style.width = `${clamp(score, 0, 100)}%`;
+    const scoreValue = document.getElementById("affinityScoreValue");
+    if (scoreValue) scoreValue.textContent = `${score} / 100`;
+    const stageLabel = document.getElementById("affinityStageLabel");
+    if (stageLabel) {
+      stageLabel.textContent = threshold > 0
+        ? `第 ${affinityThresholds.indexOf(threshold) + 1} 阶段 · ${node.title || ""}`
+        : "初识阶段 · 关系刚刚起步";
+    }
+
+    const bioEl = document.getElementById("affinityBio");
+    if (bioEl) bioEl.textContent = idol.bio || "暂无角色简介。";
+
+    const statusList = document.getElementById("affinityStatusList");
+    if (statusList) {
+      statusList.innerHTML = "";
+      buildAffinityStatusRows(idolName, score, threshold).forEach((row) => {
+        const item = document.createElement("li");
+        item.className = "affinity-status-row";
+        item.innerHTML = `<span class="affinity-status-label"><svg aria-hidden="true"><use href="#${row.icon}"></use></svg>${row.label}</span><span class="affinity-status-value">${row.value}</span>`;
+        statusList.appendChild(item);
+      });
+    }
+
+    const bondTheme = document.getElementById("affinityBondTheme");
+    if (bondTheme) bondTheme.textContent = node.theme || "和担当偶像一起向 First Live 前进。";
+    const routeSeed = document.getElementById("affinityRouteSeed");
+    if (routeSeed) {
+      const seed = affinityRouteSeeds[idolName]?.[threshold] || "";
+      routeSeed.textContent = seed;
+      routeSeed.hidden = !seed;
+    }
+    renderAffinitySecondaryPanel();
+    renderAffinityNetworkPanel();
+    setAffinityTab(activeAffinityTab);
+  }
+
+  function openAffinityOverlay() {
+    if (!canOpenAffinityOverlay()) {
+      showToast("尚未开放", "确定担当偶像后可查看好感度档案。", "warn");
+      return;
+    }
+    setElementHidden("affinityOverlay", false);
+    renderAffinityOverlay();
+  }
+
+  function closeAffinityOverlay() {
+    setElementHidden("affinityOverlay", true);
   }
 
   function canOpenHybridFacilityAt(locationId) {
@@ -2479,6 +3944,11 @@
     return "First Live 当日";
   }
 
+  function isSandboxScoutPhase() {
+    if (!isSandboxLaunch()) return false;
+    return state.tasks?.main?.scout_temari?.status === "active";
+  }
+
   function getHatsuWorldHelpers() {
     return {
       canonicalIdolName,
@@ -2486,7 +3956,8 @@
       formatClock: formatFreeModeClock,
       getPresenceSlotKey: getFreeModePresenceSlotKey,
       getDayKey: (s) => globalThis.HatsuWorld?.dailyTick?.getDayKey?.(s) || `live+${s?.freeMode?.postLiveDay || 1}`,
-      isSandboxLaunch
+      isSandboxLaunch,
+      isSandboxScoutPhase
     };
   }
 
@@ -2518,12 +3989,19 @@
   }
 
   function runFreeModeWorldDailyTick() {
+    const helpers = getWorldFeedHelpers();
+    if (shouldUseSecondaryWorldGen()) {
+      globalThis.HatsuWorld?.dailyTick?.refreshWorldPresence?.(state, helpers);
+      syncDailyWorldGeneration();
+      return;
+    }
     const ticker = globalThis.HatsuWorld?.dailyTick?.runFreeModeDailyTick;
     if (typeof ticker === "function") {
-      ticker(state, getHatsuWorldHelpers());
+      ticker(state, helpers);
     } else {
       rollFreeModePresenceLegacy(true);
     }
+    globalThis.HatsuWorld?.worldGen?.markDailyWorldGenReady?.(state, "static", getWorldFeedDayKey());
   }
 
   function daysLeft() {
@@ -2841,6 +4319,58 @@
     return state.pendingActionContext?.action === "intimacy" && getIntimacyMode() === "nsfw";
   }
 
+  function isApartmentNsfwInviteActive() {
+    return isNsfwIntimacyActive() && Boolean(state.pendingActionContext?.actionContext?.apartmentInvite);
+  }
+
+  function getNsfwIntimacyTargetIdol() {
+    const fromContext = canonicalIdolName(state.pendingActionContext?.actionContext?.inviteIdol);
+    if (fromContext && idols[fromContext]) return fromContext;
+    return state.idol;
+  }
+
+  function getApartmentNsfwEligibleIdols() {
+    ensureFreeModeRelationships();
+    const current = getCurrentAffinityIdolName();
+    return Object.keys(idols)
+      .map((name) => ({
+        name,
+        score: getFreeModeRelationshipScore(name),
+        isAssigned: name === current
+      }))
+      .filter((row) => row.score >= INTIMACY_NSFW_UNLOCK_TRUST)
+      .sort((a, b) => (Number(b.isAssigned) - Number(a.isAssigned)) || b.score - a.score || a.name.localeCompare(b.name, "zh-Hans-CN"));
+  }
+
+  function buildNsfwIntimacyAffinityLine(idolName = getNsfwIntimacyTargetIdol()) {
+    const canonical = canonicalIdolName(idolName);
+    if (!canonical) return "";
+    if (isApartmentNsfwInviteActive() || isFreeModeActive()) {
+      const score = getFreeModeRelationshipScore(canonical);
+      return `${getAffinityStageLine(canonical, score)}（当前好感度：${score}/100）`;
+    }
+    return getAffinityStageLine(canonical, state.trust);
+  }
+
+  function buildNsfwIntimacyScheduleLine() {
+    if (isApartmentNsfwInviteActive()) {
+      return `当前时间：${formatFreeModeDayLabel()} · ${formatFreeModeClock()}，地点：制作人私人公寓（夜间私密空间）`;
+    }
+    return `当前日程：第 ${state.day} 天，${roundLabel()}`;
+  }
+
+  function buildApartmentNsfwSceneSection(targetIdol) {
+    const assigned = getCurrentAffinityIdolName();
+    const assignedNote = targetIdol === assigned
+      ? "她是你的担当偶像，彼此信赖已满。"
+      : `她是学园偶像 ${targetIdol}；当前正式担当为 ${assigned || "未登记"}，本次为私下邀约，请勿写成正式育成日程。`;
+    return `场景前提：
+- 地点：制作人的私人公寓（夜间）。可从玄关、客厅到卧室自然推进，氛围私密、安静。
+- 制作人刚刚把 ${targetIdol} 约到家里，对方已知情并自愿进入。
+- ${assignedNote}
+- 公寓内只有制作人与 ${targetIdol}，不要引入无关第三者闯入。`;
+  }
+
   function clearIntimacyRoute() {
     state.intimacyRoute = null;
   }
@@ -2852,6 +4382,10 @@
   }
 
   function nsfwIntimacyActionTitle() {
+    if (isApartmentNsfwInviteActive()) {
+      const target = getNsfwIntimacyTargetIdol();
+      return target ? `公寓 · ${target}` : "公寓邀约";
+    }
     return "NSFW 亲密";
   }
 
@@ -3105,6 +4639,11 @@
           minutes: HYBRID_FACILITY_ACTION_MINUTES,
           clock: formatFreeModeClock()
         });
+        const location = getWorldMapLocation(state.freeMode.facilityLocationId);
+        appendEveningJournalActivity(
+          action === "lesson" ? "上课" : "训练",
+          `${location?.name || "校园设施"} · +${HYBRID_FACILITY_ACTION_MINUTES} 分钟`
+        );
       }
       state.log.unshift({
         day: state.freeMode.postLiveDay,
@@ -3126,7 +4665,7 @@
     if (["lesson", "training"].includes(action) && isSkipLessonTrainingAiStoryEnabled()) {
       finalizeProduceActionWithoutAi(actionName, resultSummary);
       if (hybridTimeResult?.hitDayEnd) {
-        showToast("今日活动结束", "时间已到 22:00。", "info");
+        maybeTriggerEveningGoHomePrompt();
       }
       return;
     }
@@ -3136,7 +4675,7 @@
       openAiPromptOverlay("当前页面未连接 SillyTavern。请编辑或复制提示词后手动发送。");
     }
     if (hybridFacility && hybridTimeResult?.hitDayEnd) {
-      showToast("今日活动结束", "时间已到 22:00。", "info");
+      maybeTriggerEveningGoHomePrompt();
     }
     showToast("行动结算完成", `${actionName}已经写入 P 手账。`, randomEvent ? "gold" : "info");
     processSandboxQuestAfterSettlement();
@@ -3177,62 +4716,106 @@
   function galgameRenderContract(mode = "normal") {
     if (mode === "choice") {
       return `【初星学园 Galgame 渲染规则契约】
-
-选项剧情模式：
-如果本次提示词明确要求输出 <option1> 到 <option4>，则必须使用以下结构：
-
-【初星正文开始】
-<story>
-<narration>...</narration>
-<dialogue char="角色名">“...”</dialogue>
-</story>
-<option1>选项文本</option1>
-<option2>选项文本</option2>
-<option3>选项文本</option3>
-<option4>选项文本</option4>
-【初星正文结束】
-
-限制：
 - 选项剧情必须输出完整四个 option。
-- <story> 内部只能使用 <dialogue> 和 <narration>。
-- 不要输出 Markdown、列表、数值结算、解释文本。`;
+- <story> 内只用 <dialogue char="角色名"> 与 <narration>；不要 Markdown、列表、数值结算或标签外说明。`;
     }
 
     return `【初星学园 Galgame 渲染规则契约】
-
-普通剧情模式：
-正文必须放在：
-【初星正文开始】
-...
-【初星正文结束】
-
-普通剧情中只使用：
-<dialogue char="角色名">“台词”</dialogue>
-<narration>旁白或动作</narration>
-
-限制：
-- 普通剧情不要输出 option。
-- 不要输出 Markdown、列表、数值结算、解释文本。`;
+- 正文写在【初星正文开始】…【初星正文结束】内，普通剧情中只使用：<dialogue char="角色名"> 与 <narration>。
+- 不要输出 option、Markdown、列表或数值结算。`;
   }
 
   function outputContract(maxText) {
     return `${galgameRenderContract("normal")}
-
-输出格式要求：
-1. 不要改变或重新计算前端已结算的数值。
-2. 不要在【初星正文开始】之前或【初星正文结束】之后输出任何内容。
+- 不要改算前端已结算数值；正文前后不要输出系统说明。
 - ${maxText}`;
+  }
+
+  function buildChoiceHardRules(options = {}) {
+    const {
+      phase1 = false,
+      includeTime = false,
+      includeRelationship = false,
+      storyNote = ""
+    } = options;
+    const tagList = phase1
+      ? "<story> + <option1>～<option4>"
+      : includeTime
+        ? `<story> + <option1>～<option4> + <time1>～<time4>${includeRelationship ? " + <relationship_update>" : ""}`
+        : "<story> + <option1>～<option4>";
+    const lines = [
+      "【输出硬规则】",
+      `1. 全部放在【初星正文开始】…【初星正文结束】内，只含 ${tagList}。`,
+      phase1
+        ? "2. <story> 停在待选择转折点；option 为制作人第一人称，不带“选项1：”等前缀。"
+        : "2. option 为制作人第一人称，不带“选项1：”等前缀；标签外不要思考或说明。"
+    ];
+    if (includeTime) {
+      lines.push(`3. time 为整数分钟，缺省 ${FREE_MODE_MAP_CHOICE_MINUTES}。`);
+    }
+    if (storyNote) lines.push(storyNote);
+    return lines.join("\n");
+  }
+
+  function buildMapExploreChoiceExample(includeRelationship = true) {
+    const relationshipLine = includeRelationship
+      ? "\n<relationship_update>{}</relationship_update>"
+      : "";
+    return `输出示例：
+【初星正文开始】
+<story>...</story>
+<option1>...</option1><time1>15</time1>
+<option2>...</option2><time2>30</time2>
+<option3>...</option3><time3>10</time3>
+<option4>...</option4><time4>20</time4>${relationshipLine}
+【初星正文结束】`;
+  }
+
+  function buildMapExplorePlayRules(options = {}) {
+    const { outing = false, relationship = true } = options;
+    const timing = `抵达 +${FREE_MODE_MAP_ARRIVAL_MINUTES} 分；每次选择按 time 推进（缺省 ${FREE_MODE_MAP_CHOICE_MINUTES} 分），多轮循环。`;
+    const modeLine = outing
+      ? `校外连续探索，不是育成一次性外出；不要当天收束或结算体力/压力/信赖。${timing}`
+      : `连续选项探索，只写当前场景，不写选中后收尾。${timing}`;
+    const valueLine = relationship
+      ? "旧育成数值勿改；好感度仅通过 <relationship_update> 输出增量 JSON。"
+      : "不要结算或修改数值。";
+    return `- ${modeLine}
+- ${valueLine}
+- 四个 option 风味不同，制作人第一人称。`;
+  }
+
+  function buildChoiceOnlyExample() {
+    return `输出示例：
+【初星正文开始】
+<story>...</story>
+<option1>...</option1>
+<option2>...</option2>
+<option3>...</option3>
+<option4>...</option4>
+【初星正文结束】`;
+  }
+
+  function buildMapExploreChoiceOutputBlock(options = {}) {
+    const { includeRelationship = true } = options;
+    return `${buildMapExploreChoiceExample(includeRelationship)}
+
+${buildChoiceHardRules({ includeTime: true, includeRelationship })}`;
   }
 
   function buildProducerPromptSection() {
     if (!state.producer) return "";
+    const lines = [];
+    const name = String(state.producer.name || "").trim();
+    if (name && name !== "{{user}}") lines.push(`称呼：${name}`);
+    if (state.producer.gender) lines.push(`性别：${state.producer.gender}`);
+    if (state.producer.personality) lines.push(`性格：${state.producer.personality}`);
+    if (state.producer.style) lines.push(`说话风格：${state.producer.style}`);
+    if (state.producer.settings) lines.push(`背景：${state.producer.settings}`);
+    if (!lines.length) return "";
     return `
 制作人（{{user}}）设定：
-- 称呼：${state.producer.name || "{{user}}"}
-- 性别：${state.producer.gender || "由 AI 自行发挥"}
-- 性格：${state.producer.personality || "由 AI 自行发挥"}
-- 说话风格：${state.producer.style || "由 AI 自行发挥"}
-- 额外人设背景：${state.producer.settings || "由 AI 自行发挥"}
+${lines.map((line) => `- ${line}`).join("\n")}
 `;
   }
 
@@ -3287,10 +4870,7 @@ ${composeWorldSummaryBlock("produce")}
 本行动叙事规则：
 ${actionStyle}${destinationPrompt}${eventPrompt}
 
-${outputContract(narrativeLength)}
-不要重新计算数值。
-不要改变系统结果。
-不要让角色偏离上述主线矛盾。`;
+${outputContract(narrativeLength)}`;
   }
 
   function buildChoicePhase1Prompt(action, attribute, shuffledRewards, actionContext = {}) {
@@ -3362,50 +4942,64 @@ ${buildProducerPromptSection()}
 
 ${destinationPrompt}${companionTopicPrompt}
 
-请为本次${actionName}生成【前半段剧情】并设计【4个互动分支选项】供制作人选择。
-${action === "intimacy"
-  ? "\n普通亲密限制：本次写亲密、照顾、安抚、撒娇、拥抱、牵手、摸头、靠肩等清水向内容。不要写 NSFW 或成人向描写。"
-  : ""}
+请为本次${actionName}生成前半段剧情，并设计 4 个制作人第一人称选项，停在待选择转折点。
+${action === "intimacy" ? "普通亲密：清水向，不要 NSFW。" : ""}
 
 ${galgameRenderContract("choice")}
+${buildChoiceHardRules({ phase1: true })}
 
-==================================================
-⚠️⚠️【输出硬规则：违反本规则将导致整个游戏崩溃报错，请务必严格服从！】⚠️⚠️
-1. 你必须严格且完整地把所有输出包裹在【初星正文开始】与【初星正文结束】分隔符内。
-2. 分隔符之内，【必须且只能】包含以下 5 个 XML 标签，绝对不能夹杂任何标签外的散落文本、Markdown 列表（如 - 或 1. 2. 等）、或者解释：
-   <story>写前半段的对话/剧情，停留在需要制作人（Producer）做选择的转折点</story>
-   <option1>选项 1 的文本内容（必须以制作人第一人称口吻写一句回复或行动）</option1>
-   <option2>选项 2 的文本内容（必须以制作人第一人称口吻写一句回复或行动）</option2>
-   <option3>选项 3 的文本内容（必须以制作人第一人称口吻写一句回复或行动）</option3>
-   <option4>选项 4 的文本内容（必须以制作人第一人称口吻写一句回复或行动）</option4>
-3. 选项标签内部的文本【绝对不能】带任何“选项 1：”、“+10信赖度”、“完美/笨拙”等系统前缀或数值标签！只能写纯粹的角色台词或动作。
-4. 不要在标签外写任何思考（thinking/details）、计划、规则复述、系统提示。
-==================================================
-
-${action === "intimacy" ? "亲密选项方向（四个选项都应是正向但风味不同的亲近方式）：" : "选项生成质量映射规则（请根据以下等级设计对应好感的回复）："}
+${action === "intimacy" ? "亲密选项方向：" : "选项质量映射（标签内不要写数值）："}
 ${optionsPrompt}
 
-输出示例：
-【初星正文开始】
-<story>（这里是前半段的剧情台词和动作）</story>
-<option1>（这里是制作人的具体行动或回复台词 1）</option1>
-<option2>（这里是制作人的具体行动或回复台词 2）</option2>
-<option3>（这里是制作人的具体行动或回复台词 3）</option3>
-<option4>（这里是制作人的具体行动或回复台词 4）</option4>
-【初星正文结束】`;
+${buildChoiceOnlyExample()}`;
   }
 
   function buildMapLocationPresenceLine(locationId) {
     if (locationId === FREE_MODE_OUTING_LOCATION_ID) return "";
+    const residentNpcs = getResidentNpcsAtLocation(locationId);
+    const npcLine = residentNpcs.length
+      ? `常驻NPC：${residentNpcs.map((npc) => `${npc.name}（${npc.promptLine || npc.publicLabel || "在场"}）`).join("、")}。`
+      : "";
     const campusLines = globalThis.HatsuWorld?.campusBehavior?.buildMapPresencePromptLines?.(
       locationId,
       state,
       getHatsuWorldHelpers()
     );
-    if (campusLines) return campusLines;
+    if (campusLines) return [campusLines, npcLine].filter(Boolean).join("\n");
     const idolsHere = getIdolsPresentAtLocation(locationId);
-    if (!idolsHere.length) return "当前该地点没有已确认到场的其他偶像。";
-    return `当前该地点可能在场的偶像：${idolsHere.join("、")}。请自然写入剧情，但不要替前端重新决定她们是否在场。`;
+    if (!idolsHere.length && !residentNpcs.length) return "当前该地点没有已确认到场的其他偶像。";
+    const idolLine = idolsHere.length
+      ? `当前该地点可能在场的偶像：${idolsHere.join("、")}。请自然写入剧情，但不要替前端重新决定她们是否在场。`
+      : "当前该地点没有已确认到场的其他偶像。";
+    return [idolLine, npcLine].filter(Boolean).join("\n");
+  }
+
+  function getMapExploreRelationshipIdols(locationId, options = {}) {
+    if (isSandboxScoutActive()) return [];
+    const actionContext = options.actionContext || state.pendingActionContext?.actionContext || {};
+    const visitMode = options.visitMode || actionContext.visitMode || getMapLocationVisitMode();
+    const names = new Set();
+    if (visitMode !== "alone" && state.idol) {
+      names.add(canonicalIdolName(state.idol));
+    }
+    getIdolsPresentAtLocation(locationId).forEach((idolName) => {
+      const canonical = canonicalIdolName(idolName);
+      if (canonical) names.add(canonical);
+    });
+    return [...names].filter((idolName) => idolName && idols[idolName]);
+  }
+
+  function buildFreeModeRelationshipPromptBlock(locationId, options = {}) {
+    const relationshipIdols = getMapExploreRelationshipIdols(locationId, options);
+    if (!relationshipIdols.length) {
+      return "好感：<relationship_update>{}</relationship_update>";
+    }
+    const statusLines = relationshipIdols.map((idolName) => {
+      const score = getFreeModeRelationshipScore(idolName);
+      const stageTag = getAffinityStageTag(idolName, score);
+      return `${idolName} ${score}/100${stageTag ? ` ${stageTag}` : ""}`;
+    }).join("；");
+    return `好感（${statusLines}）：按上一轮“▶ 制作人的选择”给增量 ±1～5，仅列上述偶像；无互动则 {}。格式 <relationship_update>{"${relationshipIdols[0]}":2}</relationship_update>`;
   }
 
   function summarizeMapExploreContext() {
@@ -3435,6 +5029,7 @@ ${optionsPrompt}
     const sceneInstruction = continuation
       ? `请承接下文摘要，写制作人继续留在 ${location.name}、与 ${targetIdol} 物色搭话的下一轮场景，并设计 4 个新的下一步行动选项。
 - 不要重复已经发生过的事件；从当前时间点自然续写。
+- 若 ${targetIdol} 在本轮明确同意成为制作人担当，不要输出 option 与 time 标签；正文写到她答应签约的瞬间，并在【初星正文结束】之前输出【初星任务完成】scout_temari（或 <quest_complete id="scout_temari" />）。前端将自动请求收尾剧情，不再展示选项。
 - 上文摘要（仅供衔接，不要原文复述）：
 ${summarizeMapExploreContext()}`
       : `请写制作人独自来到 ${location.name}，与 ${targetIdol} 初次接触、尝试邀请她成为担当的开场场景，并设计 4 个不同的下一步行动选项。
@@ -3454,38 +5049,34 @@ ${presenceLine ? `\n${presenceLine}\n` : ""}${composeWorldSummaryBlock("map", lo
 ${buildProducerPromptSection()}
 
 ${sceneInstruction}
-- 抵达该地点时前端已推进 ${FREE_MODE_MAP_ARRIVAL_MINUTES} 分钟；玩家每选择一项 option 后，前端会按对应 time 标签推进分钟数（缺失时默认 ${FREE_MODE_MAP_CHOICE_MINUTES} 分钟），并立即进入下一轮选项。
-- 你只需写当前场景、4 个 option 与 4 个 time 标记，不要写选项被选中后的收尾或结算段落。
-- 不要结算或修改任何数值。
-- 选项必须是制作人第一人称口吻，风味不同，且都适合继续与 ${targetIdol} 接触。
-- 不要提供与其他偶像深聊的选项。
+- ${targetIdol} 同意签约时：正文末尾输出【初星任务完成】scout_temari（或 <quest_complete id="scout_temari" />），同轮不要 option/time。
+- 仅与 ${targetIdol} 接触，不要提供与其他偶像深聊的选项。
 
-选项耗时标记：
-- 请为每个 option 额外输出对应的 <time1> 到 <time4>，内容为纯整数分钟（建议 5-${FREE_MODE_MAP_MINUTES_MAX}）。
+${buildMapExplorePlayRules({ outing: false, relationship: false })}
 
 ${galgameRenderContract("choice")}
+${buildMapExploreChoiceOutputBlock({ includeRelationship: false })}`;
+  }
 
-地图选项输出示例：
-【初星正文开始】
-<story>...</story>
-<option1>...</option1>
-<time1>15</time1>
-<option2>...</option2>
-<time2>45</time2>
-<option3>...</option3>
-<time3>10</time3>
-<option4>...</option4>
-<time4>30</time4>
-【初星正文结束】
+  function buildSandboxScoutWrapUpPrompt() {
+    const targetIdol = state.idol || "物色目标";
+    const locationId = state.pendingActionContext?.actionContext?.locationId;
+    const location = getWorldMapLocation(locationId);
+    return `[初星育成系统：沙盒模式 · 物色搭话 · 收尾]
 
-==================================================
-⚠️⚠️【输出硬规则：违反本规则将导致整个游戏崩溃报错，请务必严格服从！】⚠️⚠️
-1. 你必须严格且完整地把所有输出包裹在【初星正文开始】与【初星正文结束】分隔符内。
-2. 分隔符之内，必须包含 <story>、<option1> 到 <option4>，以及 <time1> 到 <time4> 共 9 个 XML 标签。
-3. time 标签内只能是整数分钟；缺失或无效时前端默认 ${FREE_MODE_MAP_CHOICE_MINUTES} 分钟。
-4. 选项标签内部不要带“选项 1：”等系统前缀。
-5. 不要在标签外写任何思考、计划、规则复述或系统说明。
-==================================================`;
+物色目标：${targetIdol}
+绑定角色卡：${state.boundCharacter?.name || "未绑定，按物色目标写"}
+当前时间：${formatCampusDayLabel()} ${formatFreeModeClock()}
+地点：${location?.name || "校园"}
+
+上文摘要（仅供衔接，不要原文复述）：
+${summarizeMapExploreContext()}
+
+【重要】前端已确认物色成功：上一段剧情中 AI 已输出【初星任务完成】scout_temari，${targetIdol} 已同意成为制作人担当。
+
+请写签约后余韵与简短告别，500 字以内；不要 option/time/任务标记，不要改数值。
+
+${outputContract("请写一段物色成功后的收尾正文。")}`;
   }
 
   function buildMapLocationExplorePrompt(locationId, options = {}) {
@@ -3507,59 +5098,45 @@ ${summarizeMapExploreContext()}`
         ? `请写制作人独自来到 ${location.name} 刚到达时的开场场景，并设计 4 个不同的下一步行动选项。担当偶像 ${idol} 不在身边同行。`
         : `请写制作人与担当偶像 ${idol} 一起来到 ${location.name} 刚到达时的开场场景，并设计 4 个不同的下一步行动选项。`;
     const presenceLine = buildMapLocationPresenceLine(locationId);
+    const relationshipBlock = buildFreeModeRelationshipPromptBlock(locationId, { actionContext, visitMode });
     const sandboxMainBlock = isSandboxLaunch() && state.sandbox?.inviteComplete
       ? globalThis.HatsuTasks?.buildSandboxMainQuestPromptBlock?.(state, locationId) || ""
       : "";
-    return `[初星育成系统：自由模式 · 地点探索]
+    const exploreModeLine = isSandboxLaunch()
+      ? "这是沙盒学园日常探索，不是育成日程轮次，也不是 First Live 之后的时间线。"
+      : "这是 First Live 后的学园自由探索，不是育成日程行动。";
+    const promptHeader = isSandboxLaunch()
+      ? "[初星育成系统：沙盒模式 · 地点探索]"
+      : "[初星育成系统：自由模式 · 地点探索]";
+    const dayTimeLabel = isSandboxLaunch()
+      ? `${formatCampusDayLabel()} ${formatFreeModeClock()}`
+      : `${formatFreeModeDayLabel()} ${formatFreeModeClock()}`;
+    return `${promptHeader}
 
 担当偶像：${state.idol}
-${getAffinityStageLine(state.idol, state.trust)}
+${getFreeModeAffinityStageLine(state.idol)}
 绑定角色卡：${state.boundCharacter?.name || "未绑定，按担当偶像写"}
-当前时间：${formatFreeModeDayLabel()} ${formatFreeModeClock()}
+当前时间：${dayTimeLabel}
 地点：${location.name}
 地点说明：${location.description}
 
 ${buildMapLocationVisitModeLine(visitMode)}
 ${presenceLine ? `\n${presenceLine}` : ""}
+${relationshipBlock ? `\n${relationshipBlock}` : ""}
 ${composeWorldSummaryBlock("map", locationId)}
 ${sandboxMainBlock ? `\n${sandboxMainBlock}\n` : ""}
 
 ${buildProducerPromptSection()}
 
 ${sceneInstruction}
-- 这是 First Live 后的学园自由探索，不是育成日程行动。
-- 抵达该地点时前端已推进 ${FREE_MODE_MAP_ARRIVAL_MINUTES} 分钟；玩家每选择一项 option 后，前端会按对应 time 标签推进分钟数（缺失时默认 ${FREE_MODE_MAP_CHOICE_MINUTES} 分钟），并立即进入下一轮选项。
-- 你只需写当前场景、4 个 option 与 4 个 time 标记，不要写选项被选中后的收尾或结算段落。
-- 不要结算或修改任何数值。
-- 选项必须是制作人第一人称口吻，风味不同，且都适合在该地点继续推进。
+- ${exploreModeLine}
+- 不要写选项被选中后的收尾，只写到等待玩家选择下一步。
+- 每个 option 必须包含 <time1> 这种耗时标签。
 
-选项耗时标记：
-- 请为每个 option 额外输出对应的 <time1> 到 <time4>，内容为纯整数分钟（建议 5-${FREE_MODE_MAP_MINUTES_MAX}）。
-- 表示执行该 option 预计消耗的时间；简短行动可 5-15 分钟，较耗时行动可 30-90 分钟。
+${buildMapExplorePlayRules({ outing: false, relationship: true })}
 
 ${galgameRenderContract("choice")}
-
-地图选项输出示例：
-【初星正文开始】
-<story>...</story>
-<option1>...</option1>
-<time1>15</time1>
-<option2>...</option2>
-<time2>45</time2>
-<option3>...</option3>
-<time3>10</time3>
-<option4>...</option4>
-<time4>30</time4>
-【初星正文结束】
-
-==================================================
-⚠️⚠️【输出硬规则：违反本规则将导致整个游戏崩溃报错，请务必严格服从！】⚠️⚠️
-1. 你必须严格且完整地把所有输出包裹在【初星正文开始】与【初星正文结束】分隔符内。
-2. 分隔符之内，必须包含 <story>、<option1> 到 <option4>，以及 <time1> 到 <time4> 共 9 个 XML 标签。
-3. time 标签内只能是整数分钟；缺失或无效时前端默认 ${FREE_MODE_MAP_CHOICE_MINUTES} 分钟。
-4. 选项标签内部不要带“选项 1：”等系统前缀。
-5. 不要在标签外写任何思考、计划、规则复述或系统说明。
-==================================================`;
+${buildMapExploreChoiceOutputBlock({ includeRelationship: true })}`;
   }
 
   function buildFreeModeOutingExplorePrompt(options = {}) {
@@ -3567,8 +5144,17 @@ ${galgameRenderContract("choice")}
     const actionContext = options.actionContext || state.pendingActionContext?.actionContext || {};
     const location = resolveMapExploreLocation(FREE_MODE_OUTING_LOCATION_ID, actionContext);
     if (!location) return "";
+    const sideQuest = actionContext.sideQuestSlotIndex !== undefined && actionContext.sideQuestSlotIndex !== null
+      ? state.tasks?.side?.slots?.[Number(actionContext.sideQuestSlotIndex)]
+      : null;
+    if (sideQuest && !continuation) {
+      return buildSideQuestScenePrompt(sideQuest, location);
+    }
     const visitMode = options.visitMode || getMapLocationVisitMode();
     const idol = state.idol || "担当偶像";
+    const dayTimeLabel = isSandboxLaunch()
+      ? `${formatCampusDayLabel()} ${formatFreeModeClock()}`
+      : `${formatFreeModeDayLabel()} ${formatFreeModeClock()}`;
     const sceneInstruction = continuation
       ? `请承接下文摘要，写制作人继续在校外 ${location.name} 活动的下一轮场景，并设计 4 个新的下一步行动选项。
 - 不要重复已经发生过的事件；从当前时间点自然续写。
@@ -3577,60 +5163,88 @@ ${summarizeMapExploreContext()}`
       : visitMode === "alone"
         ? `请写制作人独自离开学园，来到 ${location.name} 刚到达时的开场场景，并设计 4 个不同的下一步行动选项。担当偶像 ${idol} 不在身边同行。`
         : `请写制作人与担当偶像 ${idol} 一起离开学园，来到 ${location.name} 刚到达时的开场场景，并设计 4 个不同的下一步行动选项。`;
-    return `[初星育成系统：自由模式 · 校外外出探索]
+    const outingHeader = isSandboxLaunch()
+      ? "[初星育成系统：沙盒模式 · 校外外出探索]"
+      : "[初星育成系统：自由模式 · 校外外出探索]";
+    const relationshipBlock = buildFreeModeRelationshipPromptBlock(FREE_MODE_OUTING_LOCATION_ID, { actionContext, visitMode });
+    return `${outingHeader}
 
 担当偶像：${state.idol}
-${getAffinityStageLine(state.idol, state.trust)}
+${getFreeModeAffinityStageLine(state.idol)}
 绑定角色卡：${state.boundCharacter?.name || "未绑定，按担当偶像写"}
-当前时间：${formatFreeModeDayLabel()} ${formatFreeModeClock()}
+当前时间：${dayTimeLabel}
 外出地点：${location.name}
 外出说明：${location.description}
 
 ${buildMapLocationVisitModeLine(visitMode)}
+${relationshipBlock ? `\n${relationshipBlock}` : ""}
 
 ${buildProducerPromptSection()}
 
 ${sceneInstruction}
+- 氛围贴合 ${location.name}，可写路人、店员与环境细节。
+- 与育成日程外出完全不同，这是地图自由探索中的校外地点。
+- 支持连续多轮选择 option，每轮只推进当前选项结果与新的下一步选项。
 
-【与育成日程外出完全不同 · 必须遵守】
-- 这不是育成第 4 轮的“一次性外出行动”，不要写当天收束、不要结算体力/信赖/压力，也不要把本次回复写成完整一日游结束。
-- 玩法与校内地点探索相同：玩家会连续多轮选择 option；你每轮只输出当前场景 + 4 个 option + 4 个 time，选中后前端立刻请求下一轮。
-- 离开学园并抵达外出地点时，前端已推进 ${FREE_MODE_MAP_ARRIVAL_MINUTES} 分钟；玩家每选择一项 option 后，前端会按对应 time 标签推进分钟数（缺失时默认 ${FREE_MODE_MAP_CHOICE_MINUTES} 分钟）。
-- 你只需写当前场景、4 个 option 与 4 个 time 标记，不要写选项被选中后的收尾段落。
-- 不要结算或修改任何数值。
-
-校外场景要求：
-- 地点氛围要贴合 ${location.name} 的真实特征；可写路人、店员、偶遇对象或环境细节。
-- 重点写制作人与担当在该地点的互动、发现与关系推进。
-- 选项必须是制作人第一人称口吻，风味不同，且都适合继续在该外出地点推进。
-
-选项耗时标记：
-- 请为每个 option 额外输出对应的 <time1> 到 <time4>，内容为纯整数分钟（建议 5-${FREE_MODE_MAP_MINUTES_MAX}）。
-- 表示执行该 option 预计消耗的时间；简短行动可 5-15 分钟，较耗时行动可 30-90 分钟。
+${buildMapExplorePlayRules({ outing: true, relationship: true })}
 
 ${galgameRenderContract("choice")}
+${buildMapExploreChoiceOutputBlock({ includeRelationship: true })}`;
+  }
 
-外出选项输出示例：
-【初星正文开始】
-<story>...</story>
-<option1>...</option1>
-<time1>15</time1>
-<option2>...</option2>
-<time2>45</time2>
-<option3>...</option3>
-<time3>10</time3>
-<option4>...</option4>
-<time4>30</time4>
-【初星正文结束】
+  function buildSideQuestScenePrompt(slot, location) {
+    const tagLabel = getSideQuestPoolApi()?.getTagLabel?.(slot.tag) || slot.tag || "商演";
+    const dayTimeLabel = isSandboxLaunch()
+      ? `${formatCampusDayLabel()} ${formatFreeModeClock()}`
+      : `${formatFreeModeDayLabel()} ${formatFreeModeClock()}`;
+    return `[初星育成系统：沙盒模式 · 委托现场]
 
-==================================================
-⚠️⚠️【输出硬规则：违反本规则将导致整个游戏崩溃报错，请务必严格服从！】⚠️⚠️
-1. 你必须严格且完整地把所有输出包裹在【初星正文开始】与【初星正文结束】分隔符内。
-2. 分隔符之内，必须包含 <story>、<option1> 到 <option4>，以及 <time1> 到 <time4> 共 9 个 XML 标签。
-3. time 标签内只能是整数分钟；缺失或无效时前端默认 ${FREE_MODE_MAP_CHOICE_MINUTES} 分钟。
-4. 选项标签内部不要带“选项 1：”等系统前缀。
-5. 不要在标签外写任何思考、计划、规则复述或系统说明。
-==================================================`;
+担当偶像：${state.idol}
+${getFreeModeAffinityStageLine(state.idol)}
+当前时间：${dayTimeLabel}
+委托地点：${location.name}
+地点说明：${location.description}
+
+委托标题：${slot.title}
+委托类型：${tagLabel}
+委托说明：${slot.desc}
+
+${buildProducerPromptSection()}
+
+请写制作人与担当偶像抵达 ${location.name}，正式开始执行该商业委托的现场开场，并设计 4 个制作人第一人称行动选项。
+- 这是外部商业委托现场，不是训练、课表或校园日常。
+- 需要出现主办方/工作人员/观众/品牌方等外部现场压力。
+- 选项不要写“失败/勉强/完成/完美”等系统档位词，而要写成自然行动。
+- 四个选项按顺序对应不同风险：1 保守补救、2 稳健执行、3 主动加码、4 冒险处理。
+- 不要在本轮写委托结果或结算，只写到等待制作人选择现场处理方式。
+
+${galgameRenderContract("choice")}
+${buildMapExploreChoiceOutputBlock({ includeRelationship: false })}`;
+  }
+
+  function getSideQuestTierForChoice(index) {
+    return ["pass_low", "pass", "perfect", "fail"][Number(index)] || "pass";
+  }
+
+  function buildSideQuestResultPrompt(slot, tier, choiceText) {
+    const pool = getSideQuestPoolApi();
+    const tierLabel = pool?.SIDE_TIER_META?.[tier]?.label || "完成";
+    return `[初星育成系统：沙盒模式 · 委托收尾]
+
+担当偶像：${state.idol}
+当前时间：${formatCampusDayLabel()} ${formatFreeModeClock()}
+委托标题：${slot.title}
+委托地点：${slot.locationName || "委托地点"}
+委托说明：${slot.desc}
+制作人的现场选择：${choiceText}
+前端结算档位：${tierLabel}
+
+前端已经完成奖励结算，请只写 500 字以内的委托现场收尾与余韵。
+- 不要写数值、金钱、知名度增加或系统结算。
+- 不要再提供 option/time。
+- 根据“${tierLabel}”自然表现现场效果，但不要把档位词当系统提示原样复述。
+
+${outputContract("请写一段委托完成后的收尾正文。")}`;
   }
 
   function buildMapLocationReturnPrompt(locationId) {
@@ -3640,7 +5254,7 @@ ${galgameRenderContract("choice")}
     return `[初星育成系统：自由模式 · 离开地点返回地图]
 
 担当偶像：${state.idol}
-${getAffinityStageLine(state.idol, state.trust)}
+${getFreeModeAffinityStageLine(state.idol)}
 当前时间：${formatFreeModeDayLabel()} ${formatFreeModeClock()}
 地点：${location.name}
 地点说明：${location.description}
@@ -3649,13 +5263,9 @@ ${buildMapLocationPresenceLine(locationId)}
 
 ${buildMapLocationVisitModeLine(getMapLocationVisitMode())}
 
-制作人决定不再继续探索 ${location.name}，准备回到学园大地图。
-请写一段简短的离开描写，交代制作人如何结束本次停留、离开该地点时的余韵或途中一两句感受。
-- 这是中途离开，不是完成一次 15 分钟行动；不要推进时间。
-- 不要再提供选项。
-- 不要结算或修改任何数值。
+制作人决定离开 ${location.name}，写 300 字以内离开描写；不推进时间，不要 option，不要改数值。
 
-${outputContract("请写一段 300 字以内的离开正文。")}`;
+${outputContract("离开正文写在【初星正文开始】…【初星正文结束】内。")}`;
   }
 
   function buildFreeModeOutingReturnPrompt() {
@@ -3665,20 +5275,16 @@ ${outputContract("请写一段 300 字以内的离开正文。")}`;
     return `[初星育成系统：自由模式 · 结束校外外出返回地图]
 
 担当偶像：${state.idol}
-${getAffinityStageLine(state.idol, state.trust)}
+${getFreeModeAffinityStageLine(state.idol)}
 当前时间：${formatFreeModeDayLabel()} ${formatFreeModeClock()}
 外出地点：${location.name}
 外出说明：${location.description}
 
 ${buildMapLocationVisitModeLine(getMapLocationVisitMode())}
 
-制作人决定不再继续在 ${location.name} 外出，准备回到学园大地图。
-请写一段简短的离开描写，交代制作人如何结束本次校外停留、离开时的余韵或回学园途中一两句感受。
-- 这是中途离开，不是完成一次行动；不要推进时间。
-- 不要再提供选项。
-- 不要结算或修改任何数值。
+制作人决定离开 ${location.name}，写 300 字以内离开描写；不推进时间，不要 option，不要改数值。
 
-${outputContract("请写一段 300 字以内的离开正文。")}`;
+${outputContract("离开正文写在【初星正文开始】…【初星正文结束】内。")}`;
   }
 
   function getMapExplorePrompt(locationId, options = {}) {
@@ -3767,13 +5373,9 @@ ${buildDailySummaryContract()}`
 
     const renderContract = actionContext.isDailyFinalAction
       ? `${galgameRenderContract("normal")}
-
-输出格式要求：
-1. 先完成【初星正文开始】…【初星正文结束】内的反应与事件收尾剧情。
-2. 正文结束后再输出【今日总结开始】…【今日总结结束】，两段不可混写。
-3. 不要改变或重新计算前端已结算的数值。
-- 请写一段 600 字以内的反应与事件收尾剧情正文。${dailySummarySection}`
-      : `${outputContract("请写一段 600 字以内的反应与事件收尾剧情正文。")}`;
+- 先写【初星正文开始】…【初星正文结束】收尾剧情，再写【今日总结开始】…【今日总结结束】，两段不可混写。
+- 请写 600 字以内的反应与事件收尾正文。${dailySummarySection}`
+      : `${outputContract("请写 600 字以内的反应与事件收尾正文。")}`;
 
     return `[初星育成系统：互动分支结算与收尾]
 
@@ -3809,66 +5411,61 @@ ${renderContract}`;
   }
 
   function buildNsfwIntimacyOpeningPrompt(actionContext = {}) {
-    const profile = idols[state.idol] || {};
+    const targetIdol = canonicalIdolName(actionContext.inviteIdol) || state.idol;
+    const profile = idols[targetIdol] || {};
+    const apartmentInvite = Boolean(actionContext.apartmentInvite);
     const actionStyle = `${profile.styles.companion || profile.styles.rest} 这是信赖值100后解锁的 NSFW 亲密互动，必须写成人向亲密、情欲张力、身体接触与彼此允许靠近的内容。`;
-    return `[初星育成系统：NSFW 亲密 · 开场]
+    const header = apartmentInvite
+      ? "[初星育成系统：公寓邀约 · NSFW 亲密 · 开场]"
+      : "[初星育成系统：NSFW 亲密 · 开场]";
+    const sceneSection = apartmentInvite ? `\n${buildApartmentNsfwSceneSection(targetIdol)}\n` : "";
+    return `${header}
 
-担当偶像：${state.idol}
-${getAffinityStageLine(state.idol, state.trust)}
-绑定角色卡：${state.boundCharacter?.name || "未绑定，按担当偶像写"}
+互动对象：${targetIdol}
+担当偶像：${state.idol || "未登记"}
+${buildNsfwIntimacyAffinityLine(targetIdol)}
+绑定角色卡：${state.boundCharacter?.name || "未绑定，按互动对象写"}
 当前阶段：${getPhase()}
-当前日程：第 ${state.day} 天，${roundLabel()}
+${buildNsfwIntimacyScheduleLine()}
 行动：NSFW 亲密（不是普通亲密 / 清水亲密）
-
+${sceneSection}
 角色设定前提：
 - 本次为私密、自愿、互相信赖的成人向亲密场景。
 - 前端会在 VN 界面展示 4 个选项，并额外提供自定义输入与结束按钮；玩家可随时点“结束”进入收尾。
 - 禁止把本次写成普通亲密、摸头安抚、递热饮、靠肩休息等清水向互动。
 
-当前担当偶像的性格基调（NSFW 亲密行为指南）：
+当前互动对象的性格基调（NSFW 亲密行为指南）：
 ${actionStyle}
 
 ${buildProducerPromptSection()}
 
-请生成本次 NSFW 亲密的开场剧情，并设计 4 个互动分支选项。
+请生成本次 NSFW 亲密的开场剧情，并设计 4 个制作人第一人称选项。
 ${buildNsfwIntimacyOptionContract()}
 
 ${galgameRenderContract("choice")}
+${buildChoiceHardRules({ phase1: true })}
 
-==================================================
-⚠️⚠️【输出硬规则：违反本规则将导致整个游戏崩溃报错，请务必严格服从！】⚠️⚠️
-1. 你必须严格且完整地把所有输出包裹在【初星正文开始】与【初星正文结束】分隔符内。
-2. 分隔符之内，【必须且只能】包含以下 5 个 XML 标签，绝对不能夹杂任何标签外的散落文本、Markdown 列表（如 - 或 1. 2. 等）、或者解释：
-   <story>写开场剧情，停留在需要制作人做选择的转折点</story>
-   <option1>选项 1 的文本内容（必须以制作人第一人称口吻写一句回复或行动）</option1>
-   <option2>选项 2 的文本内容（必须以制作人第一人称口吻写一句回复或行动）</option2>
-   <option3>选项 3 的文本内容（必须以制作人第一人称口吻写一句回复或行动）</option3>
-   <option4>选项 4 的文本内容（必须以制作人第一人称口吻写一句回复或行动）</option4>
-3. 选项标签内部的文本【绝对不能】带任何“选项 1：”等系统前缀或数值标签。
-4. 不要在标签外写任何思考（thinking/details）、计划、规则复述、系统说明。
-==================================================
-
-输出示例：
-【初星正文开始】
-<story>（开场剧情）</story>
-<option1>（选项 1）</option1>
-<option2>（选项 2）</option2>
-<option3>（选项 3）</option3>
-<option4>（选项 4）</option4>
-【初星正文结束】`;
+${buildChoiceOnlyExample()}`;
   }
 
   function buildNsfwIntimacyContinuePrompt(producerAction) {
-    const profile = idols[state.idol] || {};
-    return `[初星育成系统：NSFW 亲密 · 继续]
+    const targetIdol = getNsfwIntimacyTargetIdol();
+    const profile = idols[targetIdol] || {};
+    const apartmentInvite = isApartmentNsfwInviteActive();
+    const header = apartmentInvite
+      ? "[初星育成系统：公寓邀约 · NSFW 亲密 · 继续]"
+      : "[初星育成系统：NSFW 亲密 · 继续]";
+    const sceneSection = apartmentInvite ? `\n${buildApartmentNsfwSceneSection(targetIdol)}\n` : "";
+    return `${header}
 
-担当偶像：${state.idol}
-${getAffinityStageLine(state.idol, state.trust)}
-绑定角色卡：${state.boundCharacter?.name || "未绑定，按担当偶像写"}
+互动对象：${targetIdol}
+担当偶像：${state.idol || "未登记"}
+${buildNsfwIntimacyAffinityLine(targetIdol)}
+绑定角色卡：${state.boundCharacter?.name || "未绑定，按互动对象写"}
 当前阶段：${getPhase()}
-当前日程：第 ${state.day} 天，${roundLabel()}
+${buildNsfwIntimacyScheduleLine()}
 行动：NSFW 亲密（多轮进行中）
-
+${sceneSection}
 角色设定前提：
 - 本次仍为私密、自愿、互相信赖的成人向亲密场景，不是普通亲密 / 清水亲密。
 - 玩家仍可在 VN 界面选择 4 个选项、自定义输入，或随时点“结束”进入收尾。
@@ -3882,22 +5479,21 @@ ${producerAction}
 角色核心：
 ${profile.core || "按初星学园偶像设定自然发挥。"}
 
-请承接上文，写出 ${state.idol} 的反应与场景推进，并重新设计 4 个新的互动分支选项。
+请承接上文，写出 ${targetIdol} 的反应与场景推进，并重新设计 4 个新的互动分支选项。
 ${buildNsfwIntimacyOptionContract()}
 
 ${galgameRenderContract("choice")}
-
-==================================================
-⚠️⚠️【输出硬规则：违反本规则将导致整个游戏崩溃报错，请务必严格服从！】⚠️⚠️
-1. 你必须严格且完整地把所有输出包裹在【初星正文开始】与【初星正文结束】分隔符内。
-2. 分隔符之内，【必须且只能】包含 <story> 与 <option1> 到 <option4> 共 5 个 XML 标签。
-3. <story> 只写本轮新增反应与推进，不要重复已发生剧情全文。
-4. 不要在标签外写任何思考、计划、规则复述或系统说明。
-==================================================`;
+${buildChoiceHardRules({ storyNote: "3. <story> 只写本轮新增内容，不要重复已发生剧情全文。" })}`;
   }
 
   function buildNsfwIntimacyClosingPrompt() {
-    const profile = idols[state.idol] || {};
+    const targetIdol = getNsfwIntimacyTargetIdol();
+    const profile = idols[targetIdol] || {};
+    const apartmentInvite = isApartmentNsfwInviteActive();
+    const header = apartmentInvite
+      ? "[初星育成系统：公寓邀约 · NSFW 亲密 · 收尾]"
+      : "[初星育成系统：NSFW 亲密 · 收尾]";
+    const sceneSection = apartmentInvite ? `\n${buildApartmentNsfwSceneSection(targetIdol)}\n` : "";
     const dailySummarySection = state.pendingActionContext?.actionContext?.isDailyFinalAction
       ? `
 
@@ -3911,22 +5507,19 @@ ${buildDailySummaryContract()}`
       : "";
     const renderContract = state.pendingActionContext?.actionContext?.isDailyFinalAction
       ? `${galgameRenderContract("normal")}
+- 先写【初星正文开始】…【初星正文结束】收尾剧情，再写【今日总结开始】…【今日总结结束】。
+- 请写 600 字以内的 NSFW 亲密收尾正文。${dailySummarySection}`
+      : `${outputContract("请写 600 字以内的 NSFW 亲密收尾正文。")}`;
 
-输出格式要求：
-1. 先完成【初星正文开始】…【初星正文结束】内的收尾剧情。
-2. 正文结束后再输出【今日总结开始】…【今日总结结束】，两段不可混写。
-3. 不要改变或重新计算前端已结算的数值。
-- 请写一段 600 字以内的 NSFW 亲密收尾正文。${dailySummarySection}`
-      : `${outputContract("请写一段 600 字以内的 NSFW 亲密收尾正文。")}`;
+    return `${header}
 
-    return `[初星育成系统：NSFW 亲密 · 收尾]
-
-担当偶像：${state.idol}
-${getAffinityStageLine(state.idol, state.trust)}
-绑定角色卡：${state.boundCharacter?.name || "未绑定，按担当偶像写"}
-当前日程：第 ${state.day} 天，${roundLabel()}
+互动对象：${targetIdol}
+担当偶像：${state.idol || "未登记"}
+${buildNsfwIntimacyAffinityLine(targetIdol)}
+绑定角色卡：${state.boundCharacter?.name || "未绑定，按互动对象写"}
+${buildNsfwIntimacyScheduleLine()}
 行动：NSFW 亲密（玩家选择结束）
-
+${sceneSection}
 角色设定前提：
 - 制作人刚刚选择结束本次 NSFW 亲密互动。
 
@@ -3934,7 +5527,7 @@ ${buildNsfwIntimacyChatContextLine()}
 
 前端已结算：体力 +38，压力 -10，不增加信赖值。
 
-请写出 ${state.idol} 在亲密结束时的反应，以及本次 NSFW 互动的余韵收尾。
+请写出 ${targetIdol} 在亲密结束时的反应，以及本次 NSFW 互动的余韵收尾。
 - 不要再提供新的选项。
 - 让场景自然收束，可写亲密后的安抚、余韵与告别。
 - 不要退回到普通亲密 / 清水互动的语气。
@@ -3964,14 +5557,9 @@ ${affinityNodes[0].theme}
 剧情种子：
 ${seed}
 
-叙事要求：
-- 这是玩家选择担当偶像后的开场剧情。
-- 写出制作人选择她的理由、她对被选择的反应，以及是否愿意接受担当。
-- 结尾停在“育成正式开始”的感觉。
-- 不要推进日程。
-- 不要增加或改变任何数值。
+叙事要求：担当开场剧情，写选择理由与对方反应，停在育成正式开始；不推进日程，不改数值。
 
-${outputContract("请写一段 500 字以内的开场剧情。")}`;
+${outputContract("请写 500 字以内的开场剧情。")}`;
   }
 
   function buildLivePrompt() {
@@ -3983,11 +5571,9 @@ ${getAffinityStageLine(state.idol, state.trust)}
 成长率：Vo ${state.growth?.Vo} / Da ${state.growth?.Da} / Vi ${state.growth?.Vi}
 ${buildProducerPromptSection()}
 
-请准备进入 First Live 最终演出。
-不要重新计算数值。
-先写考核前的短暂候场与制作人确认状态，等待玩家点击开始 First Live。
+请准备进入 First Live 最终演出，写 400 字以内候场剧情，停在正式开始演出之前。
 
-${outputContract("请写一段 400 字以内的 First Live 候场剧情，停在正式开始演出之前。")}`;
+${outputContract("候场剧情写在【初星正文开始】…【初星正文结束】内。")}`;
   }
 
   function formatBondOptions(options) {
@@ -4044,17 +5630,14 @@ ${route.phase1Title}：
 ${formatBondOptions(route.phase1Options)}
 
 ${galgameRenderContract("choice")}
+${buildChoiceHardRules({ phase1: true })}
 
-输出硬规则：
-1. 必须输出【初星正文开始】与【初星正文结束】。
-2. 分隔符内部只能包含一个 <story> 与四个 <option1> 到 <option4>。
-3. <story> 只写本羁绊事件开场，不要把整个事件写完。
-4. 四个选项必须严格使用上方给定选项文本，不要改写含义，不要添加数值。
-5. 不要写系统说明、列表解释、思考过程。
+${route.phase1Title}（严格使用下列 option 文本）：
+${formatBondOptions(route.phase1Options)}
 
 输出示例：
 【初星正文开始】
-<story>这里写开场剧情，停在制作人需要做第一次选择的转折点。</story>
+<story>开场剧情，停在第一次选择前。</story>
 ${formatBondOptions(route.phase1Options)}
 【初星正文结束】`;
   }
@@ -4077,17 +5660,14 @@ ${route.phase2Setup}
 ${route.phase2Title}：
 ${formatBondOptions(route.phase2Options)}
 
-叙事要求：
-- 承接第一轮选择，不要重写开场。
-- 让剧情推进到更深层矛盾暴露处，再停在制作人需要做第二次选择的时刻。
-- 四个选项必须严格使用上方给定选项文本。
-- 不要结算或推进数值。
+叙事要求：承接第一轮选择，推进到更深层矛盾后停在第二次选择前；option 严格使用上方给定文本，不要改数值。
 
 ${galgameRenderContract("choice")}
+${buildChoiceHardRules({ phase1: true })}
 
-输出硬规则：
+输出示例：
 【初星正文开始】
-<story>这里写中段剧情，停在第二次选择前。</story>
+<story>中段剧情，停在第二次选择前。</story>
 ${formatBondOptions(route.phase2Options)}
 【初星正文结束】`;
   }
@@ -4159,15 +5739,9 @@ ${node.theme}
 参考剧情种子：
 ${seed}
 
-叙事要求：
-- 这是角色专属好感度剧情，不是普通行动短叙事。
-- 参考种子只提供矛盾结构，不要复述原剧情原句。
-- 好感度80不要固定写成 First Live 前夜；请按参考种子推进该偶像的路线后半转折。
-- 好感度100固定写成 First Live 成功后的故事结尾。
-- 不要重新计算数值。
-- 不要改变前端已经结算的结果。
+叙事要求：角色专属好感剧情；参考种子只提供矛盾结构，不要复述原句；80 为路线后半转折（不必固定 First Live 前夜），100 为 First Live 成功后收尾；不要改数值。
 
-${outputContract("请写一段 1200 字以内的完整好感度剧情。本次回复需要把整个情景从开端、冲突/交流推进到情绪收束完整写完，不要停在待续。")}`;
+${outputContract("请写 1200 字以内的完整好感度剧情，一次写完，不要待续。")}`;
   }
 
   function buildFreeChatPrompt(topic) {
@@ -4188,14 +5762,9 @@ ${topic}
 ${profile.core}
 ${buildProducerPromptSection()}
 
-闲聊规则：
-- 这是制作人与担当偶像之间的一次自由闲聊，不是育成行动。
-- 不消耗行动次数，不推进轮次、日期或 First Live 日程。
-- 不增加或减少任何数值，不触发随机奖励。
-- 围绕玩家输入的话题自然回应，可以加入简短动作、表情和现场氛围。
-- 不要擅自把闲聊升级为重大剧情突破或解决尚未到阶段的角色矛盾。
+闲聊规则：不消耗行动、不推进日程、不改数值；围绕话题自然回应，不要擅自推进重大矛盾。
 
-${outputContract("请写一段 800 字以内的完整闲聊场景，在本次回复内自然收束话题，不要停在待续。")}`;
+${outputContract("请写 800 字以内的完整闲聊场景，自然收束，不要待续。")}`;
   }
 
   function buildPhoneChatScheduleLine() {
@@ -4253,15 +5822,24 @@ ${examples}
       .filter(Boolean)
       .join("\n");
 
+    const useFreeAffinity = isSandboxLaunch() || isFreeModeActive();
+    const contactScore = useFreeAffinity ? getFreeModeRelationshipScore(contactName) : state.trust;
+    const affinityLine = contactName === state.idol
+      ? `${getContactAffinityStageLine(state.idol)}（当前好感度：${contactScore}/100）`
+      : "关系：学院内其他偶像";
+    const statusLine = useFreeAffinity
+      ? `当前状态：Vo ${state.Vo} / Da ${state.Da} / Vi ${state.Vi} / 体力 ${state.stamina} / 压力 ${state.stress} / 好感度 ${contactName === state.idol ? contactScore : getFreeModeRelationshipScore(state.idol)}`
+      : `当前状态：Vo ${state.Vo} / Da ${state.Da} / Vi ${state.Vi} / 体力 ${state.stamina} / 压力 ${state.stress} / 信赖 ${state.trust}`;
+
     return `[初星育成系统：小手机私聊]
 
 当前聊天对象：${contactName}
 担当偶像：${state.idol}
-${contactName === state.idol ? getAffinityStageLine(state.idol, state.trust) : "关系：学院内其他偶像"}
+${affinityLine}
 绑定角色卡：${state.boundCharacter?.name || "未绑定，按当前聊天对象写"}
 当前阶段：${getPhase()}
 ${buildPhoneChatScheduleLine()}
-当前状态：Vo ${state.Vo} / Da ${state.Da} / Vi ${state.Vi} / 体力 ${state.stamina} / 压力 ${state.stress} / 信赖 ${state.trust}
+${statusLine}
 
 最近聊天记录：
 ${history || "（尚无历史）"}
@@ -4339,16 +5917,9 @@ ${plotSection}
 ${profile.core}
 ${buildProducerPromptSection()}
 
-互动规则：
-- 这是担当偶像与其他偶像之间的一次自由互动，不是育成行动。
-- 不消耗行动次数，不推进轮次、日期或 First Live 日程。
-- 不增加或减少任何数值，不触发随机奖励。
-- ${aiDecides ? "只能从候选角色库选择一至三名角色，并让选中的角色实际参与。" : "所有指定角色都必须实际参与，不能只在对话中被提及。"}
-- 多人互动必须围绕同一情境自然推进，写出角色之间彼此的反应，不要变成依次轮流说一句话。
-- 角色关系、语气与行为遵守角色卡和世界书，不要让任何角色偏离核心性格。
-- 玩家输入只规定情节方向，不得覆盖人物核心、推进育成日程或制造未结算的数值变化。
+互动规则：不消耗行动、不推进日程、不改数值；${aiDecides ? "从候选库选 1～3 人实际参与" : "指定角色必须全部参与"}；多人同场互动，不要轮流独白。
 
-${outputContract("请写一段 1200 字以内的完整偶像互动剧情，在本次回复内从场景建立、互动推进到自然收束全部写完，不要停在待续。")}`;
+${outputContract("请写 1200 字以内的完整偶像互动，从建立到收束一次写完，不要待续。")}`;
   }
 
   function evaluateFirstLive() {
@@ -4510,7 +6081,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     "藤田琴音": "fujita-kotone-live.mp4",
     "月村手毬": "tsukimura-temari-live.mp4",
     "花海咲季": "hanami-saki-live.mp4",
-    "花海祐芽": "hanami-yume-live.mp4",
+    "花海佑芽": "hanami-yume-live.mp4",
     "筱泽广": "shinosawa-hiro-live.mp4",
     "十王星南": "juo-sena-live.mp4",
     "秦谷美铃": "hataya-misuzu-live.mp4",
@@ -4724,6 +6295,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
 
   function render() {
     normalizeBootFlowState();
+    syncProducerApartmentState();
     renderLaunchStage();
     if (shouldShowSelectionStage()) renderIdols();
     renderShellMode();
@@ -4770,6 +6342,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   }
 
   function formatWorldFeedDayLabel() {
+    if (isSandboxLaunch()) return formatCampusDayLabel();
     if (isFreeModeUnlocked()) return formatFreeModeDayLabel();
     if (Number.isFinite(Number(state.day)) && Number(state.day) > 0) {
       return `育成第 ${state.day} 天`;
@@ -4781,20 +6354,21 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   function ensurePhoneWorldFeedReady() {
     if (!isPhoneWorldFeedUnlocked()) return;
     ensureStateShape();
-    const helpers = {
-      ...getHatsuWorldHelpers(),
-      getDayKey: (s) => getWorldFeedDayKey(s),
-      getPresenceSlotKey: (s) => getWorldFeedPresenceSlotKey(s)
-    };
+    const helpers = getWorldFeedHelpers();
     const tick = globalThis.HatsuWorld?.dailyTick;
     if (!tick) return;
     if (!state.freeMode?.world?.campus?.slots) {
       tick.refreshWorldPresence?.(state, helpers);
     }
-    if (!state.freeMode?.world?.broadcast?.today) {
-      tick.rollDailyBroadcast?.(state, helpers);
+    if (shouldUseSecondaryWorldGen()) {
+      syncDailyWorldGeneration();
+    } else {
+      if (!state.freeMode?.world?.broadcast?.today) {
+        tick.rollDailyBroadcast?.(state, helpers);
+      }
+      tick.rollDailyBuzz?.(state, helpers);
+      globalThis.HatsuWorld?.worldGen?.markDailyWorldGenReady?.(state, "static", getWorldFeedDayKey());
     }
-    tick.rollDailyBuzz?.(state, helpers);
     saveState();
   }
 
@@ -4807,9 +6381,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   }
 
   function isSandboxScoutActive() {
-    if (!isSandboxLaunch()) return false;
-    const helpers = getHatsuWorldHelpers();
-    return globalThis.HatsuWorld?.campusBehavior?.shouldUseCampusBehavior?.(state, helpers) === true;
+    return isSandboxScoutPhase();
   }
 
   function getSandboxScoutTargetAtLocation(locationId) {
@@ -4824,15 +6396,103 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     return Boolean(getSandboxScoutTargetAtLocation(locationId));
   }
 
+  function isSandboxScoutWrapUpPending() {
+    return Boolean(state.pendingActionContext?.actionContext?.scoutWrapUpPending);
+  }
+
+  function scoutTemariCompletionPendingInReply(source) {
+    if (!isSandboxScoutActive()) return false;
+    if (state.tasks?.main?.scout_temari?.status !== "active") return false;
+    const ids = globalThis.HatsuTasks?.parseQuestCompletionsFromText?.(source) || [];
+    return ids.includes("scout_temari");
+  }
+
+  function getSandboxScoutSignStory() {
+    return String(state.pendingActionContext?.actionContext?.scoutSignStory || state.lastStory || "").trim();
+  }
+
+  function buildSandboxScoutWrapUpDisplayStory(epilogue = "") {
+    return [getSandboxScoutSignStory(), epilogue].filter(Boolean).join("\n\n");
+  }
+
+  function beginSandboxScoutWrapUp() {
+    const actionContext = state.pendingActionContext?.actionContext || {};
+    state.pendingActionContext.actionContext = { ...actionContext, scoutWrapUpPending: true };
+    state.pendingOptionTexts = [];
+    state.pendingOptionMinutes = [];
+    state.eventMode = "choice_resolution";
+    state.choiceStep = 2;
+    const requestId = createRequestId();
+    pendingAiRequestId = requestId;
+    state.lastPrompt = buildSandboxScoutWrapUpPrompt();
+    state.lastDebug = "沙盒物色搭话：担当已同意签约，等待收尾剧情。";
+    saveState();
+    setElementHidden("eventChoices", true);
+    closeVnChoicesOverlay();
+    const locationId = actionContext.locationId;
+    const location = resolveMapExploreLocation(locationId, actionContext);
+    const exploreLabel = location?.name || actionContext.locationName || "物色搭话";
+    const signStory = getSandboxScoutSignStory();
+    const previewStory = signStory
+      ? `${signStory}\n\n<narration>物色成功，正在生成签约收尾...</narration>`
+      : buildAiWaitingStory("担当已同意成为制作人担当，正在生成签约收尾...");
+    openEventOverlay(
+      `${exploreLabel} · 物色成功`,
+      "物色成功，正在生成收尾剧情...",
+      previewStory
+    );
+    if (!requestHostPromptSend(state.lastPrompt, requestId)) {
+      openAiPromptOverlay("当前页面未连接 SillyTavern。请复制物色收尾提示词后手动发送。");
+    }
+  }
+
+  function completeScoutFromReplyAndBeginWrapUp(source, segmentStory) {
+    if (!scoutTemariCompletionPendingInReply(source)) return false;
+    const completed = globalThis.HatsuTasks?.applyQuestCompletionsFromReply?.(state, source) || [];
+    if (!completed.includes("scout_temari")) return false;
+    if (segmentStory) {
+      const signStory = String(segmentStory || "").trim();
+      state.pendingActionContext.actionContext = {
+        ...(state.pendingActionContext?.actionContext || {}),
+        scoutSignStory: signStory
+      };
+      // 签约瞬间只保留本轮正文，避免把前几轮物色剧情一并堆进收尾过渡界面。
+      state.lastStory = signStory;
+    }
+    notifyQuestCompletions(completed);
+    refreshWorldPresenceFromRules(true);
+    beginSandboxScoutWrapUp();
+    return true;
+  }
+
   function isProduceLaunch() {
     return state.launchMode === "produce";
   }
 
   function shouldShowLaunchStage() {
+    if (state.launchMenuPaused) return true;
     return !state.idol && !state.launchMode;
   }
 
+  function hasResumableGameplay() {
+    if (!state.idol) return false;
+    if (state.launchMode === "sandbox" || state.gameMode === "hybrid") {
+      return Boolean(state.sandbox?.openingComplete && state.sandbox?.inviteComplete);
+    }
+    return Boolean(state.affinity?.openingComplete);
+  }
+
+  function getResumeGameplaySummary() {
+    if (!state.idol) return "";
+    if (state.launchMode === "sandbox" || state.gameMode === "hybrid") {
+      ensureFreeModeTimeDefaults();
+      return `${state.idol} · 沙盒 · ${formatCampusDayLabel()} ${formatFreeModeClock()}`;
+    }
+    return `${state.idol} · 育成 · 第 ${state.day} 天`;
+  }
+
   function shouldShowSelectionStage() {
+    if (state.launchMenuPaused) return false;
     if (state.idol) return false;
     if (state.launchMode === "produce") return true;
     return state.launchMode === "sandbox" && Boolean(state.sandbox?.openingComplete);
@@ -4863,11 +6523,11 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         desc: "亚纱里老师已介绍学园概况。先选一位今天要去接触的偶像，再到地图找她聊聊。",
         rules: [
           "沙盒开局暂仅开放月村手毬",
-          "选择后会在固定地点出现",
-          "可在地图上与在场偶像互动"
+          "选择后设定制作人档案",
+          "再到地图与担当接触"
         ],
         confirmLabel: "前往学园",
-        producerStartLabel: "签署合约，开启星途"
+        producerStartLabel: "确认档案，前往学园"
       };
     }
     return {
@@ -4880,13 +6540,99 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     };
   }
 
+  function getProducerSetupCopy(idolName) {
+    const name = String(idolName || selectedIdol || state.idol || "担当偶像");
+    if (isSandboxLaunch()) {
+      return {
+        kicker: "Producer Setup",
+        title: `${name} · 制作人档案`,
+        desc: `设定你在沙盒学园中的制作人形象，确认后将前往地图与 ${name} 接触。`
+      };
+    }
+    return {
+      kicker: "Producer Setup",
+      title: `${name} · 制作人合约`,
+      desc: `签署与 ${name} 的专属育成合约。请在右侧设定您在游戏中的性格、说话风格及额外人设。`
+    };
+  }
+
+  function populateProducerSetupForm() {
+    document.getElementById("prodNameInput").value = state.producer?.name || "{{user}}";
+    document.getElementById("prodGenderInput").value = state.producer?.gender || "";
+    document.getElementById("prodPersonalityInput").value = state.producer?.personality || "";
+    document.getElementById("prodStyleInput").value = state.producer?.style || "";
+    document.getElementById("prodSettingsInput").value = state.producer?.settings || "";
+  }
+
+  function openProducerSetupPanel() {
+    const selectPanel = document.getElementById("selectPanel");
+    const producerPanel = document.getElementById("producerPanel");
+    if (selectPanel) selectPanel.classList.add("is-hidden");
+    if (producerPanel) producerPanel.classList.remove("is-hidden");
+
+    const copy = getProducerSetupCopy(selectedIdol);
+    const kicker = document.getElementById("selectKicker");
+    const title = document.getElementById("selectTitle");
+    const desc = document.getElementById("selectDesc");
+    const confirmContainer = document.getElementById("selectConfirmContainer");
+    if (kicker) kicker.textContent = copy.kicker;
+    if (title) title.textContent = copy.title;
+    if (desc) desc.textContent = copy.desc;
+    if (confirmContainer) {
+      confirmContainer.style.display = "none";
+      confirmContainer.classList.remove("is-visible");
+    }
+    populateProducerSetupForm();
+  }
+
+  function restoreIdolSelectionPanel() {
+    const selectPanel = document.getElementById("selectPanel");
+    const producerPanel = document.getElementById("producerPanel");
+    if (selectPanel) selectPanel.classList.remove("is-hidden");
+    if (producerPanel) producerPanel.classList.add("is-hidden");
+
+    const kicker = document.getElementById("selectKicker");
+    const title = document.getElementById("selectTitle");
+    const desc = document.getElementById("selectDesc");
+    const confirmContainer = document.getElementById("selectConfirmContainer");
+    const profile = idols[selectedIdol];
+
+    if (profile) {
+      if (kicker) kicker.textContent = profile.tag || getLaunchSelectionCopy().kicker;
+      if (title) title.textContent = selectedIdol;
+      if (desc) desc.textContent = profile.bio || "";
+    }
+    if (confirmContainer) {
+      confirmContainer.style.display = "flex";
+      confirmContainer.classList.add("is-visible");
+    }
+  }
+
   function renderLaunchStage() {
     const stage = document.getElementById("launchStage");
     if (!stage) return;
     stage.classList.toggle("is-hidden", !shouldShowLaunchStage());
+    const resumeBtn = document.getElementById("launchResumeBtn");
+    const restoreBtn = document.getElementById("launchRestoreBackupBtn");
+    const resumeNote = document.getElementById("launchResumeNote");
+    const canResume = state.launchMenuPaused && hasResumableGameplay();
+    if (resumeBtn) {
+      resumeBtn.hidden = !canResume;
+      const summary = getResumeGameplaySummary();
+      resumeBtn.innerHTML = summary
+        ? `<span class="launch-mode-kicker">Resume</span><strong>继续游戏</strong><span class="launch-mode-desc">${summary}</span>`
+        : `<span class="launch-mode-kicker">Resume</span><strong>继续游戏</strong><span class="launch-mode-desc">回到离开前的进度。</span>`;
+    }
+    if (resumeNote) {
+      resumeNote.hidden = !canResume;
+      resumeNote.textContent = "返回主菜单不会删除当前存档，可随时从此处继续。";
+    }
+    if (restoreBtn) {
+      restoreBtn.hidden = !hasBackupSave();
+    }
   }
 
-  function chooseLaunchMode(mode) {
+  function beginFreshLaunchMode(mode) {
     if (mode === "sandbox") {
       startSandboxAsariOpening();
       return;
@@ -4896,6 +6642,35 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     saveState();
     render();
     showToast("育成模式", "请选择担当偶像，开始经典育成流程。", "info");
+  }
+
+  function chooseLaunchMode(mode) {
+    if (state.launchMenuPaused && hasResumableGameplay()) {
+      if (backupCurrentSave()) {
+        showToast("已备份上一局", "开始新游戏前已自动备份，可在主菜单恢复备份。", "info");
+      }
+      state = clone(baseState);
+      ensureStateShape();
+      selectedIdol = null;
+      document.body.classList.remove("is-free-mode-active", "is-hybrid-facility-active");
+    }
+    beginFreshLaunchMode(mode);
+  }
+
+  function resumeFromLaunchMenu() {
+    if (!hasResumableGameplay()) {
+      showToast("没有可继续的存档", "请先选择模式并开始游戏。", "warn");
+      return;
+    }
+    state.launchMenuPaused = false;
+    saveState();
+    render();
+    if ((state.launchMode === "sandbox" || state.gameMode === "hybrid") && state.sandbox?.inviteComplete) {
+      if (!state.freeMode?.active) {
+        enterSandboxCampusAfterOpening();
+      }
+    }
+    showToast("继续游戏", `欢迎回来，${state.idol}。`, "info");
   }
 
   function startSandboxAsariOpening(options = {}) {
@@ -4909,7 +6684,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     state.lastEventResult = "亚纱里老师向你说明沙盒学园的行动方式。";
     state.lastEventStory = SANDBOX_ASARI_OPENING_STORY;
     state.lastStory = state.lastEventStory;
-    state.lastDebug = "沙盒模式：亚纱里老师开学指引（占位文案，后续可替换）。";
+    state.lastDebug = "沙盒模式：亚纱里老师开学指引。";
     globalThis.HatsuTasks?.activateScoutQuest(state);
     saveState();
     render();
@@ -4999,12 +6774,19 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     worldMapLayoutState.drag = null;
     closeMapLocationOverlay();
     setElementHidden("eventOverlay", true);
-    state = clone(baseState);
-    selectedIdol = null;
+    state.launchMenuPaused = true;
+    state.freeMode = {
+      ...(state.freeMode || {}),
+      active: false,
+      activeLocationId: null,
+      facilityKind: null,
+      facilityLocationId: null
+    };
+    state.pendingActionContext = null;
     document.body.classList.remove("is-free-mode-active", "is-hybrid-facility-active");
     saveState();
     render();
-    showToast("已返回主菜单", "请重新选择游戏模式。", "info");
+    showToast("已返回主菜单", "存档已保留，可点击「继续游戏」回到进度。", "info");
   }
 
   function clearLaunchModeSelection() {
@@ -5029,9 +6811,10 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
 
   function formatCampusDayLabel() {
     ensureFreeModeTimeDefaults();
-    return isHybridCampusMode()
-      ? `学园第 ${state.freeMode.postLiveDay} 天`
-      : formatFreeModeDayLabel();
+    if (isSandboxLaunch() || isHybridCampusMode()) {
+      return `学园第 ${state.freeMode.postLiveDay} 天`;
+    }
+    return formatFreeModeDayLabel();
   }
 
   function isFreeModeActive() {
@@ -5085,8 +6868,17 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
 
   function getMapLocationSceneBackground(actionContext = {}) {
     const locationId = actionContext.locationId;
-    if (!locationId) return "./assets/scenes/campus.png";
-    return WORLD_MAP_LOCATION_SCENES[locationId] || "./assets/scenes/campus.png";
+    if (!locationId) return DEFAULT_OUTING_SCENE;
+    if (isFreeModeOffCampusExplore(actionContext)) {
+      const destination = String(
+        actionContext.outingDestination
+        || actionContext.locationName
+        || state.freeMode?.activeOutingDestination
+        || ""
+      ).trim();
+      if (OUTING_DESTINATION_SCENES[destination]) return OUTING_DESTINATION_SCENES[destination];
+    }
+    return WORLD_MAP_LOCATION_SCENES[locationId] || DEFAULT_OUTING_SCENE;
   }
 
   function isFreeModeOffCampusExplore(actionContext = state.pendingActionContext?.actionContext) {
@@ -5138,6 +6930,9 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
 
   function formatFreeModeDayLabel() {
     ensureFreeModeTimeDefaults();
+    if (isSandboxLaunch()) {
+      return `学园第 ${state.freeMode.postLiveDay} 天`;
+    }
     return `Live后${state.freeMode.postLiveDay}天`;
   }
 
@@ -5150,10 +6945,597 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     return state.pendingActionContext?.action === "map_location";
   }
 
+  function isProducerApartmentEvening() {
+    if (!isFreeModeActive()) return false;
+    if (isHybridFacilityActive()) return false;
+    if (worldMapLayoutState.editorActive) return false;
+    ensureFreeModeTimeDefaults();
+    return Boolean(state.freeMode.atApartment) && state.freeMode.clockMinutes >= FREE_MODE_DAY_END_MINUTES;
+  }
+
+  function isProducerApartmentMorning() {
+    if (!isFreeModeActive()) return false;
+    if (isHybridFacilityActive()) return false;
+    if (worldMapLayoutState.editorActive) return false;
+    ensureFreeModeTimeDefaults();
+    return Boolean(state.freeMode.atApartment) && state.freeMode.clockMinutes < FREE_MODE_DAY_END_MINUTES;
+  }
+
+  function isProducerApartmentActive() {
+    return Boolean(state.freeMode?.atApartment);
+  }
+
+  function getFreeModeTravelEndMinutes() {
+    ensureFreeModeTimeDefaults();
+    return state.freeMode.eveningStayExtended ? FREE_MODE_LATE_END_MINUTES : FREE_MODE_DAY_END_MINUTES;
+  }
+
+  function isEveningGoHomeActive() {
+    return state.pendingActionContext?.action === "evening_go_home";
+  }
+
+  function canBringAssignedIdolHome() {
+    const idol = getCurrentAffinityIdolName();
+    if (!idol) return false;
+    return getFreeModeRelationshipScore(idol) >= INTIMACY_NSFW_UNLOCK_TRUST;
+  }
+
+  function getEveningGoHomeOptions(phase = 1) {
+    return phase === 2
+      ? ["回家", "带担当回家"]
+      : ["再晚一点", "回家", "带担当回家"];
+  }
+
+  function buildEveningGoHomeStory(phase = 1) {
+    const idol = getCurrentAffinityIdolName() || state.idol || "";
+    if (phase === 2) {
+      return `【初星正文开始】
+<story>
+<narration>时间已经过了 ${formatFreeModeClock()}。</narration>
+<narration>初星学园的灯光一盏盏暗下去，校园里只剩下零星还在忙碌的人影。</narration>
+<narration>今天真的不能再拖了——制作人该做最后的决定。</narration>
+</story>
+【初星正文结束】`;
+    }
+    const idolLine = idol
+      ? `<narration>你想起今天与 ${idol} 有关的安排，也到了该考虑今晚如何度过的时候。</narration>`
+      : "";
+    return `【初星正文开始】
+<story>
+<narration>初星学园的钟楼指向 ${formatFreeModeClock()}。</narration>
+<narration>夜色慢慢压下来，走廊里的脚步声也渐渐稀疏。</narration>
+<dialogue char="制作人">……时候不早了，该回去了。</dialogue>
+${idolLine}
+</story>
+【初星正文结束】`;
+  }
+
+  function openEveningGoHomePrompt(phase = 1) {
+    if (!isFreeModeActive() || state.freeMode?.atApartment) return;
+    const normalizedPhase = phase === 2 ? 2 : 1;
+    const options = getEveningGoHomeOptions(normalizedPhase);
+    closeMapLocationOverlay();
+    closeGiftShopOverlay();
+    closeFreeModeTimeOverlay();
+    pendingAiRequestId = "";
+    state.pendingActionContext = {
+      action: "evening_go_home",
+      actionContext: { phase: normalizedPhase }
+    };
+    state.eventMode = "choice_prompt";
+    state.choiceStep = 1;
+    state.pendingOptionTexts = [...options];
+    state.pendingChoiceRewards = [];
+    state.pendingOptionMinutes = [];
+    state.selectedChoiceText = "";
+    state.selectedChoiceRating = "";
+    state.activeStoryNode = null;
+    const story = buildEveningGoHomeStory(normalizedPhase);
+    state.lastStory = story;
+    state.lastEventStory = story;
+    saveState();
+    render();
+    const title = normalizedPhase === 2 ? "夜深了" : "时候不早了";
+    openEventOverlay(title, "学园一日接近尾声，请选择接下来的安排。", story);
+  }
+
+  function maybeTriggerEveningGoHomePrompt() {
+    if (!isFreeModeActive()) return false;
+    if (isHybridFacilityActive() || worldMapLayoutState.editorActive) return false;
+    if (state.freeMode?.atApartment || isEveningGoHomeActive()) return false;
+    ensureFreeModeTimeDefaults();
+    const endMinutes = getFreeModeTravelEndMinutes();
+    if (state.freeMode.clockMinutes < endMinutes) return false;
+    if (pendingAiRequestId || isMapLocationExploreActive()) {
+      state.freeMode.eveningGoHomeDeferred = true;
+      return false;
+    }
+    state.freeMode.eveningGoHomeDeferred = false;
+    const phase = state.freeMode.eveningStayExtended ? 2 : 1;
+    openEveningGoHomePrompt(phase);
+    return true;
+  }
+
+  function flushEveningGoHomeDeferred() {
+    if (!state.freeMode?.eveningGoHomeDeferred) return false;
+    return maybeTriggerEveningGoHomePrompt();
+  }
+
+  function handleEveningGoHomeChoice(index) {
+    if (!isEveningGoHomeActive()) return;
+    const phase = state.pendingActionContext?.actionContext?.phase || 1;
+    const options = getEveningGoHomeOptions(phase);
+    const choice = options[index];
+    if (!choice) return;
+    if (choice === "再晚一点") {
+      state.freeMode.eveningStayExtended = true;
+      state.pendingActionContext = null;
+      state.eventMode = "none";
+      state.choiceStep = 0;
+      state.pendingOptionTexts = [];
+      closeVnChoicesOverlay();
+      setElementHidden("eventOverlay", true);
+      saveState();
+      render();
+      showToast("再待一会儿", "可继续活动至 23:00，之后需要回家。", "info");
+      return;
+    }
+    if (choice === "回家") {
+      state.pendingActionContext = null;
+      state.eventMode = "none";
+      state.choiceStep = 0;
+      state.pendingOptionTexts = [];
+      closeVnChoicesOverlay();
+      setElementHidden("eventOverlay", true);
+      enterProducerApartmentIfNeeded({ toast: true });
+      saveState();
+      render();
+      return;
+    }
+    if (choice === "带担当回家") {
+      if (!canBringAssignedIdolHome()) {
+        showToast("好感不足", `与担当的好感度需达到 ${INTIMACY_NSFW_UNLOCK_TRUST} 才能邀请回家。`, "warn");
+        return;
+      }
+      const targetIdol = getCurrentAffinityIdolName();
+      if (!targetIdol) {
+        showToast("需要担当偶像", "请先确认担当偶像。", "warn");
+        return;
+      }
+      state.pendingActionContext = null;
+      state.eventMode = "none";
+      state.choiceStep = 0;
+      state.pendingOptionTexts = [];
+      closeVnChoicesOverlay();
+      setElementHidden("eventOverlay", true);
+      enterProducerApartmentIfNeeded({ toast: false });
+      saveState();
+      render();
+      startApartmentNsfwInvite(targetIdol);
+    }
+  }
+
+  function cloneEveningRelationshipSnapshot() {
+    ensureFreeModeRelationships();
+    if (typeof ensureFreeModeNpcRelationships === "function") ensureFreeModeNpcRelationships();
+    const idolsSnapshot = {};
+    Object.entries(state.freeMode.relationships || {}).forEach(([name, entry]) => {
+      idolsSnapshot[name] = Number(entry?.好感度) || 0;
+    });
+    const npcSnapshot = {};
+    Object.entries(state.freeMode.npcRelationships || {}).forEach(([name, entry]) => {
+      npcSnapshot[name] = Number(entry?.好感度) || 0;
+    });
+    return { idols: idolsSnapshot, npcs: npcSnapshot };
+  }
+
+  function ensureEveningJournal(forceReset = false) {
+    if (!isFreeModeActive()) return null;
+    ensureFreeModeTimeDefaults();
+    const day = Number(state.freeMode.postLiveDay) || 1;
+    const journal = state.freeMode.eveningJournal;
+    if (!forceReset && journal && Number(journal.day) === day) return journal;
+    const relationships = cloneEveningRelationshipSnapshot();
+    state.freeMode.eveningJournal = {
+      day,
+      snapshot: {
+        trust: Number(state.trust) || 0,
+        stamina: Number(state.stamina) || 0,
+        stress: Number(state.stress) || 0,
+        Vo: Number(state.Vo) || 0,
+        Da: Number(state.Da) || 0,
+        Vi: Number(state.Vi) || 0,
+        relationships: relationships.idols,
+        npcRelationships: relationships.npcs
+      },
+      activities: [],
+      relationshipChanges: [],
+      tasks: [],
+      statNotes: []
+    };
+    return state.freeMode.eveningJournal;
+  }
+
+  function appendEveningJournalActivity(label, detail = "") {
+    const journal = ensureEveningJournal();
+    if (!journal) return;
+    journal.activities.push({
+      time: formatFreeModeClock(),
+      label: String(label || "").trim(),
+      detail: String(detail || "").trim()
+    });
+  }
+
+  function appendEveningJournalTask(label, detail = "") {
+    const journal = ensureEveningJournal();
+    if (!journal) return;
+    journal.tasks.push({
+      time: formatFreeModeClock(),
+      label: String(label || "").trim(),
+      detail: String(detail || "").trim()
+    });
+  }
+
+  function recordEveningJournalRelationships(applied = {}) {
+    const journal = ensureEveningJournal();
+    if (!journal) return;
+    const pushChange = (name, kind, info) => {
+      if (!name || !info?.delta) return;
+      journal.relationshipChanges.push({
+        name,
+        kind,
+        delta: info.delta,
+        after: info.好感度
+      });
+    };
+    Object.entries(applied.idols || {}).forEach(([name, info]) => pushChange(name, "idol", info));
+    Object.entries(applied.npcs || {}).forEach(([name, info]) => pushChange(name, "npc", info));
+    Object.entries(applied).forEach(([name, info]) => {
+      if (name === "idols" || name === "npcs") return;
+      if (!info?.delta) return;
+      pushChange(name, idols[canonicalIdolName(name)] ? "idol" : "npc", info);
+    });
+  }
+
+  function buildFreeModeEveningSummaryLines() {
+    const journal = ensureEveningJournal();
+    if (!journal) return ["今日尚无记录。"];
+    const lines = [];
+    const snap = journal.snapshot || {};
+    const statParts = [];
+    const appendStat = (label, key) => {
+      const delta = (Number(state[key]) || 0) - (Number(snap[key]) || 0);
+      if (!delta) return;
+      statParts.push(`${label}${delta > 0 ? "+" : ""}${delta}`);
+    };
+    appendStat("信赖", "trust");
+    appendStat("体力", "stamina");
+    appendStat("压力", "stress");
+    appendStat("Vo", "Vo");
+    appendStat("Da", "Da");
+    appendStat("Vi", "Vi");
+    if (statParts.length) {
+      lines.push({ text: "数值变化", section: true });
+      lines.push({ text: statParts.join(" · "), muted: true });
+    }
+
+    if (journal.relationshipChanges?.length) {
+      const aggregated = new Map();
+      journal.relationshipChanges.forEach((entry) => {
+        const existing = aggregated.get(entry.name);
+        if (existing) {
+          existing.delta += entry.delta;
+          if (entry.after !== undefined && entry.after !== null) existing.after = entry.after;
+        } else {
+          aggregated.set(entry.name, {
+            name: entry.name,
+            kind: entry.kind,
+            delta: entry.delta,
+            after: entry.after
+          });
+        }
+      });
+      const rows = Array.from(aggregated.values()).filter((entry) => entry.delta);
+      if (rows.length) {
+        lines.push({ text: "关系变化", section: true });
+        rows.forEach((entry) => {
+          const kindLabel = entry.kind === "npc" ? "NPC" : "偶像";
+          const afterText = entry.after !== undefined && entry.after !== null ? ` → ${entry.after}` : "";
+          lines.push({
+            text: `${entry.name}（${kindLabel}）${entry.delta > 0 ? "+" : ""}${entry.delta}${afterText}`,
+            muted: true
+          });
+        });
+      }
+    }
+
+    if (journal.tasks?.length) {
+      lines.push({ text: "完成任务", section: true });
+      journal.tasks.forEach((entry) => {
+        lines.push({
+          text: entry.detail ? `${entry.label}：${entry.detail}` : entry.label,
+          muted: true
+        });
+      });
+    }
+
+    if (journal.activities?.length) {
+      lines.push({ text: "今日行程", section: true });
+      journal.activities.forEach((entry) => {
+        lines.push({
+          text: entry.detail ? `${entry.time} · ${entry.label}：${entry.detail}` : `${entry.time} · ${entry.label}`,
+          muted: true
+        });
+      });
+    }
+
+    if (!lines.length) {
+      lines.push({ text: "今天还没有留下记录。明天记得多出去走走。", muted: true });
+    }
+    return lines;
+  }
+
+  function renderFreeModeEveningSummaryView() {
+    const overlay = document.getElementById("daySummaryOverlay");
+    overlay?.classList.add("is-evening-mode");
+    const profile = idols[state.idol] || {};
+    const avatar = document.getElementById("daySummaryAvatar");
+    const schedule = document.getElementById("daySummarySchedule");
+    const name = document.getElementById("daySummaryName");
+    const dayValue = document.getElementById("daySummaryDayValue");
+    if (avatar) {
+      avatar.src = profile.avatar || "";
+      avatar.alt = state.idol ? `${state.idol}头像` : "担当头像";
+    }
+    if (schedule) schedule.textContent = formatFreeModeClock();
+    if (name) name.textContent = formatIdolDisplayName(state.idol || "制作人");
+    if (dayValue) dayValue.textContent = String(state.freeMode?.postLiveDay || 1);
+    const notes = document.getElementById("daySummaryNotes");
+    if (notes) {
+      notes.innerHTML = buildFreeModeEveningSummaryLines().map((line) => {
+        const className = line.section
+          ? "day-summary-line is-section-title"
+          : line.muted
+            ? "day-summary-line is-muted"
+            : "day-summary-line";
+        return `<p class="${className}">${escapePhoneText(line.text)}</p>`;
+      }).join("");
+    }
+    const closeBtn = document.getElementById("daySummaryCloseBtn");
+    if (closeBtn) closeBtn.textContent = "返回公寓";
+  }
+
+  function openFreeModeEveningSummary() {
+    renderFreeModeEveningSummaryView();
+    setElementHidden("daySummaryOverlay", false);
+  }
+
+  function enterProducerApartmentIfNeeded(options = {}) {
+    if (!isProducerApartmentActive()) {
+      if (state.freeMode) state.freeMode.atApartment = false;
+      return false;
+    }
+    if (state.freeMode?.atApartment) return true;
+    if (isMapLocationExploreActive()) {
+      returnToFreeModeMap({ cancelled: true });
+    }
+    closeMapLocationOverlay();
+    closeFreeModeTimeOverlay();
+    closeVnChoicesOverlay();
+    hideVnCustomChoicePanel();
+    setElementHidden("eventOverlay", true);
+    if (state.freeMode) {
+      state.freeMode.activeLocationId = null;
+      state.freeMode.activeOutingDestination = null;
+      state.freeMode.facilityKind = null;
+      state.freeMode.facilityLocationId = null;
+      state.freeMode.atApartment = true;
+    }
+    state.pendingActionContext = null;
+    state.eventMode = "none";
+    ensureEveningJournal();
+    saveState();
+    if (options.toast !== false) {
+      showToast("回到公寓", "今日学园活动已结束，制作人回到了自己的公寓。", "info");
+    }
+    return true;
+  }
+
+  function syncProducerApartmentState() {
+    if (!isFreeModeActive()) return;
+    if (isProducerApartmentMorning()) return;
+  }
+
+  function renderProducerApartmentStage() {
+    const stage = document.getElementById("producerApartmentStage");
+    if (!stage) return;
+    const active = isProducerApartmentActive();
+    const morning = isProducerApartmentMorning();
+    const evening = isProducerApartmentEvening();
+    stage.classList.toggle("is-hidden", !active);
+    stage.classList.toggle("is-morning", active && morning);
+    stage.classList.toggle("is-evening", active && evening);
+    if (!active) return;
+    const bg = document.getElementById("producerApartmentBg");
+    if (bg) {
+      const sceneUrl = morning ? PRODUCER_APARTMENT_DAY_SCENE : PRODUCER_APARTMENT_SCENE;
+      bg.style.backgroundImage = `linear-gradient(180deg, rgba(12, 14, 22, 0.18), rgba(12, 14, 22, 0.72)), url("${sceneUrl}")`;
+    }
+    const clock = document.getElementById("producerApartmentClock");
+    if (clock) clock.textContent = `${formatFreeModeDayLabel()} · ${formatFreeModeClock()}`;
+    const hint = document.getElementById("producerApartmentHint");
+    const eligible = getApartmentNsfwEligibleIdols();
+    if (hint) {
+      hint.textContent = morning
+        ? "新的一天开始了。可以整理一下，然后出门前往学园。"
+        : eligible.length
+          ? `今天学园日程告一段落。可邀约 ${eligible.length} 名好感满额的偶像回家，或整理今日总结后休息。`
+          : state.idol
+            ? `今天和 ${state.idol} 的学园日程告一段落。可以看看今日总结，或上床睡觉。`
+            : "今日学园活动已结束，可以整理今天的事，准备休息。";
+    }
+    const sleepBtn = document.getElementById("apartmentSleepBtn");
+    if (sleepBtn) sleepBtn.hidden = morning;
+    const inviteBtn = document.getElementById("apartmentInviteBtn");
+    if (inviteBtn) {
+      const kicker = inviteBtn.querySelector(".apartment-hotspot-kicker");
+      const label = inviteBtn.querySelector("strong");
+      if (morning) {
+        inviteBtn.disabled = false;
+        inviteBtn.classList.remove("is-accent");
+        inviteBtn.classList.add("is-exit");
+        inviteBtn.title = "离开公寓，前往学园地图。";
+        if (kicker) kicker.textContent = "Leave";
+        if (label) label.textContent = "出门";
+      } else {
+        inviteBtn.classList.add("is-accent");
+        inviteBtn.classList.remove("is-exit");
+        inviteBtn.disabled = eligible.length === 0;
+        inviteBtn.title = eligible.length
+          ? "邀约好感度达到 100 的偶像来公寓"
+          : `尚无好感度达到 ${INTIMACY_NSFW_UNLOCK_TRUST} 的偶像`;
+        if (kicker) kicker.textContent = "Invite";
+        if (label) label.textContent = "邀约";
+      }
+    }
+  }
+
+  function renderApartmentInviteList() {
+    const list = document.getElementById("apartmentInviteList");
+    const note = document.getElementById("apartmentInviteNote");
+    if (!list) return;
+    const eligible = getApartmentNsfwEligibleIdols();
+    list.innerHTML = "";
+    if (note) {
+      note.textContent = eligible.length
+        ? `以下偶像对你的好感度已达 ${INTIMACY_NSFW_UNLOCK_TRUST}。选中后将进入公寓 NSFW 多轮剧情。`
+        : `尚无好感度达到 ${INTIMACY_NSFW_UNLOCK_TRUST} 的偶像。继续提升关系后再来邀约。`;
+    }
+    if (!eligible.length) {
+      const empty = document.createElement("p");
+      empty.className = "ai-prompt-note";
+      empty.textContent = "暂无可邀约对象。";
+      list.appendChild(empty);
+      return;
+    }
+    eligible.forEach((row) => {
+      const profile = idols[row.name] || {};
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "apartment-invite-item";
+      const roleLabel = row.isAssigned ? "担当偶像" : (idolSchoolClasses[row.name] || "偶像科");
+      const avatarHtml = profile.avatar
+        ? `<img src="${profile.avatar}" alt="" loading="lazy" decoding="async">`
+        : `<span>${escapePhoneText(row.name.slice(0, 1))}</span>`;
+      button.innerHTML = `<div class="apartment-invite-avatar" style="background:${profile.theme || "#c45cc4"}">${avatarHtml}</div><div class="apartment-invite-main"><strong>${escapePhoneText(row.name)}</strong><span>${roleLabel} · 好感满额</span></div><div class="apartment-invite-score"><b>${row.score}</b><span>/100</span></div>`;
+      button.addEventListener("click", () => startApartmentNsfwInvite(row.name));
+      list.appendChild(button);
+    });
+  }
+
+  function openApartmentInviteOverlay() {
+    if (isProducerApartmentMorning()) {
+      leaveProducerApartmentForCampus();
+      return;
+    }
+    if (!isProducerApartmentActive()) {
+      showToast("尚未回公寓", "22:00 后回到制作人公寓才能邀约回家。", "warn");
+      return;
+    }
+    const eligible = getApartmentNsfwEligibleIdols();
+    if (!eligible.length) {
+      showToast("暂无可邀约对象", `需要与偶像的好感度达到 ${INTIMACY_NSFW_UNLOCK_TRUST}。`, "warn");
+      return;
+    }
+    const badge = document.getElementById("apartmentInvitePhaseBadge");
+    if (badge) badge.textContent = `${formatFreeModeDayLabel()} · ${formatFreeModeClock()}`;
+    renderApartmentInviteList();
+    setElementHidden("apartmentInviteOverlay", false);
+  }
+
+  function closeApartmentInviteOverlay() {
+    setElementHidden("apartmentInviteOverlay", true);
+  }
+
+  function startApartmentNsfwInvite(idolName) {
+    const targetIdol = canonicalIdolName(idolName);
+    if (!targetIdol || !idols[targetIdol]) {
+      showToast("无效偶像", "请选择可邀约的偶像。", "warn");
+      return;
+    }
+    if (!isProducerApartmentActive()) {
+      showToast("尚未回公寓", "22:00 后回到制作人公寓才能邀约回家。", "warn");
+      return;
+    }
+    if (getFreeModeRelationshipScore(targetIdol) < INTIMACY_NSFW_UNLOCK_TRUST) {
+      showToast("好感不足", `与 ${targetIdol} 的好感度需达到 ${INTIMACY_NSFW_UNLOCK_TRUST}。`, "warn");
+      return;
+    }
+    closeApartmentInviteOverlay();
+    const actionContext = {
+      apartmentInvite: true,
+      inviteIdol: targetIdol,
+      intimacyMode: "nsfw"
+    };
+    state.pendingActionContext = {
+      action: "intimacy",
+      attribute: null,
+      intimacyMode: "nsfw",
+      actionContext
+    };
+    state.intimacyRoute = "nsfw";
+    state.eventMode = "choice_prompt";
+    state.choiceStep = 1;
+    state.pendingChoiceRewards = [0, 0, 0, 0];
+    state.pendingOptionTexts = [];
+    state.selectedChoiceText = "";
+    state.selectedChoiceRating = "";
+    const actionName = nsfwIntimacyActionTitle();
+    const requestId = createRequestId();
+    pendingAiRequestId = requestId;
+    const prompt = buildNsfwIntimacyOpeningPrompt(actionContext);
+    const resultSummary = `邀请 ${targetIdol} 来制作人公寓 · NSFW 亲密`;
+    const story = `正在等待 ${targetIdol} 来到制作人公寓...`;
+    state.lastStory = story;
+    state.lastPrompt = prompt;
+    state.lastDebug = "公寓邀约 NSFW：等待 AI 生成开场剧情与 4 个选项（含自定义/结束入口）。";
+    appendEveningJournalActivity("公寓邀约", `邀请 ${targetIdol} 回家`);
+    saveState();
+    render();
+    setElementHidden("eventChoices", true);
+    const actionsEl = document.getElementById("eventActions");
+    if (actionsEl) actionsEl.style.display = "none";
+    openEventOverlay(actionName, buildAiWaitingResult(resultSummary), buildAiWaitingStory(story));
+    if (!requestHostPromptSend(prompt, requestId)) {
+      openAiPromptOverlay("当前页面未连接 SillyTavern。请编辑或复制提示词后手动发送。");
+    }
+    showToast("已发出邀约", `正在等待 ${targetIdol} 来到公寓...`, "info");
+  }
+
+  function sleepFromProducerApartment() {
+    if (!isProducerApartmentEvening()) return;
+    triggerWipeTransition(() => {
+      advanceFreeModeToNextDay({ stayAtApartment: true });
+      render();
+      showToast("晚安", `${formatFreeModeDayLabel()} ${formatFreeModeClock()}，该起床了。`, "info");
+    });
+  }
+
+  function leaveProducerApartmentForCampus() {
+    if (!isProducerApartmentMorning()) return;
+    triggerWipeTransition(() => {
+      state.freeMode.atApartment = false;
+      saveState();
+      render();
+      showToast("出门", "走向初星学园。", "info");
+    });
+  }
+
   function isFreeModeTravelAllowed() {
     if (worldMapLayoutState.editorActive) return true;
+    if (isEveningGoHomeActive()) return false;
     ensureFreeModeTimeDefaults();
-    return state.freeMode.clockMinutes < FREE_MODE_DAY_END_MINUTES;
+    return state.freeMode.clockMinutes < getFreeModeTravelEndMinutes();
   }
 
   function rollFreeModePresenceLegacy(force = false) {
@@ -5181,10 +7563,20 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       .map(([idolName]) => idolName);
   }
 
+  function getResidentNpcsAtLocation(locationId) {
+    return Object.entries(residentNpcProfiles)
+      .filter(([, profile]) => profile.locationId === locationId)
+      .map(([name, profile]) => ({ name, ...profile }));
+  }
+
   function advanceFreeModeToNextDay() {
     ensureFreeModeTimeDefaults();
     state.freeMode.postLiveDay += 1;
     state.freeMode.clockMinutes = FREE_MODE_DAY_START_MINUTES;
+    state.freeMode.eveningJournal = null;
+    state.freeMode.atApartment = false;
+    state.freeMode.eveningStayExtended = false;
+    state.freeMode.eveningGoHomeDeferred = false;
     if (globalThis.HatsuTasks?.isSandboxTasksActive(state)) {
       globalThis.HatsuTasks.syncCampusDay(state);
       globalThis.HatsuTasks.syncSideQuestDay(state);
@@ -5201,7 +7593,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     const cleaned = String(raw ?? "").trim().replace(/分钟|min|小时|hour|h/gi, "");
     const num = Number.parseInt(cleaned, 10);
     if (!Number.isFinite(num) || num <= 0) return null;
-    const daySpan = FREE_MODE_DAY_END_MINUTES - FREE_MODE_DAY_START_MINUTES;
+    const daySpan = getFreeModeTravelEndMinutes() - FREE_MODE_DAY_START_MINUTES;
     return clamp(num, 1, daySpan);
   }
 
@@ -5216,9 +7608,12 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     const input = document.getElementById("freeModeTimeAdvanceInput");
     current.textContent = `${formatFreeModeDayLabel()} · ${formatFreeModeClock()}`;
     if (hint) {
+      const endLabel = state.freeMode.eveningStayExtended ? "23:00" : "22:00";
       hint.textContent = travelAllowed
-        ? "输入分钟数可将时间推进至 22:00。"
-        : "今日活动已结束，可点击下方进入下一天。";
+        ? `输入分钟数可将时间推进至 ${endLabel}。`
+        : isEveningGoHomeActive()
+          ? "请先完成今晚安排的选择。"
+          : "今日活动已结束，可点击下方进入下一天。";
     }
     if (dayBtn) dayBtn.hidden = travelAllowed;
     if (advanceBtn) advanceBtn.disabled = !travelAllowed;
@@ -5260,7 +7655,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       return;
     }
     ensureFreeModeTimeDefaults();
-    const remaining = FREE_MODE_DAY_END_MINUTES - state.freeMode.clockMinutes;
+    const remaining = getFreeModeTravelEndMinutes() - state.freeMode.clockMinutes;
     if (remaining <= 0) {
       showToast("今日已结束", "请进入下一天。", "warn");
       updateFreeModeTimeOverlayUI();
@@ -5273,7 +7668,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     updateFreeModeTimeOverlayUI();
     showToast("时间推进", `已推进 ${toAdvance} 分钟，当前 ${formatFreeModeClock()}。`, "info");
     if (result.hitDayEnd) {
-      showToast("今日活动结束", "时间已到 22:00。", "info");
+      maybeTriggerEveningGoHomePrompt();
     }
   }
 
@@ -5293,10 +7688,12 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
 
   function advanceFreeModeTime(minutes = FREE_MODE_MAP_CHOICE_MINUTES) {
     ensureFreeModeTimeDefaults();
+    const endCap = getFreeModeTravelEndMinutes();
     const next = state.freeMode.clockMinutes + minutes;
-    if (next >= FREE_MODE_DAY_END_MINUTES) {
-      state.freeMode.clockMinutes = FREE_MODE_DAY_END_MINUTES;
+    if (next >= endCap) {
+      state.freeMode.clockMinutes = endCap;
       rollFreeModePresence(true);
+      maybeTriggerEveningGoHomePrompt();
       return { hitDayEnd: true };
     }
     state.freeMode.clockMinutes = next;
@@ -5354,6 +7751,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     if (isFreeModeActive()) {
       renderFreeModeStage();
     }
+    flushEveningGoHomeDeferred();
   }
 
   function handleMapLocationReturn() {
@@ -5448,6 +7846,14 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     const normalizedVisitMode = visitMode === "alone" ? "alone" : "with_idol";
     ensureFreeModeTimeDefaults();
     const arrivalResult = advanceFreeModeTime(FREE_MODE_MAP_ARRIVAL_MINUTES);
+    if (arrivalResult.hitDayEnd) {
+      ensureEveningJournal();
+      saveState();
+      renderFreeModeStage();
+      maybeTriggerEveningGoHomePrompt();
+      return;
+    }
+    ensureEveningJournal();
     state.freeMode.activeLocationId = locationId;
     state.freeMode.activeOutingDestination = isOffCampus ? locationName : null;
     state.pendingActionContext = {
@@ -5461,6 +7867,15 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         isOffCampus
       }
     };
+    const arrivedSideQuest = !isSandboxScoutActive() && isOffCampus ? getArrivedSideQuest(location.name) : null;
+    if (arrivedSideQuest) {
+      state.pendingActionContext.actionContext = {
+        ...state.pendingActionContext.actionContext,
+        sideQuestSlotIndex: arrivedSideQuest.slotIndex,
+        sideQuestTitle: arrivedSideQuest.title,
+        sideQuestLocationName: arrivedSideQuest.locationName
+      };
+    }
     state.eventMode = "choice_prompt";
     state.choiceStep = 1;
     state.pendingChoiceRewards = [0, 0, 0, 0];
@@ -5480,6 +7895,10 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         ? "独自前往"
         : "与担当同来";
     const exploreLabel = isOffCampus ? `外出 · ${location.name}` : location.name;
+    appendEveningJournalActivity(
+      scoutActive ? "物色搭话" : isOffCampus ? "校外外出" : "地点探索",
+      `${exploreLabel} · ${visitLabel}`
+    );
     state.lastStory = scoutActive
       ? `正在前往 ${location.name}，准备与 ${state.idol} 搭话...`
       : isOffCampus
@@ -5491,18 +7910,13 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     saveState();
     render();
     renderFreeModeStage();
-    if (arrivalResult.hitDayEnd) {
-      showToast("今日活动结束", "抵达后时间已到 22:00，请尽快返回大地图。", "info");
-    }
-    const overlayTitle = scoutTalkHere ? `${exploreLabel} · 物色搭话` : scoutActive ? `${exploreLabel} · 物色搭话` : `${exploreLabel} · 探索`;
-    openEventOverlay(overlayTitle, "正在等待 AI 生成本次行动选项", buildAiWaitingStory(`正在等待 ${exploreLabel} 的场景与选项生成...`));
-    if (scoutTalkHere) {
-      const scoutCompleted = globalThis.HatsuTasks?.completeScoutTemariOnLocationTalk?.(state) || [];
-      if (scoutCompleted.length) {
-        saveState();
-        notifyQuestCompletions(scoutCompleted);
-      }
-    }
+    const overlayTitle = arrivedSideQuest
+      ? `${location.name} · 委托现场`
+      : scoutTalkHere ? `${exploreLabel} · 物色搭话` : scoutActive ? `${exploreLabel} · 物色搭话` : `${exploreLabel} · 探索`;
+    const waitingText = arrivedSideQuest
+      ? `正在等待「${arrivedSideQuest.title}」的委托现场生成...`
+      : `正在等待 ${exploreLabel} 的场景与选项生成...`;
+    openEventOverlay(overlayTitle, "正在等待 AI 生成本次行动选项", buildAiWaitingStory(waitingText));
     if (!requestHostPromptSend(prompt, requestId)) {
       openAiPromptOverlay("当前页面未连接 SillyTavern。请编辑或复制地点探索提示词后手动发送。");
     }
@@ -5510,9 +7924,10 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
 
   function requestNextMapLocationOptions() {
     if (!isMapLocationExploreActive()) return;
+    if (isSandboxScoutWrapUpPending()) return;
     if (!isFreeModeTravelAllowed()) {
-      showToast("今日已不能外出", "22:00 后无法继续探索，请返回大地图。", "warn");
-      showVnChoicesOverlay();
+      if (maybeTriggerEveningGoHomePrompt()) return;
+      showToast("今日已不能外出", "时间已到，请先决定今晚的安排。", "warn");
       return;
     }
     const locationId = state.pendingActionContext?.actionContext?.locationId || state.freeMode?.activeLocationId;
@@ -5564,6 +7979,10 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     const locationId = actionContext.locationId;
     const location = resolveMapExploreLocation(locationId, actionContext);
     const chosenOptionText = state.pendingOptionTexts[index] || "选择该选项";
+    if (actionContext.sideQuestSlotIndex !== undefined && actionContext.sideQuestSlotIndex !== null) {
+      handleSideQuestSceneChoice(index, chosenOptionText);
+      return;
+    }
     const chosenMinutes = resolveMapOptionMinutes(state.pendingOptionMinutes?.[index]);
     processSandboxMainQuestMapChoice(locationId, chosenOptionText);
     const timeResult = advanceFreeModeTime(chosenMinutes);
@@ -5589,13 +8008,62 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     renderFreeModeStage();
     closeVnChoicesOverlay();
     if (timeResult.hitDayEnd) {
-      showToast("今日活动结束", "时间已到 22:00，地图地点已关闭。", "info");
+      returnToFreeModeMap();
+      return;
     }
     if (!isFreeModeTravelAllowed()) {
-      showVnChoicesOverlay();
+      if (maybeTriggerEveningGoHomePrompt()) return;
+      returnToFreeModeMap();
       return;
     }
     requestNextMapLocationOptions();
+  }
+
+  function handleSideQuestSceneChoice(index, chosenOptionText) {
+    const actionContext = state.pendingActionContext?.actionContext || {};
+    const slotIndex = Number(actionContext.sideQuestSlotIndex);
+    const slot = state.tasks?.side?.slots?.[slotIndex];
+    if (!slot || slot.status === "done") {
+      showToast("委托不可用", "该委托已完成或已刷新。", "warn");
+      return;
+    }
+    const tier = getSideQuestTierForChoice(index);
+    const result = globalThis.HatsuTasks?.applySideQuestTier(state, slotIndex, tier);
+    if (!result?.ok) {
+      showToast("委托结算失败", result?.reason || "无法完成该委托。", "warn");
+      return;
+    }
+    const pool = getSideQuestPoolApi();
+    const tierLabel = pool?.SIDE_TIER_META?.[tier]?.label || tier;
+    appendEveningJournalTask("商业委托", slot.title ? `${slot.title} · ${tierLabel}` : tierLabel);
+    const chosenLine = `<narration>▶ 制作人的现场行动：${chosenOptionText}</narration>`;
+    const requestId = createRequestId();
+    pendingAiRequestId = requestId;
+    state.selectedChoiceText = chosenOptionText;
+    state.selectedChoiceRating = "委托现场";
+    state.pendingOptionTexts = [];
+    state.pendingOptionMinutes = [];
+    state.eventMode = "choice_resolution";
+    state.choiceStep = 2;
+    state.pendingActionContext.actionContext = {
+      ...actionContext,
+      sideQuestResolving: true,
+      sideQuestResultTier: tier
+    };
+    state.lastPrompt = buildSideQuestResultPrompt(result.slot || slot, tier, chosenOptionText);
+    state.lastDebug = `委托现场：${slot.title} 已选择行动，等待 AI 生成收尾。`;
+    state.lastStory = state.lastStory ? `${state.lastStory}\n\n${chosenLine}` : chosenLine;
+    saveState();
+    processSandboxQuestAfterSettlement();
+    render();
+    renderFreeModeStage();
+    closeVnChoicesOverlay();
+    setEventActionsEnabled(false, true);
+    setElementHidden("eventChoices", true);
+    openEventOverlay(`${slot.locationName || "委托地点"} · 委托收尾`, "正在生成委托收尾剧情...", buildChoicePendingDisplayStory("", chosenLine));
+    if (!requestHostPromptSend(state.lastPrompt, requestId)) {
+      openAiPromptOverlay("当前页面未连接 SillyTavern。请复制委托收尾提示词后手动发送。");
+    }
   }
 
   function handleMapLocationCustomChoice(rawText) {
@@ -5632,10 +8100,12 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     renderFreeModeStage();
     closeVnChoicesOverlay();
     if (timeResult.hitDayEnd) {
-      showToast("今日活动结束", "时间已到 22:00，地图地点已关闭。", "info");
+      returnToFreeModeMap();
+      return;
     }
     if (!isFreeModeTravelAllowed()) {
-      showVnChoicesOverlay();
+      if (maybeTriggerEveningGoHomePrompt()) return;
+      returnToFreeModeMap();
       return;
     }
     requestNextMapLocationOptions();
@@ -5797,7 +8267,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
           showToast("今日已不能外出", "22:00 后地图地点不可进入，点击右上角时间开始新的一天。", "warn");
           return;
         }
-        openMapLocationOverlay(location.id);
+        handleWorldMapHotspotClick(location.id);
         return;
       }
       event.preventDefault();
@@ -5902,18 +8372,23 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     container.innerHTML = "";
     const travelAllowed = isFreeModeTravelAllowed();
     getEffectiveWorldMapLocations().forEach((location) => {
+      const isOffCampusExit = isSandboxOffCampusExitAtEntrance(location.id);
       const button = document.createElement("button");
       button.type = "button";
-      button.className = `world-map-hotspot${worldMapLayoutState.editorActive ? " is-editing" : ""}${travelAllowed ? "" : " is-locked"}`;
+      button.className = `world-map-hotspot${worldMapLayoutState.editorActive ? " is-editing" : ""}${travelAllowed ? "" : " is-locked"}${isOffCampusExit ? " is-off-campus-exit" : ""}`;
       button.style.left = `${location.x}%`;
       button.style.top = `${location.y}%`;
       button.dataset.locationId = location.id;
-      button.setAttribute("aria-label", location.name);
+      button.setAttribute("aria-label", isOffCampusExit ? `${location.name} · 校外外出` : location.name);
       button.disabled = !travelAllowed && !worldMapLayoutState.editorActive;
       if (!travelAllowed && !worldMapLayoutState.editorActive) {
         button.title = "22:00 后不可外出";
+      } else if (isOffCampusExit) {
+        button.title = "点击前往校外线路图";
       }
-      button.innerHTML = `<span class="world-map-hotspot-marker">${location.shortLabel}</span><span class="world-map-hotspot-label">${location.name}</span>`;
+      const markerLabel = isOffCampusExit ? "校外" : location.shortLabel;
+      const nameLabel = isOffCampusExit ? `${location.name} · 外出` : location.name;
+      button.innerHTML = `<span class="world-map-hotspot-marker">${markerLabel}</span><span class="world-map-hotspot-label">${nameLabel}</span>`;
       bindWorldMapHotspotInteractions(button, location);
       container.appendChild(button);
     });
@@ -5981,7 +8456,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       if (isHybridCampusMode()) {
         locationBadge.textContent = isFreeModeTravelAllowed()
           ? (isSandboxLaunch()
-            ? `今日校园课还剩 ${getSandboxCampusRemaining() ?? 3}/3 次 · 教学楼上课 · 体育馆/部室/特教训练`
+            ? `今日校园课还剩 ${getSandboxCampusRemaining() ?? 3}/3 次 · 正门前往校外 · 教学楼上课 · 体育馆/部室/特教训练`
             : "教学楼可上课 · 体育馆/部室栋可训练")
           : "22:00 后不可安排，点击右上角时间管理进入下一天";
       } else {
@@ -6013,9 +8488,22 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     if (taskPanelBtn) {
       taskPanelBtn.hidden = !canOpenTaskPanelOverlay();
     }
+    const affinityBtn = document.getElementById("freeModeAffinityBtn");
+    if (affinityBtn) {
+      affinityBtn.hidden = !canOpenAffinityOverlay();
+    }
+    updateFreeModeBagButton();
+    const giftShopOverlay = document.getElementById("giftShopOverlay");
+    if (giftShopOverlay && !giftShopOverlay.hidden) {
+      renderGiftShopOverlay();
+    }
     const taskPanelOverlay = document.getElementById("taskPanelOverlay");
     if (taskPanelOverlay && !taskPanelOverlay.hidden) {
       renderTaskPanelOverlay();
+    }
+    const affinityOverlay = document.getElementById("affinityOverlay");
+    if (affinityOverlay && !affinityOverlay.hidden) {
+      renderAffinityOverlay();
     }
   }
 
@@ -6127,8 +8615,32 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     render();
   }
 
+  function applyMapLocationPresenceCollapse(totalCount) {
+    const presenceList = document.getElementById("mapLocationPresenceList");
+    const toggleBtn = document.getElementById("mapLocationPresenceToggle");
+    if (!presenceList || !toggleBtn) return;
+
+    const shouldCollapse = totalCount >= MAP_LOCATION_PRESENCE_COLLAPSE_AT;
+    toggleBtn.hidden = !shouldCollapse;
+
+    if (!shouldCollapse) {
+      presenceList.hidden = totalCount === 0;
+      presenceList.classList.remove("is-scrollable");
+      return;
+    }
+
+    toggleBtn.textContent = mapLocationPresenceExpanded
+      ? "收起在场详情"
+      : `查看在场详情（${totalCount}人）`;
+    presenceList.hidden = !mapLocationPresenceExpanded;
+    presenceList.classList.toggle("is-scrollable", mapLocationPresenceExpanded);
+  }
+
   function renderMapLocationPresence(locationId, idolsHere) {
     const helpers = getHatsuWorldHelpers();
+    const residentNpcs = getResidentNpcsAtLocation(locationId);
+    const hasPresence = idolsHere.length > 0 || residentNpcs.length > 0;
+    const totalCount = idolsHere.length + residentNpcs.length;
     const presenceBlock = document.getElementById("mapLocationPresence");
     const presenceAvatars = document.getElementById("mapLocationPresenceAvatars");
     const presenceList = document.getElementById("mapLocationPresenceList");
@@ -6139,10 +8651,9 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     }
     if (presenceList) {
       presenceList.innerHTML = "";
-      presenceList.hidden = idolsHere.length === 0;
     }
     if (presenceBlock) {
-      presenceBlock.hidden = idolsHere.length === 0;
+      presenceBlock.hidden = !hasPresence;
     }
     if (!presenceAvatars) return;
 
@@ -6177,6 +8688,29 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         presenceList.appendChild(item);
       }
     });
+    residentNpcs.forEach((npc) => {
+      const avatar = document.createElement("span");
+      avatar.className = "map-location-presence-avatar idol-avatar is-interactable is-npc";
+      avatar.style.setProperty("--avatar-color", npc.theme || "#6f9cff");
+      avatar.title = `${npc.name}：${npc.publicLabel || "常驻"}`;
+      avatar.innerHTML = `<b aria-hidden="true">${npc.name.slice(0, 1)}</b><img src="${npc.avatar || ""}" alt="" loading="lazy" decoding="async">`;
+      avatar.querySelector("img")?.addEventListener("error", (event) => {
+        event.currentTarget.classList.add("is-missing");
+      });
+      presenceAvatars.appendChild(avatar);
+
+      if (presenceList) {
+        const item = document.createElement("div");
+        item.className = "map-location-presence-item is-interactable is-npc";
+        item.innerHTML = `
+          <span class="map-location-presence-name">${npc.name}</span>
+          <span class="map-location-presence-copy">${npc.publicLabel || "常驻NPC"}</span>
+          <span class="map-location-presence-status">${npc.statusLabel || "常驻"}</span>
+        `;
+        presenceList.appendChild(item);
+      }
+    });
+    applyMapLocationPresenceCollapse(totalCount);
   }
 
   function updateMapLocationEntryActions(locationId) {
@@ -6185,44 +8719,69 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     const scoutActive = isSandboxScoutActive() && scoutTalkHere;
     const scoutTargetHere = scoutActive ? getSandboxScoutTargetAtLocation(locationId) : "";
     const campusExhausted = isSandboxCampusExhausted();
+    const facilityBtn = document.getElementById("mapLocationEnterFacilityBtn");
     const enterWithIdolBtn = document.getElementById("mapLocationEnterWithIdolBtn");
     const enterAloneBtn = document.getElementById("mapLocationEnterAloneBtn");
     const enterOptions = document.querySelector(".map-location-enter-options");
 
+    if (facilityBtn) {
+      if (facilityKind && !scoutActive) {
+        facilityBtn.hidden = false;
+        if (campusExhausted) {
+          facilityBtn.disabled = true;
+          facilityBtn.textContent = "今日校园次数已用完";
+        } else {
+          facilityBtn.disabled = false;
+          facilityBtn.textContent = facilityKind === "lesson" ? "进入上课" : "进入训练";
+        }
+      } else {
+        facilityBtn.hidden = true;
+      }
+    }
     if (enterWithIdolBtn) {
       if (scoutActive) {
         enterWithIdolBtn.textContent = scoutTargetHere ? `与 ${scoutTargetHere} 搭话` : "物色目标不在这里";
         enterWithIdolBtn.disabled = !scoutTargetHere;
       } else {
         enterWithIdolBtn.disabled = false;
-        if (facilityKind && campusExhausted) {
-          enterWithIdolBtn.disabled = true;
-          enterWithIdolBtn.textContent = "今日校园次数已用完";
-        } else {
-          enterWithIdolBtn.textContent = facilityKind === "lesson"
-            ? "进入上课"
-            : facilityKind === "training"
-              ? "进入训练"
-              : "和担当一起来";
-        }
+        enterWithIdolBtn.textContent = "和担当一起来";
       }
     }
     if (enterAloneBtn) {
       if (scoutActive) {
         enterAloneBtn.hidden = true;
       } else {
-        enterAloneBtn.hidden = Boolean(facilityKind);
+        enterAloneBtn.hidden = false;
         enterAloneBtn.disabled = false;
+        enterAloneBtn.textContent = "自己来";
       }
     }
     if (enterOptions) {
       enterOptions.classList.toggle("is-scout-mode", scoutActive);
+      enterOptions.classList.toggle("has-facility-option", Boolean(facilityKind) && !scoutActive);
     }
+  }
+
+  function isSandboxOffCampusExitAtEntrance(locationId) {
+    return locationId === "school_entrance"
+      && isSandboxLaunch()
+      && isFreeModeActive()
+      && !isSandboxScoutActive()
+      && isFreeModeTravelAllowed();
+  }
+
+  function handleWorldMapHotspotClick(locationId) {
+    if (isSandboxOffCampusExitAtEntrance(locationId)) {
+      openFreeModeOutingOverlay();
+      return;
+    }
+    openMapLocationOverlay(locationId);
   }
 
   function openMapLocationOverlay(locationId) {
     const location = getWorldMapLocation(locationId);
     if (!location) return;
+    mapLocationPresenceExpanded = false;
     const title = document.getElementById("mapLocationTitle");
     const desc = document.getElementById("mapLocationDesc");
     const visual = document.getElementById("mapLocationVisual");
@@ -6246,8 +8805,13 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     }
     document.getElementById("mapLocationOverlay")?.setAttribute("data-location-id", location.id);
     const outingBtn = document.getElementById("mapLocationOutingBtn");
-    if (outingBtn) outingBtn.hidden = location.id !== "school_entrance" || isSandboxScoutActive();
+    if (outingBtn) {
+      outingBtn.hidden = location.id !== "school_entrance"
+        || isSandboxScoutActive()
+        || isSandboxOffCampusExitAtEntrance(location.id);
+    }
     updateMapLocationEntryActions(location.id);
+    updateMapLocationShopButton(location.id);
     setElementHidden("mapLocationOverlay", false);
   }
 
@@ -6256,18 +8820,98 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     document.getElementById("mapLocationOverlay")?.removeAttribute("data-location-id");
   }
 
+  function offCampusStationByDestination(destinationName) {
+    const name = String(destinationName || "").trim();
+    return OFF_CAMPUS_TRANSIT_STATIONS.find((station) => station.name === name) || null;
+  }
+
+  function renderOffCampusTransitMap(activeDestination = "") {
+    const map = document.getElementById("offCampusTransitMap");
+    if (!map) return;
+    const selected = offCampusStationByDestination(activeDestination);
+    const stationById = Object.fromEntries(OFF_CAMPUS_TRANSIT_STATIONS.map((station) => [station.id, station]));
+    const linePath = (ids) => ids
+      .map((id) => stationById[id])
+      .filter(Boolean)
+      .map((station) => `${station.x},${station.y}`)
+      .join(" ");
+    const selectedId = selected?.id || "";
+
+    map.innerHTML = `
+      <div class="off-campus-map-card">
+        <div class="off-campus-map-head">
+          <div>
+            <span class="off-campus-map-kicker">初星电铁</span>
+            <strong>校外一日乘车图</strong>
+          </div>
+          <span class="off-campus-map-chip">08:00-22:00</span>
+        </div>
+        <div class="off-campus-map-canvas" role="img" aria-label="初星学园前到商店街、购物中心、游乐园、水族馆，以及体育中心、商演委托地点与住宅支线">
+          <svg class="off-campus-lines" viewBox="0 0 100 100" aria-hidden="true">
+            <polyline class="off-campus-line off-campus-line-glow off-campus-line-main" points="${linePath(["hatsuboshi_gate", "shopping_street", "shopping_mall", "amusement_park", "aquarium"])}" />
+            <polyline class="off-campus-line off-campus-line-glow off-campus-line-sports" points="${linePath(["hatsuboshi_gate", "sports_center"])}" />
+            <polyline class="off-campus-line off-campus-line-glow off-campus-line-media" points="${linePath(["shopping_street", "local_radio", "event_hall", "brand_store"])}" />
+            <polyline class="off-campus-line off-campus-line-media" points="${linePath(["local_radio", "tv_station", "photo_studio", "music_festival"])}" />
+            <polyline class="off-campus-line off-campus-line-home" points="${linePath(["shopping_mall", "saki_home", "china_home"])}" />
+          </svg>
+          ${OFF_CAMPUS_TRANSIT_STATIONS.map((station) => `
+            <button
+              type="button"
+              class="off-campus-station off-campus-station-${escapePhoneText(station.line)}${station.status === "locked" ? " is-locked" : ""}${station.status === "hub" ? " is-hub" : ""}${station.id === selectedId ? " is-selected" : ""}"
+              style="left:${station.x}%; top:${station.y}%"
+              data-off-campus-station="${escapePhoneText(station.id)}"
+              aria-label="${escapePhoneText(station.name)}${station.status === "locked" ? "，未解锁" : ""}"
+            >
+              <span class="off-campus-station-dot">${escapePhoneText(station.shortLabel)}</span>
+              <span class="off-campus-station-name">${escapePhoneText(station.name)}</span>
+            </button>
+          `).join("")}
+        </div>
+        <div class="off-campus-legend" aria-hidden="true">
+          <span><b class="legend-main"></b>星环线</span>
+          <span><b class="legend-sports"></b>运动支线</span>
+          <span><b class="legend-media"></b>商演支线</span>
+          <span><b class="legend-home"></b>住宅支线</span>
+        </div>
+      </div>`;
+
+    map.querySelectorAll("[data-off-campus-station]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const station = stationById[button.dataset.offCampusStation];
+        if (!station) return;
+        if (station.status === "locked") {
+          showToast("尚未解锁", `${station.name} 会作为后续角色事件地点开放。`, "info");
+          return;
+        }
+        if (station.status === "hub") {
+          showToast("校外入口", "请选择校外目的地后出发。", "info");
+          return;
+        }
+        confirmFreeModeOutingDestination(station.name);
+      });
+    });
+  }
+
   function openFreeModeOutingOverlay() {
     if (!isFreeModeActive()) return;
     document.getElementById("freeModeOutingCustomInput").value = "";
+    renderOffCampusTransitMap();
     const list = document.getElementById("freeModeOutingDestinationList");
     if (list) {
       list.innerHTML = "";
       FREE_MODE_OUTING_DESTINATIONS.forEach((destination, index) => {
+        const station = offCampusStationByDestination(destination.name);
         const button = document.createElement("button");
         button.type = "button";
         button.id = `free-mode-outing-destination-${index + 1}`;
         button.className = "outing-destination-button";
-        button.innerHTML = `<strong>${destination.name}</strong><span>${destination.description}</span>`;
+        button.innerHTML = `
+          <strong>${escapePhoneText(destination.name)}</strong>
+          <span>${escapePhoneText(destination.description)}</span>
+          ${station?.pois?.length ? `<em>${station.pois.map(escapePhoneText).join(" / ")}</em>` : ""}
+        `;
+        button.addEventListener("mouseenter", () => renderOffCampusTransitMap(destination.name));
+        button.addEventListener("focus", () => renderOffCampusTransitMap(destination.name));
         button.addEventListener("click", () => confirmFreeModeOutingDestination(destination.name));
         list.appendChild(button);
       });
@@ -6296,6 +8940,15 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     });
   }
 
+  function confirmFacilityEntry() {
+    const locationId = document.getElementById("mapLocationOverlay")?.getAttribute("data-location-id");
+    if (!locationId) return;
+    const facilityKind = getHybridFacilityKind(locationId);
+    if (!facilityKind || !canOpenHybridFacilityAt(locationId)) return;
+    closeMapLocationOverlay();
+    openHybridFacility(facilityKind, locationId);
+  }
+
   function confirmMapLocationEntry(visitMode = "with_idol") {
     const locationId = document.getElementById("mapLocationOverlay")?.getAttribute("data-location-id");
     if (!locationId) return;
@@ -6309,14 +8962,6 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       closeMapLocationOverlay();
       startMapLocationExplore(locationId, "alone");
       return;
-    }
-    if (canOpenHybridFacilityAt(locationId)) {
-      const facilityKind = getHybridFacilityKind(locationId);
-      if (facilityKind) {
-        closeMapLocationOverlay();
-        openHybridFacility(facilityKind, locationId);
-        return;
-      }
     }
     closeMapLocationOverlay();
     startMapLocationExplore(locationId, visitMode);
@@ -6336,12 +8981,13 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   function renderShellMode() {
     const hasIdol = Boolean(state.idol);
     const sandboxActive = isSandboxLaunch();
-    const canShowGame = hasIdol && (
+    const canShowGame = hasIdol && !state.launchMenuPaused && (
       (isProduceLaunch() && state.affinity.openingComplete)
       || (sandboxActive && state.sandbox?.openingComplete && state.sandbox?.inviteComplete)
     );
     const inHybridFacility = isHybridFacilityActive();
-    const inCampusMap = isFreeModeActive() && !inHybridFacility;
+    const inApartment = isProducerApartmentActive();
+    const inCampusMap = isFreeModeActive() && !inHybridFacility && !inApartment;
     document.body.classList.toggle("is-free-mode-active", isFreeModeActive());
     document.body.classList.toggle("is-hybrid-facility-active", inHybridFacility);
     document.getElementById("launchStage")?.classList.toggle("is-hidden", !shouldShowLaunchStage());
@@ -6352,6 +8998,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       freeModeStage.classList.toggle("is-hidden", !canShowGame || !inCampusMap);
       if (inCampusMap) renderFreeModeStage();
     }
+    renderProducerApartmentStage();
   }
 
   function applySelectStageBackground(idolName) {
@@ -6963,9 +9610,36 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     state.phoneChat.isAwaitingReply = false;
     state.phoneChat.pendingRequestId = "";
     state.phoneChat.retryAvailable = false;
+    if (pendingAiRequestId && pendingAiRequestId === String(state.phoneChat.pendingRequestId || "")) {
+      pendingAiRequestId = "";
+    }
+    aiReplyRetryCount = 0;
     setPhoneChatTyping(false);
     setPhoneChatComposerEnabled(true);
     updatePhoneChatRetryUi();
+  }
+
+  // 检测并修复“孤立”的私聊等待状态：例如 API 报错、手动调试跳过或页面重载后，
+  // state.phoneChat.isAwaitingReply 被持久化为 true，但实际已没有在途请求
+  // （模块级 pendingAiRequestId 丢失且没有逐条投递计时器）。此时小手机会永远停在
+  // “正在输入中”且输入框被锁死，导致后续即使收到完整回复也无法继续。
+  function reconcilePhoneChatPendingState() {
+    if (!state.phoneChat?.isAwaitingReply) return false;
+    const pending = String(state.phoneChat.pendingRequestId || "");
+    const liveMatch = pending && pendingAiRequestId === pending;
+    const deliveryActive = Boolean(phoneChatDeliveryTimer);
+    if (liveMatch || deliveryActive) return false;
+
+    state.phoneChat.isAwaitingReply = false;
+    state.phoneChat.pendingRequestId = "";
+    state.phoneChat.retryAvailable = Boolean(pending);
+    phoneChatTypingVisible = false;
+    aiReplyRetryCount = 0;
+    if (state.activeStoryNode?.type === "phonechat") {
+      state.activeStoryNode.ready = true;
+      state.activeStoryNode = null;
+    }
+    return true;
   }
 
   function sendPhoneChatPromptToHost(promptText, requestId = pendingAiRequestId || createRequestId()) {
@@ -7255,11 +9929,18 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   }
 
   function openDaySummaryOverlay() {
+    if (isProducerApartmentActive()) {
+      openFreeModeEveningSummary();
+      return;
+    }
     renderDaySummary();
     setElementHidden("daySummaryOverlay", false);
   }
 
   function closeDaySummaryOverlay() {
+    document.getElementById("daySummaryOverlay")?.classList.remove("is-evening-mode");
+    const closeBtn = document.getElementById("daySummaryCloseBtn");
+    if (closeBtn) closeBtn.textContent = "返回总结轮次";
     setElementHidden("daySummaryOverlay", true);
   }
 
@@ -7635,16 +10316,18 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     renderBroadcastGuestAvatars(episode?.guests || []);
 
     if (categoryEl) {
-      categoryEl.textContent = episode?.categoryLabel || "学园广播";
+      categoryEl.textContent = episode?.categoryLabel || (isDailyWorldGenLoading() ? "生成中" : "学园广播");
     }
-    if (titleEl) titleEl.textContent = episode?.title || "今日暂无节目";
+    if (titleEl) {
+      titleEl.textContent = episode?.title || (isDailyWorldGenLoading() ? "生成中…" : "今日暂无节目");
+    }
     if (metaEl) {
       metaEl.textContent = episode
         ? formatWorldFeedDayLabel()
-        : "打开后将自动生成今日学园广播";
+        : (isDailyWorldGenLoading() ? "次 API 正在生成本日广播主题…" : "打开后将自动生成今日学园广播");
     }
     if (outlineEl) {
-      outlineEl.textContent = episode?.outline || "今日广播提纲尚未生成。";
+      outlineEl.textContent = episode?.outline || (isDailyWorldGenLoading() ? "广播提纲生成中…" : "今日广播提纲尚未生成。");
     }
     if (scriptEl) {
       const script = String(episode?.fullScript || "").trim();
@@ -7679,13 +10362,18 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
             : "手动生成完整稿";
     }
     if (statusEl) {
+      const worldGen = globalThis.HatsuWorld?.worldGen?.ensureDailyGenShape?.(state);
       statusEl.textContent = broadcastScriptLoading
         ? "日初广播：完整稿生成中…"
-        : episode?.fullScript
-          ? "可朗读完整稿已就绪。"
-          : isBroadcastAutoFullScriptEnabled()
-            ? "提纲前端生成；完整稿于每日开始时自动请求（广播 channel）。"
-            : "提纲由前端自动生成；完整稿需手动请求。";
+        : isDailyWorldGenLoading()
+          ? "次 API 正在生成本日广播主题与提纲…"
+          : episode?.fullScript
+            ? "可朗读完整稿已就绪。"
+            : worldGen?.source === "secondary"
+              ? "广播主题与初星圈由次 API 生成；完整稿于每日开始时自动请求。"
+              : isBroadcastAutoFullScriptEnabled()
+                ? "提纲前端生成；完整稿于每日开始时自动请求（广播 channel）。"
+                : "提纲由前端自动生成；完整稿需手动请求。";
     }
     setBroadcastActiveTab(broadcastActiveTab);
   }
@@ -8016,7 +10704,12 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
 
     if (!items.length) {
       feedEl.innerHTML = "";
-      if (emptyEl) emptyEl.hidden = false;
+      if (emptyEl) {
+        emptyEl.hidden = false;
+        emptyEl.innerHTML = isDailyWorldGenLoading()
+          ? "<p>学园舆论生成中…</p>"
+          : "<p>今天还没有新动态。<br>学园也许正在酝酿八卦。</p>";
+      }
       return;
     }
 
@@ -8871,6 +11564,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     if (!thread) return;
 
     ensureStateShape();
+    reconcilePhoneChatPendingState();
     state.phoneChat.activeView = "chat";
     state.phoneChat.activeThreadId = threadId;
     showPhoneLineAppShell();
@@ -8896,7 +11590,9 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     renderPhoneChatMessages(threadId);
     renderPhoneChatList();
     setPhoneChatComposerEnabled(thread.writable && !isPhoneChatBusy());
-    if (state.activeStoryNode?.type === "phonechat" && pendingAiRequestId) {
+    const phoneLiveMatch = state.phoneChat.pendingRequestId
+      && pendingAiRequestId === String(state.phoneChat.pendingRequestId || "");
+    if (state.activeStoryNode?.type === "phonechat" && phoneLiveMatch) {
       state.phoneChat.isAwaitingReply = true;
       setPhoneChatTyping(true);
       setPhoneChatComposerEnabled(false);
@@ -8969,6 +11665,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       return;
     }
     ensureStateShape();
+    if (reconcilePhoneChatPendingState()) saveState();
     renderPhoneApp();
     setElementHidden("phoneOverlay", false);
   }
@@ -9537,6 +12234,12 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   }
 
   function getSceneBackground() {
+    // 正在进行地图地点探索时，优先使用该地区的场景，避免残留剧情节点把每个地区的背景覆盖成默认
+    if (state.pendingActionContext?.action === "map_location") {
+      const mapActionContext = state.pendingActionContext.actionContext || {};
+      return getMapLocationSceneBackground(mapActionContext);
+    }
+
     const node = state.activeStoryNode;
     if (node) {
       if (node.type === "sandboxOpening" || node.type === "sandboxInvite") {
@@ -9570,6 +12273,9 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         return "./assets/scenes/campus.png";
       }
       if (action === "companion" || action === "intimacy") {
+        if (context.actionContext?.apartmentInvite) {
+          return PRODUCER_APARTMENT_SCENE;
+        }
         return "./assets/scenes/rest.png";
       }
       if (action === "map_location") {
@@ -9769,7 +12475,8 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   function handleVnSlidesEnd() {
     stopVnAuto();
     
-    const hasOptionChoices = isChoicePromptMode() && state.pendingOptionTexts && state.pendingOptionTexts.length === 4;
+    const hasOptionChoices = (isChoicePromptMode() && state.pendingOptionTexts?.length === 4)
+      || (isEveningGoHomeActive() && state.pendingOptionTexts?.length >= 2);
     const showMapReturnOnly = isMapLocationExploreActive()
       && state.eventMode === "none"
       && !isFreeModeTravelAllowed()
@@ -9851,19 +12558,23 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       const max = 100;
       state[key] = clamp((state[key] || 0) + value, 0, max);
     });
-    refreshAffinityUnlocks();
-    advanceRound();
-    rollSpCandidates();
     const actionName = nsfwIntimacyActionTitle();
     const resultSummary = `${formatDelta(delta)}，【NSFW亲密·结束】`;
-    state.log.unshift({
-      day: state.day,
-      round: state.round,
-      phase: getPhase(),
-      action: actionName,
-      result: resultSummary
-    });
-    state.log = state.log.slice(0, 24);
+    if (isApartmentNsfwInviteActive()) {
+      appendEveningJournalActivity("公寓邀约", `与 ${getNsfwIntimacyTargetIdol()} 的私密互动结束 · ${resultSummary}`);
+    } else {
+      refreshAffinityUnlocks();
+      advanceRound();
+      rollSpCandidates();
+      state.log.unshift({
+        day: state.day,
+        round: state.round,
+        phase: getPhase(),
+        action: actionName,
+        result: resultSummary
+      });
+      state.log = state.log.slice(0, 24);
+    }
     return delta;
   }
 
@@ -9989,14 +12700,19 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     hideVnCustomChoicePanel();
     container.innerHTML = "";
     const nsfwMode = isNsfwIntimacyActive();
-    const hasOptionChoices = isChoicePromptMode() && state.pendingOptionTexts?.length === 4;
+    const eveningGoHome = isEveningGoHomeActive();
+    const hasOptionChoices = (isChoicePromptMode() && state.pendingOptionTexts?.length === 4) || (eveningGoHome && state.pendingOptionTexts?.length >= 2);
     const showMapReturnOnly = isMapLocationExploreActive()
       && state.eventMode === "none"
       && !isFreeModeTravelAllowed()
       && !pendingAiRequestId;
     const titleEl = document.getElementById("vnChoicesTitle");
     if (titleEl) {
-      titleEl.textContent = nsfwMode ? "选择下一步（可自定义或结束）" : "请做出你的选择";
+      titleEl.textContent = eveningGoHome
+        ? "请选择今晚的安排"
+        : nsfwMode
+          ? "选择下一步（可自定义或结束）"
+          : "请做出你的选择";
       titleEl.hidden = false;
     }
 
@@ -10004,11 +12720,27 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       const btn = document.createElement("button");
       btn.className = "vn-choice-btn";
       btn.type = "button";
-      const optionMinutes = isMapLocationExploreActive() && hasOptionChoices
+      const bringHomeLocked = eveningGoHome && optText === "带担当回家" && !canBringAssignedIdolHome();
+      if (bringHomeLocked) {
+        btn.disabled = true;
+        btn.classList.add("is-disabled");
+        btn.title = `需要与担当的好感度达到 ${INTIMACY_NSFW_UNLOCK_TRUST}`;
+      }
+      const optionMinutes = isMapLocationExploreActive() && hasOptionChoices && !eveningGoHome
         ? resolveMapOptionMinutes(state.pendingOptionMinutes?.[index])
         : null;
-      btn.textContent = optionMinutes ? `${optText}（约${optionMinutes}分）` : optText;
+      btn.textContent = bringHomeLocked
+        ? `${optText}（需要好感 ${INTIMACY_NSFW_UNLOCK_TRUST}）`
+        : optionMinutes
+          ? `${optText}（约${optionMinutes}分）`
+          : optText;
       btn.onclick = () => {
+        if (btn.disabled) return;
+        if (eveningGoHome) {
+          closeVnChoicesOverlay();
+          handleEveningGoHomeChoice(index);
+          return;
+        }
         if (nsfwMode) {
           handleNsfwIntimacyPresetChoice(index);
           return;
@@ -10176,7 +12908,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     if (!text.trim()) return "empty";
     if (text.includes("小手机私聊")) return "phone_chat";
     if (text.includes("小手机添加好友问候")) return "phone_greeting";
-    if (text.includes("NSFW 亲密")) {
+    if (text.includes("NSFW 亲密") || text.includes("公寓邀约")) {
       if (text.includes("收尾")) return "nsfw_intimacy_close";
       if (text.includes("继续") || text.includes("承接上文")) return "nsfw_intimacy_continue";
       return "nsfw_intimacy_open";
@@ -10463,7 +13195,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
 
     if (node?.type === "affinity") node.ready = true;
     if (node?.type === "firstLivePre" || node?.type === "firstLivePost") node.ready = true;
-    if (node?.type === "freechat" || node?.type === "interaction") node.ready = true;
+    if (node?.type === "freechat" || node?.type === "interaction" || node?.type === "gift") node.ready = true;
 
     state.eventMode = "none";
     state.choiceStep = 0;
@@ -10483,7 +13215,9 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
             ? "担当闲聊"
             : node?.type === "interaction"
               ? "偶像互动"
-              : (state.lastEventTitle || state.log[0]?.action || "行动事件");
+              : node?.type === "gift"
+                ? `赠送礼物 · ${node.recipientName || "对象"}`
+                : (state.lastEventTitle || state.log[0]?.action || "行动事件");
     openEventOverlay(title, "（调试跳过）已注入占位叙事", DEBUG_SKIP_PLACEHOLDER);
     return "event";
   }
@@ -10785,6 +13519,10 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
 
   function closeEventOverlay() {
     stopVnAuto();
+    if (isEveningGoHomeActive()) {
+      showToast("请先选择", "请选择今晚要回家，还是再待一会儿。", "warn");
+      return;
+    }
     if (vnTypewriterTimer) {
       clearInterval(vnTypewriterTimer);
       vnTypewriterTimer = 0;
@@ -10823,6 +13561,20 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       return;
     }
     triggerWipeTransition(() => {
+      if (state.pendingActionContext?.actionContext?.apartmentInvite) {
+        state.pendingActionContext = null;
+        state.eventMode = "none";
+        state.choiceStep = 0;
+        state.pendingOptionTexts = [];
+        state.selectedChoiceText = "";
+        state.selectedChoiceRating = "";
+        clearIntimacyRoute();
+        if (state.freeMode) state.freeMode.atApartment = true;
+        saveState();
+        render();
+        setElementHidden("eventOverlay", true);
+        return;
+      }
       const node = state.activeStoryNode;
       if (node?.type === "affinity") {
         if (!node.ready) {
@@ -10860,7 +13612,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
           return;
         }
         completeFirstLivePostFlow();
-      } else if (["freechat", "interaction"].includes(node?.type)) {
+      } else if (["freechat", "interaction", "gift"].includes(node?.type)) {
         if (!node.ready) {
           setElementHidden("eventOverlay", true);
           return;
@@ -11227,6 +13979,93 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     };
   }
 
+  function extractFreeModeRelationshipUpdate(value) {
+    const content = stripAiThinkingBlocks(String(value || "")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&amp;/g, "&")
+      .replace(/\u200b/g, ""));
+    const match = content.match(/[【\[]\s*好感度更新开始\s*[】\]]([\s\S]*?)[【\[]\s*好感度更新结束\s*[】\]]/u)
+      || content.match(/<relationship_update\b[^>]*>([\s\S]*?)<\/relationship_update>/i);
+    if (!match?.[1]) return {};
+    const body = match[1].trim();
+    const jsonStart = body.indexOf("{");
+    const jsonEnd = body.lastIndexOf("}");
+    if (jsonStart === -1 || jsonEnd === -1 || jsonEnd <= jsonStart) return {};
+    try {
+      const parsed = JSON.parse(body.slice(jsonStart, jsonEnd + 1));
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+      return parsed;
+    } catch (error) {
+      console.warn("[free-mode] 好感度更新解析失败:", error);
+      return {};
+    }
+  }
+
+  function parseFreeModeRelationshipDelta(rawValue) {
+    const value = rawValue && typeof rawValue === "object" && !Array.isArray(rawValue)
+      ? rawValue.好感度
+      : rawValue;
+    const number = Number(value);
+    if (!Number.isFinite(number)) return 0;
+    return Math.round(clamp(number, -10, 10));
+  }
+
+  function applyFreeModeRelationshipUpdate(rawUpdate = {}) {
+    if (!rawUpdate || typeof rawUpdate !== "object" || Array.isArray(rawUpdate)) return {};
+    const applied = { idols: {}, npcs: {} };
+    ensureFreeModeRelationships();
+    if (typeof ensureFreeModeNpcRelationships === "function") ensureFreeModeNpcRelationships();
+
+    const applyIdolDelta = (rawName, rawValue) => {
+      const idolName = canonicalIdolName(rawName);
+      if (!idolName || !idols[idolName]) return;
+      const delta = parseFreeModeRelationshipDelta(rawValue);
+      if (!delta) return;
+      const entry = getFreeModeRelationship(idolName);
+      if (!entry) return;
+      entry.好感度 = clampFreeModeRelationshipScore((entry.好感度 || 0) + delta);
+      entry.更新日 = Number(state.freeMode?.postLiveDay || state.day || 1);
+      const result = { 好感度: entry.好感度, delta };
+      applied.idols[idolName] = result;
+      applied[idolName] = result;
+    };
+
+    const applyNpcDelta = (rawName, rawValue) => {
+      if (typeof canonicalNpcName !== "function" || typeof getFreeModeNpcRelationship !== "function") return;
+      const npcName = canonicalNpcName(rawName);
+      if (!npcName) return;
+      const delta = parseFreeModeRelationshipDelta(rawValue);
+      if (!delta) return;
+      const entry = getFreeModeNpcRelationship(npcName);
+      if (!entry) return;
+      entry.好感度 = clampFreeModeRelationshipScore((entry.好感度 || 0) + delta);
+      entry.更新日 = Number(state.freeMode?.postLiveDay || state.day || 1);
+      applied.npcs[npcName] = { 好感度: entry.好感度, delta };
+    };
+
+    if (rawUpdate.idols && typeof rawUpdate.idols === "object" && !Array.isArray(rawUpdate.idols)) {
+      Object.entries(rawUpdate.idols).forEach(([rawName, rawValue]) => applyIdolDelta(rawName, rawValue));
+    }
+    if (rawUpdate.npcs && typeof rawUpdate.npcs === "object" && !Array.isArray(rawUpdate.npcs)) {
+      Object.entries(rawUpdate.npcs).forEach(([rawName, rawValue]) => applyNpcDelta(rawName, rawValue));
+    }
+    Object.entries(rawUpdate).forEach(([rawName, rawValue]) => {
+      if (rawName === "idols" || rawName === "npcs") return;
+      if (canonicalIdolName(rawName) && idols[canonicalIdolName(rawName)]) {
+        applyIdolDelta(rawName, rawValue);
+        return;
+      }
+      if (typeof canonicalNpcName === "function" && canonicalNpcName(rawName)) applyNpcDelta(rawName, rawValue);
+    });
+    try {
+      recordEveningJournalRelationships(applied);
+    } catch (_) {
+      // no-op when relationship helpers are not in scope (isolated tests)
+    }
+    return applied;
+  }
+
   function decodeAiReplySource(value) {
     return String(value || "")
       .replace(/&lt;/g, "<")
@@ -11421,6 +14260,10 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
 
   function handleChoiceSelection(index) {
     if (!state.pendingActionContext) return;
+    if (state.pendingActionContext.action === "evening_go_home") {
+      handleEveningGoHomeChoice(index);
+      return;
+    }
     if (isNsfwIntimacyActive()) {
       handleNsfwIntimacyPresetChoice(index);
       return;
@@ -11563,6 +14406,16 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
 
   function applyAiReply(text, requestId = "", rawText = "", renderedText = "", isFinal = true, variableCommands = []) {
     aiBridgeDebug.lastVariableCommands = Array.isArray(variableCommands) ? variableCommands : [];
+    // 私聊回复容错：即使模块级 pendingAiRequestId 因报错/跳过/重载而丢失，只要回复的
+    // requestId 与当前等待中的私聊请求一致，仍应接收并重新接管 pendingAiRequestId。
+    const phonePendingForGate = String(state.phoneChat?.pendingRequestId || "");
+    const phoneChatStillAwaiting = state.activeStoryNode?.type === "phonechat"
+      && state.phoneChat?.isAwaitingReply
+      && Boolean(requestId)
+      && requestId === phonePendingForGate;
+    if (phoneChatStillAwaiting && pendingAiRequestId !== requestId) {
+      pendingAiRequestId = requestId;
+    }
     const acceptedRequest = shouldAcceptAiReply(requestId, pendingAiRequestId);
     if (!acceptedRequest) {
       recordAiReplyDebug({ text, rawText, renderedText, requestId, isFinal, source: "", accepted: false });
@@ -11618,6 +14471,23 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
           .replace(/<option[\s\S]*$/i, "")
           .replace(/<time[\d_\s>][\s\S]*$/gi, "");
         if (!story) story = cleanReplyText(stripped);
+      }
+
+      if (scoutTemariCompletionPendingInReply(source)) {
+        const scoutStory = story || cleanReplyText(stripAiThinkingBlocks(choiceContent));
+        if (!isFinal) {
+          const storyEl = document.getElementById("eventStory");
+          if (storyEl && scoutStory) {
+            storyEl.innerHTML = formatStoryText(scoutStory);
+          }
+          setEventActionsEnabled(false, true);
+          sendAiReplyAck(requestId, true, false, false);
+          return;
+        }
+        if (completeScoutFromReplyAndBeginWrapUp(source, scoutStory)) {
+          sendAiReplyAck(requestId, true, false);
+          return;
+        }
       }
 
       // 进一步降级：如果仍然无法解析，尝试智能按行提取段尾双引号选项/编号选项
@@ -11682,6 +14552,15 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
           state.lastStory = `${state.lastStory}\n\n${segmentStory}`;
         } else {
           state.lastStory = segmentStory;
+        }
+        if (state.pendingActionContext?.action === "map_location") {
+          const relationshipApplied = applyFreeModeRelationshipUpdate(extractFreeModeRelationshipUpdate(source));
+          const relationshipSummary = Object.entries(relationshipApplied)
+            .map(([idolName, info]) => `${idolName}${info.delta > 0 ? "+" : ""}${info.delta}（${info.好感度}）`)
+            .join("、");
+          if (relationshipSummary) {
+            state.lastDebug = `自由探索好感度已更新：${relationshipSummary}`;
+          }
         }
         saveState();
 
@@ -11763,7 +14642,9 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       const chosenLine = isMapReturn
         ? `<narration>▶ 制作人决定离开 ${locationName}，返回大地图。</narration>`
         : `<narration>▶ 制作人的选择：${state.selectedChoiceText || ""} (${state.selectedChoiceRating || ""})</narration>`;
-      const displayStory = buildChoiceContinuationDisplayStory(state.lastStory, chosenLine, reply);
+      const displayStory = isSandboxScoutWrapUpPending()
+        ? buildSandboxScoutWrapUpDisplayStory(reply)
+        : buildChoiceContinuationDisplayStory(state.lastStory, chosenLine, reply);
       if (storyEl && reply) {
         storyEl.innerHTML = formatStoryText(displayStory);
       }
@@ -11799,6 +14680,58 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         state.log[0].aiReply = reply;
       }
       if (state.pendingActionContext?.action === "map_location") {
+        if (isSandboxScoutWrapUpPending()) {
+          const locationId = state.pendingActionContext?.actionContext?.locationId;
+          const locationName = state.pendingActionContext?.actionContext?.locationName
+            || getWorldMapLocation(locationId)?.name
+            || "地图";
+          const displayStory = buildSandboxScoutWrapUpDisplayStory(reply);
+          pendingAiRequestId = "";
+          state.pendingActionContext.actionContext = {
+            ...state.pendingActionContext.actionContext,
+            scoutWrapUpPending: false,
+            scoutSignStory: ""
+          };
+          state.eventMode = "none";
+          state.choiceStep = 0;
+          state.pendingOptionTexts = [];
+          state.selectedChoiceText = "";
+          state.selectedChoiceRating = "";
+          state.lastStory = displayStory;
+          saveState();
+          openEventOverlay(`${locationName} · 物色收尾`, "物色成功，点击返回地图", displayStory);
+          const confirm = document.getElementById("eventConfirmBtn");
+          if (confirm) {
+            confirm.disabled = false;
+            confirm.textContent = "返回地图";
+          }
+          processSandboxQuestFromReply(source, true);
+          sendAiReplyAck(requestId, true, false);
+          return;
+        }
+        if (state.pendingActionContext?.actionContext?.sideQuestResolving) {
+          const sideQuestTitle = state.pendingActionContext.actionContext.sideQuestTitle || "委托";
+          state.pendingActionContext.actionContext = {
+            ...state.pendingActionContext.actionContext,
+            sideQuestResolving: false
+          };
+          state.eventMode = "none";
+          state.choiceStep = 0;
+          state.pendingOptionTexts = [];
+          state.selectedChoiceText = "";
+          state.selectedChoiceRating = "";
+          state.lastStory = displayStory;
+          saveState();
+          openEventOverlay(`${locationName} · ${sideQuestTitle}`, "委托完成，点击返回地图", displayStory);
+          const confirm = document.getElementById("eventConfirmBtn");
+          if (confirm) {
+            confirm.disabled = false;
+            confirm.textContent = "返回地图";
+          }
+          processSandboxQuestFromReply(source, true);
+          sendAiReplyAck(requestId, true, false);
+          return;
+        }
         if (!isMapReturn) {
           const locationId = state.pendingActionContext?.actionContext?.locationId;
           if (locationId === "outstage" && globalThis.HatsuTasks?.markOutstageFullSong(state)) {
@@ -11893,7 +14826,9 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
               ? "担当闲聊"
               : node?.type === "interaction"
                 ? "偶像互动"
-                : (state.log[0]?.action || "AI 后续剧情");
+                : node?.type === "gift"
+                  ? `赠送礼物 · ${node.recipientName || "对象"}`
+                  : (state.log[0]?.action || "AI 后续剧情");
       openEventOverlay(title, "生成失败，未收到有效回复", errorText);
       sendAiReplyAck(requestId, false, false);
       return;
@@ -11923,7 +14858,9 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
             ? "担当闲聊"
             : node?.type === "interaction"
               ? "偶像互动"
-              : (state.log[0]?.action || "AI 后续剧情");
+              : node?.type === "gift"
+                ? `赠送礼物 · ${node.recipientName || "对象"}`
+                : (state.log[0]?.action || "AI 后续剧情");
     if (node?.type === "firstLivePost" && isLiveTheaterActive()) {
       deferredLivePostReply = { title, result: "已收到 SillyTavern 角色回复", story: reply };
       processSandboxQuestFromReply(source, true);
@@ -12480,69 +15417,16 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   // Handle click on "开始育成" (Confirm Idol Selection)
   document.getElementById("confirmIdolBtn").addEventListener("click", () => {
     if (!selectedIdol) return;
-
-    if (isSandboxLaunch()) {
-      triggerWipeTransition(() => {
-        startSandboxInviteStory(selectedIdol);
-      });
-      return;
-    }
-    
     triggerWipeTransition(() => {
-      // UI Transitions: swap right panel to producer setup, update left description
-      const selectPanel = document.getElementById("selectPanel");
-      const producerPanel = document.getElementById("producerPanel");
-      if (selectPanel) selectPanel.classList.add("is-hidden");
-      if (producerPanel) producerPanel.classList.remove("is-hidden");
-
-      const kicker = document.getElementById("selectKicker");
-      const title = document.getElementById("selectTitle");
-      const desc = document.getElementById("selectDesc");
-      const confirmContainer = document.getElementById("selectConfirmContainer");
-
-      if (kicker) kicker.textContent = "Producer Setup";
-      if (title) title.textContent = `${selectedIdol} · 制作人合约`;
-      if (desc) desc.textContent = `签署与 ${selectedIdol} 的专属育成合约。请在右侧设定您在游戏中的性格、说话风格及额外人设。`;
-      if (confirmContainer) {
-        confirmContainer.style.display = "none";
-        confirmContainer.classList.remove("is-visible");
-      }
-
-      // Populate producer setup form with existing state if any
-      document.getElementById("prodNameInput").value = state.producer?.name || "{{user}}";
-      document.getElementById("prodGenderInput").value = state.producer?.gender || "";
-      document.getElementById("prodPersonalityInput").value = state.producer?.personality || "";
-      document.getElementById("prodStyleInput").value = state.producer?.style || "";
-      document.getElementById("prodSettingsInput").value = state.producer?.settings || "";
+      openProducerSetupPanel();
     });
   });
 
   // Handle click on "返回选择" inside producer form
   document.getElementById("producerBackBtn").addEventListener("click", () => {
     if (!selectedIdol) return;
-
     triggerWipeTransition(() => {
-      // UI Transitions: swap right panel back to idol list, restore left description
-      const selectPanel = document.getElementById("selectPanel");
-      const producerPanel = document.getElementById("producerPanel");
-      if (selectPanel) selectPanel.classList.remove("is-hidden");
-      if (producerPanel) producerPanel.classList.add("is-hidden");
-
-      const kicker = document.getElementById("selectKicker");
-      const title = document.getElementById("selectTitle");
-      const desc = document.getElementById("selectDesc");
-      const confirmContainer = document.getElementById("selectConfirmContainer");
-      const profile = idols[selectedIdol];
-
-      if (profile) {
-        if (kicker) kicker.textContent = profile.tag || "Hatsuboshi Produce";
-        if (title) title.textContent = selectedIdol;
-        if (desc) desc.textContent = profile.bio || "";
-      }
-      if (confirmContainer) {
-        confirmContainer.style.display = "flex";
-        confirmContainer.classList.add("is-visible");
-      }
+      restoreIdolSelectionPanel();
     });
   });
 
@@ -12574,7 +15458,6 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   document.getElementById("producerStartBtn").addEventListener("click", () => {
     if (!selectedIdol) return;
 
-    // Save producer settings immediately
     const name = document.getElementById("prodNameInput").value.trim() || "{{user}}";
     const gender = document.getElementById("prodGenderInput").value.trim();
     const personality = document.getElementById("prodPersonalityInput").value.trim();
@@ -12587,6 +15470,13 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
       const producerPanel = document.getElementById("producerPanel");
       if (selectPanel) selectPanel.classList.remove("is-hidden");
       if (producerPanel) producerPanel.classList.add("is-hidden");
+
+      if (isSandboxLaunch()) {
+        startSandboxInviteStory(selectedIdol);
+        saveState();
+        showToast("档案已保存", `制作人档案已确认，前往学园接触 ${selectedIdol}。`, "gold");
+        return;
+      }
 
       state.launchMode = "produce";
       applyIdolPreset(selectedIdol, true);
@@ -12758,9 +15648,25 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   document.getElementById("intimacyOverlay").addEventListener("click", (event) => {
     if (event.target.id === "intimacyOverlay") closeIntimacyOverlay();
   });
+  document.getElementById("launchResumeBtn")?.addEventListener("click", resumeFromLaunchMenu);
+  document.getElementById("launchRestoreBackupBtn")?.addEventListener("click", () => {
+    if (!restoreBackupSave()) {
+      showToast("没有备份", "当前没有可恢复的备份存档。", "warn");
+      return;
+    }
+    showToast("已恢复备份", state.idol ? `已恢复到 ${state.idol} 的进度。` : "已恢复到备份时的进度。", "info");
+  });
   document.getElementById("launchProduceBtn")?.addEventListener("click", () => chooseLaunchMode("produce"));
   document.getElementById("launchSandboxBtn")?.addEventListener("click", () => chooseLaunchMode("sandbox"));
   document.getElementById("selectLaunchBackBtn")?.addEventListener("click", clearLaunchModeSelection);
+  document.getElementById("apartmentDaySummaryBtn")?.addEventListener("click", openFreeModeEveningSummary);
+  document.getElementById("apartmentPhoneBtn")?.addEventListener("click", openPhoneOverlay);
+  document.getElementById("apartmentInviteBtn")?.addEventListener("click", openApartmentInviteOverlay);
+  document.getElementById("apartmentInviteCancelBtn")?.addEventListener("click", closeApartmentInviteOverlay);
+  document.getElementById("apartmentInviteOverlay")?.addEventListener("click", (event) => {
+    if (event.target.id === "apartmentInviteOverlay") closeApartmentInviteOverlay();
+  });
+  document.getElementById("apartmentSleepBtn")?.addEventListener("click", sleepFromProducerApartment);
   document.getElementById("freeModeStayBtn")?.addEventListener("click", () => closeFreeModeEntryOverlay(true));
   document.getElementById("freeModeEnterBtn")?.addEventListener("click", enterFreeMode);
   document.getElementById("hybridCampusExitBtn")?.addEventListener("click", exitHybridCampus);
@@ -12768,6 +15674,14 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     if (event.target.id === "freeModeEntryOverlay") closeFreeModeEntryOverlay(true);
   });
   document.getElementById("freeModePhoneBtn")?.addEventListener("click", openPhoneOverlay);
+  document.getElementById("freeModeAffinityBtn")?.addEventListener("click", openAffinityOverlay);
+  document.getElementById("affinityTabCurrent")?.addEventListener("click", () => setAffinityTab("current"));
+  document.getElementById("affinityTabSecondary")?.addEventListener("click", () => setAffinityTab("secondary"));
+  document.getElementById("affinityTabNetwork")?.addEventListener("click", () => setAffinityTab("network"));
+  document.getElementById("affinityCloseBtn")?.addEventListener("click", closeAffinityOverlay);
+  document.getElementById("affinityOverlay")?.addEventListener("click", (event) => {
+    if (event.target.id === "affinityOverlay") closeAffinityOverlay();
+  });
   document.getElementById("freeModeTaskPanelBtn")?.addEventListener("click", openTaskPanelOverlay);
   document.getElementById("taskPanelCloseBtn")?.addEventListener("click", closeTaskPanelOverlay);
   document.getElementById("taskPanelOpenSideQuestBtn")?.addEventListener("click", openSideQuestFromTaskPanel);
@@ -12784,6 +15698,8 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     if (event.target.id === "sideQuestOverlay") closeSideQuestOverlay();
   });
   document.getElementById("sideQuestApiSaveBtn")?.addEventListener("click", saveSideQuestApiPanel);
+  document.getElementById("sideQuestApiTestBtn")?.addEventListener("click", runSecondaryApiTest);
+  document.getElementById("sideQuestApiRegenBtn")?.addEventListener("click", forceSecondaryRegeneration);
   document.getElementById("sideQuestApiPanel")?.addEventListener("toggle", (event) => {
     if (!event.target.open) return;
     const scrollBody = document.querySelector(".side-quest-body");
@@ -12823,10 +15739,31 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   document.getElementById("worldMapLayoutFitBtn")?.addEventListener("click", toggleWorldMapLayoutFit);
   document.getElementById("worldMapLayoutResetBtn")?.addEventListener("click", resetWorldMapLayout);
   document.getElementById("worldMapLayoutCloseEditorBtn")?.addEventListener("click", closeWorldMapLayoutEditor);
+  document.getElementById("mapLocationPresenceToggle")?.addEventListener("click", () => {
+    mapLocationPresenceExpanded = !mapLocationPresenceExpanded;
+    const locationId = document.getElementById("mapLocationOverlay")?.getAttribute("data-location-id");
+    if (!locationId) return;
+    const idolsHere = getIdolsPresentAtLocation(locationId);
+    const residentNpcs = getResidentNpcsAtLocation(locationId);
+    applyMapLocationPresenceCollapse(idolsHere.length + residentNpcs.length);
+  });
   document.getElementById("mapLocationBackBtn")?.addEventListener("click", closeMapLocationOverlay);
+  document.getElementById("mapLocationEnterFacilityBtn")?.addEventListener("click", confirmFacilityEntry);
   document.getElementById("mapLocationEnterWithIdolBtn")?.addEventListener("click", () => confirmMapLocationEntry("with_idol"));
   document.getElementById("mapLocationEnterAloneBtn")?.addEventListener("click", () => confirmMapLocationEntry("alone"));
   document.getElementById("mapLocationOutingBtn")?.addEventListener("click", openFreeModeOutingOverlay);
+  document.getElementById("mapLocationShopBtn")?.addEventListener("click", openGiftShopFromMapLocation);
+  document.getElementById("freeModeBagBtn")?.addEventListener("click", openGiftBagFromFreeMode);
+  document.getElementById("giftShopCloseBtn")?.addEventListener("click", closeGiftShopOverlay);
+  document.getElementById("giftShopTabBuy")?.addEventListener("click", () => setGiftShopTab("shop"));
+  document.getElementById("giftShopTabBag")?.addEventListener("click", () => setGiftShopTab("bag"));
+  document.getElementById("giftShopGiveBackBtn")?.addEventListener("click", () => {
+    giftShopUi.pendingItemId = "";
+    renderGiftShopOverlay();
+  });
+  document.getElementById("giftShopOverlay")?.addEventListener("click", (event) => {
+    if (event.target.id === "giftShopOverlay") closeGiftShopOverlay();
+  });
   document.getElementById("freeModeOutingCancelBtn")?.addEventListener("click", closeFreeModeOutingOverlay);
   bindImeSafeTextInput("freeModeOutingCustomInput", submitCustomFreeModeOutingDestination);
   document.getElementById("freeModeOutingCustomConfirmBtn")?.addEventListener("click", submitCustomFreeModeOutingDestination);
@@ -12954,10 +15891,15 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
 
   document.getElementById("dockChangeIdol").addEventListener("click", () => {
     triggerWipeTransition(() => {
+      if (hasResumableGameplay() || state.idol) {
+        backupCurrentSave();
+      }
       state = clone(baseState);
-      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(activeStorageKey);
       render();
-      showToast("已返回担当选择", "请选择新的担当偶像。", "info");
+      showToast("已返回担当选择", hasBackupSave()
+        ? "请选择新的担当偶像。上一局已自动备份，可在主菜单恢复。"
+        : "请选择新的担当偶像。", "info");
     });
   });
 
@@ -13059,10 +16001,34 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     },
     forceSideQuestApi: () => {
       if (!globalThis.HatsuTasks?.isSandboxTasksActive(state)) return "仅沙盒模式可用";
+      if (shouldUseSecondaryWorldGen()) {
+        globalThis.HatsuWorld?.worldGen?.queueDailyWorldGeneration?.(state, getWorldFeedDayKey(), { force: true });
+        globalThis.HatsuTasks.queueSideQuestRefresh(state);
+        saveState();
+        maybeRequestDailyWorldGeneration();
+        return { mode: "world-api", side: getTaskPanelSnapshot()?.side, dailyGen: state.freeMode?.world?.dailyGen };
+      }
       const mode = globalThis.HatsuTasks.queueSideQuestRefresh(state);
       saveState();
       maybeRequestSideQuestGeneration();
       return { mode, side: getTaskPanelSnapshot()?.side };
+    },
+    forceWorldGen: () => {
+      if (!isSecondaryApiConfigured()) return "次 API 未配置";
+      if (!isPhoneWorldFeedUnlocked()) return "初星圈/广播尚未解锁";
+      globalThis.HatsuWorld?.worldGen?.queueDailyWorldGeneration?.(state, getWorldFeedDayKey(), { force: true });
+      if (globalThis.HatsuTasks?.isSandboxTasksActive(state)) {
+        globalThis.HatsuTasks.queueSideQuestRefresh(state);
+      }
+      saveState();
+      maybeRequestDailyWorldGeneration();
+      render();
+      return {
+        dailyGen: state.freeMode?.world?.dailyGen,
+        broadcast: state.freeMode?.world?.broadcast?.today?.title || "",
+        buzzCount: state.freeMode?.world?.buzz?.items?.length || 0,
+        side: getTaskPanelSnapshot()?.side
+      };
     },
     applySideTier: (slotIndex, tier) => {
       const result = globalThis.HatsuTasks?.applySideQuestTier(state, Number(slotIndex), tier);
@@ -13077,6 +16043,13 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
   ensureStateShape();
   if (globalThis.HatsuTasks) {
     notifyQuestCompletions(globalThis.HatsuTasks.syncSandboxQuestProgress(state));
+    if (
+      isSandboxLaunch()
+      && state.tasks?.main?.scout_temari?.status === "completed"
+      && state.freeMode?.world?.campus?.phase === "scout"
+    ) {
+      refreshWorldPresenceFromRules(true);
+    }
   }
   refreshAffinityUnlocks();
   hydrateWorldMapLayout().finally(() => {

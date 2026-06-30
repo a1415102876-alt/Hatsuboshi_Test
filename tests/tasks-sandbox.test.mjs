@@ -12,6 +12,7 @@ const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 function loadHatsuSideQuestApi() {
   const sandbox = { globalThis: {}, console };
   sandbox.globalThis = sandbox;
+  vm.runInNewContext(sidePoolSource, sandbox, { filename: "side-pool.js" });
   vm.runInNewContext(sideQuestApiSource, sandbox, { filename: "side-quest-api.js" });
   return sandbox.globalThis.HatsuSideQuestApi;
 }
@@ -27,7 +28,7 @@ function loadHatsuTasks() {
 
 function finishScoutFlow(HatsuTasks, state) {
   HatsuTasks.onScoutInviteComplete(state);
-  HatsuTasks.completeScoutTemariOnLocationTalk(state);
+  HatsuTasks.applyQuestCompletionsFromReply(state, "【初星任务完成】scout_temari");
 }
 
 function loadSideQuestPool() {
@@ -61,6 +62,57 @@ test("sandbox tasks module defines scout and temari personal quests", () => {
   assert.equal(state.tasks.main.temari_main_03.status, "locked");
 });
 
+
+test("sandbox tasks exposes Asari lesson categories and relationship milestones", () => {
+  const HatsuTasks = loadHatsuTasks();
+  const state = baseSandboxState();
+  finishScoutFlow(HatsuTasks, state);
+  const snapshot = HatsuTasks.getTaskPanelSnapshot(state);
+  const categories = snapshot.main.map((item) => item.category);
+  assert.ok(categories.includes("relationship"));
+  assert.ok(categories.includes("conflict"));
+  assert.ok(categories.includes("ability"));
+  assert.ok(categories.includes("work"));
+  assert.ok(categories.includes("final"));
+  assert.ok(snapshot.main.some((item) => item.title.includes("好感度 20")));
+  assert.ok(snapshot.main.some((item) => item.title.includes("First Live")));
+});
+
+test("relationship lessons use sandbox free mode affinity instead of legacy trust", () => {
+  const HatsuTasks = loadHatsuTasks();
+  const state = baseSandboxState();
+  state.trust = 3;
+  state.freeMode = { postLiveDay: 2, relationships: { "月村手毬": { 好感度: 45, 更新日: 2 } } };
+  finishScoutFlow(HatsuTasks, state);
+  HatsuTasks.syncSandboxQuestProgress(state);
+  const snapshot = HatsuTasks.getTaskPanelSnapshot(state);
+  const relationship40 = snapshot.main.find((item) => item.id === "relationship_40");
+  assert.equal(relationship40.status, "completed");
+  const relationship60 = snapshot.main.find((item) => item.id === "relationship_60");
+  assert.equal(relationship60.status, "active");
+  assert.match(relationship60.progressHint, /好感度 45\/60/);
+});
+
+test("commission rewards raise current idol sandbox affinity", () => {
+  const HatsuTasks = loadHatsuTasks();
+  const state = baseSandboxState();
+  state.freeMode = { postLiveDay: 1, relationships: { "月村手毬": { 好感度: 10, 更新日: 1 } } };
+  finishScoutFlow(HatsuTasks, state);
+  HatsuTasks.syncSideQuestDay(state);
+  const result = HatsuTasks.applySideQuestTier(state, 0, "pass");
+  assert.equal(result.ok, true);
+  assert.equal(result.reward.trust, 5);
+  assert.equal(state.freeMode.relationships["月村手毬"].好感度, 15);
+  assert.equal(state.trust, 0);
+});
+test("sandbox task wallet migrates fame for commission rewards", () => {
+  const HatsuTasks = loadHatsuTasks();
+  const state = baseSandboxState();
+  state.tasks = { wallet: { money: 12 }, main: {}, side: {}, campus: {} };
+  HatsuTasks.ensureTasksShape(state);
+  assert.equal(state.tasks.wallet.money, 12);
+  assert.equal(state.tasks.wallet.fame, 0);
+});
 test("scout invite complete activates scout quest without auto-completing it", () => {
   const HatsuTasks = loadHatsuTasks();
   const state = baseSandboxState();
@@ -71,12 +123,13 @@ test("scout invite complete activates scout quest without auto-completing it", (
   assert.equal(state.tasks.main.temari_main_01.status, "locked");
 });
 
-test("scout location talk completes scout and unlocks personal main quests", () => {
+test("scout temari completes when AI outputs quest completion tag", () => {
   const HatsuTasks = loadHatsuTasks();
   const state = baseSandboxState();
   HatsuTasks.ensureTasksShape(state);
   HatsuTasks.onScoutInviteComplete(state);
-  const completed = HatsuTasks.completeScoutTemariOnLocationTalk(state);
+  const text = "【初星正文开始】<story><narration>她点头答应。</narration></story>【初星任务完成】scout_temari【初星正文结束】";
+  const completed = HatsuTasks.applyQuestCompletionsFromReply(state, text);
   assert.equal(completed.length, 1);
   assert.equal(completed[0], "scout_temari");
   assert.equal(state.tasks.main.scout_temari.status, "completed");
@@ -87,11 +140,20 @@ test("scout location talk completes scout and unlocks personal main quests", () 
   assert.equal(state.tasks.baseline.Vi, 80);
 });
 
+test("scout location talk does not auto-complete without AI tag", () => {
+  const HatsuTasks = loadHatsuTasks();
+  const state = baseSandboxState();
+  HatsuTasks.ensureTasksShape(state);
+  HatsuTasks.onScoutInviteComplete(state);
+  const completed = HatsuTasks.completeScoutTemariOnLocationTalk(state);
+  assert.equal(completed.length, 0);
+  assert.equal(state.tasks.main.scout_temari.status, "active");
+});
+
 test("parses quest completion tags from AI reply", () => {
   const HatsuTasks = loadHatsuTasks();
   const state = baseSandboxState();
   finishScoutFlow(HatsuTasks, state);
-  HatsuTasks.completeScoutTemariOnLocationTalk(state);
   const text = "【初星正文开始】<story><narration>和好。</narration></story>【初星任务完成】temari_main_02【初星正文结束】";
   const completed = HatsuTasks.applyQuestCompletionsFromReply(state, text);
   assert.equal(completed.length, 1);
@@ -176,6 +238,9 @@ test("app.js wires sandbox task hooks", () => {
   assert.match(appSource, /HatsuTasks/);
   assert.match(appSource, /openSideQuestOverlay/);
   assert.match(appSource, /applySideQuestTier/);
+  assert.match(appSource, /buildSandboxScoutWrapUpPrompt/);
+  assert.match(appSource, /scoutTemariCompletionPendingInReply/);
+  assert.match(appSource, /completeScoutFromReplyAndBeginWrapUp/);
   assert.match(appSource, /buildSandboxMainQuestPromptBlock/);
   assert.match(appSource, /processSandboxMainQuestMapChoice/);
   assert.match(appSource, /sendSecondaryPrompt|secondaryAiReply/);
@@ -193,12 +258,43 @@ test("app.js wires sandbox task hooks", () => {
 
 test("side quest pool picks three deterministic slots per day", () => {
   const pool = loadSideQuestPool();
-  const dayOne = pool.pickDailyQuests("1", "月村手毬", 3);
-  const dayOneAgain = pool.pickDailyQuests("1", "月村手毬", 3);
-  const dayTwo = pool.pickDailyQuests("2", "月村手毬", 3);
+  const dayOne = pool.pickDailyQuests("1", "月村手毬", 3, 0);
+  const dayOneAgain = pool.pickDailyQuests("1", "月村手毬", 3, 0);
+  const dayTwo = pool.pickDailyQuests("2", "月村手毬", 3, 0);
   assert.equal(dayOne.length, 3);
+  assert.ok(dayOne.every((slot) => slot.locationId && slot.locationName));
   assert.deepEqual(dayOne.map((slot) => slot.poolId), dayOneAgain.map((slot) => slot.poolId));
   assert.notDeepEqual(dayOne.map((slot) => slot.poolId), dayTwo.map((slot) => slot.poolId));
+});
+
+test("side quest pool scales commercial gigs by fame tier", () => {
+  const pool = loadSideQuestPool();
+  const street = pool.pickDailyQuests("1", "月村手毬", 3, 0);
+  const prime = pool.pickDailyQuests("1", "月村手毬", 3, 80);
+  assert.ok(street.every((slot) => !["variety_guest_slot", "tv_variety_music_show"].includes(slot.poolId)));
+  assert.ok(prime.some((slot) => ["variety_guest_slot", "tv_variety_music_show", "music_festival_guest", "national_chain_stage"].includes(slot.poolId)));
+  assert.ok(prime.every((slot) => slot.locationId && slot.locationName));
+  assert.equal(pool.getSideQuestFameTier(0).id, "street");
+  assert.equal(pool.getSideQuestFameTier(80).id, "prime");
+});
+
+test("side quest target can be set and clears after settlement", () => {
+  const HatsuTasks = loadHatsuTasks();
+  const state = baseSandboxState();
+  state.freeMode = { postLiveDay: 1, clockMinutes: 480 };
+  finishScoutFlow(HatsuTasks, state);
+  HatsuTasks.syncSideQuestDay(state);
+  const target = HatsuTasks.setActiveSideQuest(state, 0);
+  assert.equal(target.ok, true);
+  assert.equal(state.tasks.side.activeSlotIndex, 0);
+  assert.equal(HatsuTasks.getActiveSideQuest(state).slotIndex, 0);
+  assert.equal(
+    HatsuTasks.getActiveSideQuestAtLocation(state, target.slot.locationId).slotIndex,
+    0
+  );
+  const result = HatsuTasks.applySideQuestTier(state, 0, "pass");
+  assert.equal(result.ok, true);
+  assert.equal(state.tasks.side.activeSlotIndex, null);
 });
 
 test("side quests refresh when postLiveDay changes", () => {
@@ -226,7 +322,9 @@ test("side quest fail tier still grants consolation money", () => {
   const result = HatsuTasks.applySideQuestTier(state, 0, "fail");
   assert.equal(result.ok, true);
   assert.equal(result.reward.money, 80);
+  assert.equal(result.reward.fame, 1);
   assert.equal(state.tasks.wallet.money, 80);
+  assert.equal(state.tasks.wallet.fame, 1);
   assert.equal(state.tasks.side.slots[0].status, "done");
   assert.equal(state.tasks.side.slots[0].resultTier, "fail");
 });
@@ -306,13 +404,28 @@ test("main quest progress hints reference GKMS episodes", () => {
 test("side quest api parses daily json block", () => {
   const api = loadHatsuSideQuestApi();
   const text = `【初星支线开始】
-{"quests":[{"title":"清晨慢跑","desc":"陪担当完成校园跑道有氧跑。","tag":"stamina"},{"title":"发声练习","desc":"在教室走廊练气息与发声。","tag":"syngup"},{"title":"健康便当","desc":"在学食试做低油便当。","tag":"diet"}]}
+{"quests":[{"title":"商场中庭舞台","desc":"接受购物中心邀请完成两首短曲。","tag":"stage","locationId":"shopping_mall"},{"title":"地方电台短访","desc":"到地方电台录制宣传短访。","tag":"syngup","locationId":"local_radio"},{"title":"商店街食祭站台","desc":"为街区食祭摊位完成试吃口播。","tag":"diet","locationId":"shopping_street"}]}
 【初星支线结束】`;
   const parsed = api.parseSideQuestDailyResponse(text, "3", "月村手毬");
   assert.equal(parsed.quests.length, 3);
-  assert.equal(parsed.quests[0].tag, "stamina");
+  assert.equal(parsed.quests[0].tag, "stage");
+  assert.equal(parsed.quests[0].locationId, "shopping_mall");
 });
 
+
+test("side quest api prompt frames generated slots as commission work", () => {
+  const api = loadHatsuSideQuestApi();
+  const prompt = api.buildSideQuestDailyPrompt(baseSandboxState(), "4");
+  assert.match(prompt, /委托系统/);
+  assert.match(prompt, /商业委托/);
+  assert.match(prompt, /知名度/);
+  assert.match(prompt, /商业街舞台暖场|街区商演出道期/);
+  assert.match(prompt, /禁止写成以下类型/);
+  const highFameState = baseSandboxState();
+  highFameState.tasks = { wallet: { money: 0, fame: 75 } };
+  const highPrompt = api.buildSideQuestDailyPrompt(highFameState, "4");
+  assert.match(highPrompt, /头部商业档期|综艺节目/);
+});
 test("side quest api parses tier hint json block", () => {
   const api = loadHatsuSideQuestApi();
   const text = `【初星档位开始】

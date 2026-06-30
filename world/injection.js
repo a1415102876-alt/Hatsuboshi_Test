@@ -17,14 +17,17 @@
     const lines = [];
 
     lines.push("[学园公开层概况]");
-    const phaseLabel = world.macro_phase === "scout"
-      ? "沙盒物色期"
-      : world.macro_phase === "first_live"
-        ? "First Live 阶段"
-        : world.macro_phase || "First Live 阶段";
+    const isSandbox = typeof helpers?.isSandboxLaunch === "function" && helpers.isSandboxLaunch();
+    const phaseLabel = isSandbox
+      ? (world.macro_phase === "scout" ? "沙盒物色期" : "沙盒学园日常")
+      : world.macro_phase === "scout"
+        ? "沙盒物色期"
+        : world.macro_phase === "first_live"
+          ? "First Live 阶段"
+          : world.macro_phase || "First Live 阶段";
     lines.push(`宏观阶段：${phaseLabel}`);
 
-    if (scope === "map" && world.macro_phase === "scout") {
+    if (scope === "map" && (world.macro_phase === "scout" || (isSandbox && helpers?.isSandboxScoutPhase?.()))) {
       lines.push("阶段说明：制作人尚未与任何偶像签约，本次地图行动以物色担当为主。");
       if (currentIdol) {
         lines.push(`物色目标：${currentIdol}。`);
@@ -35,7 +38,9 @@
       lines.push(`当前担当 ${currentIdol} 由制作人亲自培育；以下仅为背景偶像公开动态。`);
     }
 
-    if (state?.freeMode?.unlocked && scope !== "produce") {
+    if (isSandbox && scope !== "produce") {
+      lines.push(`学园第 ${state?.freeMode?.postLiveDay || 1} 天，${helpers?.formatClock?.(state.freeMode.clockMinutes) || "日间"}`);
+    } else if (state?.freeMode?.unlocked && scope !== "produce") {
       lines.push(`Live 后第 ${state.freeMode.postLiveDay || 1} 天，${helpers?.formatClock?.(state.freeMode.clockMinutes) || "日间"}`);
     } else if (world.macro_phase === "scout" && scope !== "produce") {
       lines.push(`学园第 ${state?.freeMode?.postLiveDay || 1} 天，${helpers?.formatClock?.(state.freeMode.clockMinutes) || "日间"}`);

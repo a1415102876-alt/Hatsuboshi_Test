@@ -28,5 +28,9 @@ assert.match(appJs, /亚纱里老师/);
 assert.match(appJs, /Producer_Class\.png/);
 assert.match(appJs, /function returnToLaunchMenu\(/);
 assert.match(appJs, /function shouldShowLaunchStage\(/);
+assert.match(html, /id="launchResumeBtn"/);
+assert.match(appJs, /launchMenuPaused/);
+assert.match(appJs, /function resumeFromLaunchMenu\(/);
+assert.match(appJs, /function restoreBackupSave\(/);
 
 console.log("launch-mode.test.mjs passed");

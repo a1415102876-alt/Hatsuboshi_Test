@@ -73,6 +73,17 @@
         <p id="launchDesc">请选择本次游玩模式。育成模式走经典 22 天日程；沙盒模式从学园大地图开始自由行动。</p>
       </div>
       <div class="launch-mode-list" role="list">
+        <p id="launchResumeNote" class="launch-resume-note" hidden>返回主菜单不会删除当前存档，可随时从此处继续。</p>
+        <button id="launchResumeBtn" class="launch-mode-card is-resume" type="button" role="listitem" hidden>
+          <span class="launch-mode-kicker">Resume</span>
+          <strong>继续游戏</strong>
+          <span class="launch-mode-desc">回到离开前的进度。</span>
+        </button>
+        <button id="launchRestoreBackupBtn" class="launch-mode-card is-backup" type="button" role="listitem" hidden>
+          <span class="launch-mode-kicker">Backup</span>
+          <strong>恢复备份存档</strong>
+          <span class="launch-mode-desc">找回更换担当或开始新游戏前自动备份的进度。</span>
+        </button>
         <button id="launchProduceBtn" class="launch-mode-card" type="button" role="listitem">
           <span class="launch-mode-kicker">Produce</span>
           <strong>育成模式</strong>
@@ -288,12 +299,20 @@
           <button id="hybridCampusExitBtn" class="free-mode-exit-btn" type="button" hidden>返回经典育成</button>
         </header>
         <p id="freeModeLocationBadge" class="free-mode-location-badge">点击地图上的地点开始探索</p>
+        <button id="freeModeAffinityBtn" class="free-mode-affinity-btn" type="button" hidden aria-label="查看担当好感度">
+          <svg aria-hidden="true"><use href="#icon-heart"></use></svg>
+          <span>担当</span>
+        </button>
         <button id="freeModeTaskPanelBtn" class="free-mode-task-panel-btn" type="button" hidden>
-          <span>任务</span>
+          <span>课题</span>
         </button>
         <button id="freeModeSideQuestBtn" class="free-mode-side-quest-btn" type="button" hidden>
-          <span>今日工作</span>
+          <span>委托</span>
           <span id="freeModeSideQuestBadge" class="free-mode-side-quest-badge"></span>
+        </button>
+        <button id="freeModeBagBtn" class="free-mode-bag-btn" type="button" hidden aria-label="打开礼物背包">
+          <span>背包</span>
+          <span id="freeModeBagBadge" class="free-mode-bag-badge"></span>
         </button>
         <button id="freeModePhoneBtn" class="free-mode-phone-btn" type="button" aria-label="打开小手机">
           <svg aria-hidden="true"><use href="#icon-phone"></use></svg>
@@ -314,6 +333,36 @@
             <button id="worldMapLayoutCloseEditorBtn" class="world-map-layout-action" type="button">完成编辑</button>
           </div>
         </aside>
+      </div>
+    </section>
+
+    <section class="producer-apartment-stage is-hidden" id="producerApartmentStage" aria-label="制作人公寓">
+      <div class="producer-apartment-bg" id="producerApartmentBg" aria-hidden="true"></div>
+      <header class="producer-apartment-head">
+        <div class="producer-apartment-head-copy">
+          <p class="ui-kicker">Producer Apartment</p>
+          <h2>制作人公寓</h2>
+        </div>
+        <button id="producerApartmentClock" class="free-mode-status-badge" type="button" aria-label="当前日期与时间">学园第 1 天 · 22:00</button>
+      </header>
+      <p id="producerApartmentHint" class="producer-apartment-hint">今日学园活动已结束，可以整理今天的事，准备休息。</p>
+      <div class="producer-apartment-hotspots" aria-label="夜间行动">
+        <button id="apartmentSleepBtn" class="apartment-hotspot is-primary is-bed" type="button" title="结束今天，从 08:00 开始新的学园日程。">
+          <span class="apartment-hotspot-kicker">Rest</span>
+          <strong>上床睡觉</strong>
+        </button>
+        <button id="apartmentInviteBtn" class="apartment-hotspot is-accent is-door" type="button" title="好感度满额的担当或其他偶像可来公寓发生剧情。">
+          <span class="apartment-hotspot-kicker">Invite</span>
+          <strong>邀约</strong>
+        </button>
+        <button id="apartmentDaySummaryBtn" class="apartment-hotspot is-desk" type="button" title="查看关系变化、完成任务与今日行程。">
+          <span class="apartment-hotspot-kicker">Summary</span>
+          <strong>今日总结</strong>
+        </button>
+        <button id="apartmentPhoneBtn" class="apartment-hotspot is-desk" type="button" title="查看消息、广播与 SNS 动态。">
+          <span class="apartment-hotspot-kicker">Phone</span>
+          <strong>打开手机</strong>
+        </button>
       </div>
     </section>
   </main>
@@ -494,6 +543,23 @@
     </article>
   </section>
 
+  <section id="apartmentInviteOverlay" class="event-overlay" hidden aria-label="邀约偶像回家">
+    <article class="event-panel apartment-invite-panel">
+      <header class="event-head">
+        <div>
+          <p class="ui-kicker">Apartment Invite</p>
+          <h2>邀约回家</h2>
+        </div>
+        <span id="apartmentInvitePhaseBadge" class="event-phase">夜间公寓</span>
+      </header>
+      <p id="apartmentInviteNote" class="ai-prompt-note">仅好感度达到 100 的偶像可邀约。选中后将进入制作人公寓的 NSFW 多轮剧情。</p>
+      <div id="apartmentInviteList" class="apartment-invite-list" aria-label="可邀约偶像列表"></div>
+      <footer class="event-actions">
+        <button id="apartmentInviteCancelBtn" class="event-button secondary" type="button">取消</button>
+      </footer>
+    </article>
+  </section>
+
   <section id="intimacyOverlay" class="event-overlay" hidden aria-label="选择亲密模式">
     <article class="event-panel intimacy-panel">
       <header class="event-head">
@@ -585,16 +651,53 @@
       <div id="mapLocationPresence" class="map-location-presence" hidden>
         <p class="map-location-presence-label">当前可能在场</p>
         <div id="mapLocationPresenceAvatars" class="map-location-presence-avatars"></div>
+        <button id="mapLocationPresenceToggle" class="map-location-presence-toggle" type="button" hidden>查看在场详情</button>
         <div id="mapLocationPresenceList" class="map-location-presence-list" hidden></div>
       </div>
       <footer class="event-actions map-location-entry-actions">
         <button id="mapLocationBackBtn" class="event-button secondary" type="button">返回地图</button>
         <div class="map-location-enter-options">
+          <button id="mapLocationEnterFacilityBtn" class="event-button primary map-location-facility-btn" type="button" hidden>进入上课</button>
           <button id="mapLocationEnterWithIdolBtn" class="event-button primary" type="button">和担当一起来</button>
           <button id="mapLocationEnterAloneBtn" class="event-button secondary" type="button">自己来</button>
         </div>
         <button id="mapLocationOutingBtn" class="event-button secondary map-location-outing-btn" type="button" hidden>外出</button>
+        <button id="mapLocationShopBtn" class="event-button primary map-location-shop-btn" type="button" hidden>进入商店</button>
       </footer>
+    </article>
+  </section>
+
+  <section id="giftShopOverlay" class="event-overlay gift-shop-overlay" hidden aria-label="初星小卖部商店">
+    <article class="event-panel gift-shop-panel">
+      <header class="event-head gift-shop-head">
+        <div>
+          <p class="ui-kicker">Hoshizora Shop</p>
+          <h2>初星小卖部</h2>
+        </div>
+        <div class="gift-shop-head-meta">
+          <span id="giftShopWalletBadge" class="gift-shop-wallet-badge">初星币 0</span>
+          <button id="giftShopCloseBtn" class="icon-button event-panel-close-btn" type="button" aria-label="关闭商店">
+            <svg aria-hidden="true"><use href="#icon-close"></use></svg>
+          </button>
+        </div>
+      </header>
+      <nav class="gift-shop-tabs" aria-label="商店视图">
+        <button id="giftShopTabBuy" class="gift-shop-tab is-active" type="button" data-gift-shop-tab="shop">购买礼物</button>
+        <button id="giftShopTabBag" class="gift-shop-tab" type="button" data-gift-shop-tab="bag">背包</button>
+      </nav>
+      <div class="event-panel-body gift-shop-body">
+        <p id="giftShopHint" class="ai-prompt-note gift-shop-hint">用初星币购买礼物，赠送给担当或其他偶像、NPC 以提升好感。</p>
+        <div id="giftShopCatalog" class="gift-shop-catalog"></div>
+        <div id="giftShopBag" class="gift-shop-bag" hidden></div>
+        <div id="giftShopGivePanel" class="gift-shop-give-panel" hidden>
+          <div class="gift-shop-give-head">
+            <button id="giftShopGiveBackBtn" class="gift-shop-give-back" type="button">返回背包</button>
+            <strong id="giftShopGiveTitle">选择赠送对象</strong>
+          </div>
+          <p id="giftShopGiveHint" class="ai-prompt-note gift-shop-give-hint">选择要赠送的对象。</p>
+          <div id="giftShopRecipientList" class="gift-shop-recipient-list"></div>
+        </div>
+      </div>
     </article>
   </section>
 
@@ -602,11 +705,12 @@
     <article class="event-panel outing-panel">
       <header class="event-head">
         <div>
-          <p class="ui-kicker">Free Outing</p>
-          <h2>选择外出地点</h2>
+          <p class="ui-kicker">Hatsuboshi Transit</p>
+          <h2>初星校外线路图</h2>
         </div>
       </header>
-      <p class="ai-prompt-note">从学园正门离开校外。进入后可像校内地点一样连续选择行动选项，也可输入自定义地点。</p>
+      <p class="ai-prompt-note">从学园正门离开校外。选择开放站点后，可像校内地点一样连续探索；私宅站点暂作为后续事件预留。</p>
+      <div id="offCampusTransitMap" class="off-campus-transit" aria-label="校外线路图"></div>
       <div id="freeModeOutingDestinationList" class="outing-destination-list"></div>
       <label class="outing-custom-field" for="freeModeOutingCustomInput">
         <span>自定义地点</span>
@@ -619,19 +723,19 @@
     </article>
   </section>
 
-  <section id="sideQuestOverlay" class="event-overlay side-quest-overlay" hidden aria-label="今日偶像工作">
+  <section id="sideQuestOverlay" class="event-overlay side-quest-overlay" hidden aria-label="委托系统">
     <article class="event-panel side-quest-panel">
       <header class="event-head side-quest-head">
         <div>
-          <p class="ui-kicker">Side Work</p>
-          <h2 id="sideQuestOverlayTitle">今日偶像工作</h2>
+          <p class="ui-kicker">Commission</p>
+          <h2 id="sideQuestOverlayTitle">委托系统</h2>
         </div>
-        <button id="sideQuestCloseBtn" class="icon-button event-panel-close-btn" type="button" aria-label="关闭今日工作">
+        <button id="sideQuestCloseBtn" class="icon-button event-panel-close-btn" type="button" aria-label="关闭委托系统">
           <svg aria-hidden="true"><use href="#icon-close"></use></svg>
         </button>
       </header>
       <div class="event-panel-body side-quest-body">
-        <p id="sideQuestOverlayHint" class="ai-prompt-note side-quest-hint">每天 3 条偶像工作。完成后自选表现档位领取报酬。</p>
+        <p id="sideQuestOverlayHint" class="ai-prompt-note side-quest-hint">每天 3 条委托。承接小型商演与宣传工作，提高偶像知名度。</p>
         <div id="sideQuestSlotList" class="side-quest-slot-list"></div>
         <div id="sideQuestTierPanel" class="side-quest-tier-panel" hidden>
           <h3 id="sideQuestTierTitle" class="side-quest-tier-title"></h3>
@@ -640,11 +744,11 @@
           <button id="sideQuestTierBackBtn" class="event-button secondary side-quest-tier-back" type="button">返回列表</button>
         </div>
         <details id="sideQuestApiPanel" class="side-quest-api-panel">
-          <summary>次 API 配置（支线生成，不写入角色卡对话）</summary>
+          <summary>次 API 配置（广播主题 / 初星圈 / 委托系统，不写入角色卡对话）</summary>
           <div class="side-quest-api-panel-body">
             <label class="side-quest-api-field" for="sideQuestApiEnabled">
               <input id="sideQuestApiEnabled" type="checkbox">
-              <span>启用次 API 生成本日 3 条工作</span>
+              <span>启用次 API 批量生成本日世界层内容</span>
             </label>
             <label class="side-quest-api-field" for="sideQuestApiBaseUrl">
               <span>接口地址</span>
@@ -658,54 +762,139 @@
               <span>API Key（仅存浏览器本地）</span>
               <input id="sideQuestApiKey" type="password" placeholder="sk-..." spellcheck="false">
             </label>
-            <p id="sideQuestApiStatus" class="side-quest-api-status">未配置次 API 时将使用静态工作池。</p>
-            <button id="sideQuestApiSaveBtn" class="event-button secondary side-quest-api-save" type="button">保存次 API 配置</button>
+            <p id="sideQuestApiStatus" class="side-quest-api-status">未配置次 API 时将使用静态委托池。</p>
+            <div class="side-quest-api-actions">
+              <button id="sideQuestApiSaveBtn" class="event-button secondary side-quest-api-save" type="button">保存次 API 配置</button>
+              <button id="sideQuestApiTestBtn" class="event-button secondary side-quest-api-test" type="button">测试次 API 连接</button>
+            </div>
+            <button id="sideQuestApiRegenBtn" class="event-button secondary side-quest-api-regen" type="button">用次 API 重新生成本日委托</button>
+            <details id="sideQuestApiDebug" class="side-quest-api-debug">
+              <summary>调试日志（查看次 API 实际收发与解析结果）</summary>
+              <p id="sideQuestApiDebugSummary" class="side-quest-api-debug-summary">尚未发起次 API 请求</p>
+              <pre id="sideQuestApiDebugLog" class="side-quest-api-debug-log">暂无次 API 收发记录。</pre>
+            </details>
           </div>
         </details>
       </div>
     </article>
   </section>
 
-  <section id="taskPanelOverlay" class="event-overlay task-panel-overlay" hidden aria-label="任务面板">
-    <article class="event-panel task-panel">
-      <header class="event-head task-panel-head">
-        <div>
-          <p class="ui-kicker">Tasks</p>
-          <h2 id="taskPanelTitle">任务面板</h2>
-        </div>
-        <button id="taskPanelCloseBtn" class="icon-button event-panel-close-btn" type="button" aria-label="关闭任务面板">
-          <svg aria-hidden="true"><use href="#icon-close"></use></svg>
+  <section id="affinityOverlay" class="event-overlay affinity-overlay" hidden aria-label="担当偶像好感度">
+    <article class="affinity-panel">
+      <div id="affinityBg" class="affinity-bg"></div>
+      <div class="affinity-scrim"></div>
+      <header class="affinity-head">
+        <button id="affinityCloseBtn" class="affinity-back-btn" type="button" aria-label="返回">
+          <svg aria-hidden="true"><use href="#icon-chevron-left"></use></svg>
         </button>
+        <div class="affinity-head-title">
+          <span class="affinity-head-kicker">Bond</span>
+          <span class="affinity-head-label">担当偶像 好感度</span>
+        </div>
       </header>
-      <div class="event-panel-body task-panel-body">
-        <p id="taskPanelSummary" class="task-panel-summary"></p>
-        <div class="task-panel-sections">
-        <section class="task-panel-section" aria-label="主线任务">
-          <div class="task-panel-section-head">
-            <h3>主线</h3>
+      <div class="affinity-body">
+        <div class="affinity-identity">
+          <h2 id="affinityIdolName" class="affinity-idol-name">担当偶像</h2>
+          <p id="affinityIdolRomaji" class="affinity-idol-romaji"></p>
+          <span id="affinityIdolTag" class="affinity-idol-tag"></span>
+        </div>
+
+        <nav class="affinity-tabs" aria-label="好感度视图">
+          <button id="affinityTabCurrent" class="affinity-tab is-active" type="button" data-affinity-tab="current">担当</button>
+          <button id="affinityTabSecondary" class="affinity-tab" type="button" data-affinity-tab="secondary">其他人物</button>
+          <button id="affinityTabNetwork" class="affinity-tab" type="button" data-affinity-tab="network">关系网</button>
+        </nav>
+
+        <div id="affinityPrimaryPanel" class="affinity-tab-panel">
+        <section class="affinity-card affinity-score-card">
+          <p class="affinity-card-title">好感度</p>
+          <div id="affinityHearts" class="affinity-hearts" aria-hidden="true"></div>
+          <div class="affinity-score-bar">
+            <div id="affinityScoreFill" class="affinity-score-fill"></div>
+            <span id="affinityScoreValue" class="affinity-score-value">0 / 100</span>
           </div>
-          <div id="taskPanelMainList" class="task-panel-main-list"></div>
+          <p id="affinityStageLabel" class="affinity-stage-label"></p>
         </section>
-        <section class="task-panel-section" aria-label="今日偶像工作">
-          <div class="task-panel-section-head">
-            <h3>今日工作</h3>
-            <span id="taskPanelSideMeta" class="task-panel-section-meta"></span>
-          </div>
-          <div id="taskPanelSideList" class="task-panel-side-list"></div>
-          <button id="taskPanelOpenSideQuestBtn" class="event-button secondary task-panel-action" type="button">打开今日工作结算</button>
+
+        <div class="affinity-card-grid">
+          <section class="affinity-card affinity-bio-card">
+            <p class="affinity-card-title">角色简介</p>
+            <p id="affinityBio" class="affinity-bio"></p>
+          </section>
+          <section class="affinity-card affinity-status-card">
+            <p class="affinity-card-title">当前状态</p>
+            <ul id="affinityStatusList" class="affinity-status-list"></ul>
+          </section>
+        </div>
+
+        <section class="affinity-card affinity-note-card">
+          <p class="affinity-card-title">当前羁绊</p>
+          <p id="affinityBondTheme" class="affinity-bond-theme"></p>
+          <p id="affinityRouteSeed" class="affinity-route-seed"></p>
         </section>
-        <section class="task-panel-section" aria-label="校园课与训练">
-          <div class="task-panel-section-head">
-            <h3>校园</h3>
-            <span id="taskPanelCampusMeta" class="task-panel-section-meta"></span>
-          </div>
-          <p id="taskPanelCampusHint" class="task-panel-hint"></p>
+        </div>
+
+        <section id="affinitySecondaryPanel" class="affinity-card affinity-tab-panel" hidden>
+          <p class="affinity-card-title">其他人物</p>
+          <div id="affinitySecondaryList" class="affinity-relation-list"></div>
         </section>
-      </div>
+
+        <section id="affinityNetworkPanel" class="affinity-card affinity-tab-panel" hidden>
+          <p class="affinity-card-title">全人物关系网</p>
+          <div id="affinityNetworkList" class="affinity-network-list"></div>
+        </section>
       </div>
     </article>
   </section>
 
+  <section id="taskPanelOverlay" class="event-overlay task-panel-overlay" hidden aria-label="亚纱里老师课题">
+    <article class="event-panel task-panel">
+      <header class="event-head task-panel-head">
+        <div>
+          <p class="ui-kicker">Asari Lesson Board</p>
+          <h2 id="taskPanelTitle">亚纱里老师课题</h2>
+        </div>
+        <button id="taskPanelCloseBtn" class="icon-button event-panel-close-btn" type="button" aria-label="关闭亚纱里老师课题">
+          <svg aria-hidden="true"><use href="#icon-close"></use></svg>
+        </button>
+      </header>
+      <div class="event-panel-body task-panel-body">
+        <section class="task-panel-main-stage" aria-label="亚纱里老师课题板">
+          <div class="task-panel-workspace">
+            <div class="task-panel-board">
+              <p id="taskPanelSummary" class="task-panel-summary"></p>
+              <div id="taskPanelMetrics" class="task-panel-metrics" aria-label="课题状态"></div>
+              <div id="taskPanelMainList" class="task-panel-sections"></div>
+              <section class="task-panel-section task-panel-commission" aria-label="委托系统">
+                <div class="task-panel-section-head">
+                  <h3>委托系统</h3>
+                  <span id="taskPanelSideMeta" class="task-panel-section-meta"></span>
+                </div>
+                <div id="taskPanelSideList" class="task-panel-side-list"></div>
+                <button id="taskPanelOpenSideQuestBtn" class="event-button secondary task-panel-action" type="button">打开委托结算</button>
+              </section>
+              <section class="task-panel-section task-panel-campus" aria-label="校园课与训练">
+                <div class="task-panel-section-head">
+                  <h3>校园课与训练</h3>
+                  <span id="taskPanelCampusMeta" class="task-panel-section-meta"></span>
+                </div>
+                <p id="taskPanelCampusHint" class="task-panel-hint"></p>
+              </section>
+            </div>
+            <aside class="task-panel-teacher" aria-label="亚纱里老师建议">
+              <div class="task-panel-teacher-art" aria-hidden="true">
+                <img src="./assets/novel-standees/asari-sensei.png" alt="">
+              </div>
+              <blockquote class="task-panel-advice">
+                <b>老师的一句话</b>
+                <p id="taskPanelAdvice">至少让我帮上你一点忙吧。多多依赖老师一些也可以的哦？</p>
+              </blockquote>
+            </aside>
+          </div>
+        </section>
+      </div>
+    </article>
+  </section>
   <section id="notebookDrawer" class="notebook-drawer" hidden aria-label="P手账">
     <div class="drawer-panel">
       <header class="drawer-head">
@@ -1086,10 +1275,12 @@
   <script src="./world/campus-behavior.js"></script>
   <script src="./world/injection.js"></script>
   <script src="./world/daily-tick.js"></script>
+  <script src="./world/world-gen-api.js"></script>
   <script src="./broadcast/prompts.js"></script>
   <script src="./tasks/side-pool.js"></script>
   <script src="./tasks/side-quest-api.js"></script>
   <script src="./tasks/sandbox-tasks.js"></script>
+  <script src="./shop/gift-shop.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>

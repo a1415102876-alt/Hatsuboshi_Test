@@ -1,13 +1,13 @@
 (function (global) {
   "use strict";
 
-  const SEINA_PROXY_GROUP = ["花海祐芽", "仓本千奈", "秦谷美铃"];
+  const SEINA_PROXY_GROUP = ["花海佑芽", "仓本千奈", "秦谷美铃"];
   const SEINA_EDGE = "藤田琴音";
   const NO_PRODUCER_GROUP = ["花海咲季", "月村手毬", "紫云清夏", "筱泽广", "葛城莉莉娅"];
   const GRADE3_GROUP = ["十王星南", "雨夜燕", "姬崎莉波", "有村麻央"];
 
   const FIRST_LIVE_PUBLIC_TAGS = {
-    "花海祐芽": "补录体力怪物；星南后辈",
+    "花海佑芽": "补录体力怪物；星南后辈",
     "仓本千奈": "末位逆袭；Lv.1 新手偶像",
     "秦谷美铃": "睡神天才；星南头疼的小坏蛋",
     "藤田琴音": "现实系候补；对星南保持距离",
