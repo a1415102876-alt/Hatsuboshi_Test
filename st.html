@@ -1171,19 +1171,28 @@
     }
 
 
+    function getGenerationPayloadRequestId(generated) {
+      if (!generated || typeof generated !== 'object') return '';
+      return String(
+        generated.generation_id
+        || generated.generationId
+        || generated.requestId
+        || generated.request_id
+        || generated.id
+        || ''
+      );
+    }
+
+    function isGenerationEndedPayloadForRequest(generated, requestId) {
+      const reqId = String(requestId || '');
+      const eventReqId = getGenerationPayloadRequestId(generated);
+      return Boolean(reqId && eventReqId && eventReqId === reqId);
+    }
+
     function normalizeGenerationEndedText(generated, requestId) {
       const reqId = String(requestId || '');
-      if (generated && typeof generated === 'object') {
-        const eventReqId = String(
-          generated.generation_id
-          || generated.generationId
-          || generated.requestId
-          || generated.request_id
-          || generated.id
-          || ''
-        );
-        if (eventReqId && reqId && eventReqId !== reqId) return null;
-      }
+      const eventReqId = getGenerationPayloadRequestId(generated);
+      if (eventReqId && reqId && eventReqId !== reqId) return null;
       return extractReplyTextFromGenerated(generated);
     }
 
@@ -1193,11 +1202,6 @@
         && /<option2\b[^>]*>[\s\S]*?<\/option2>/i.test(value)
         && /<option3\b[^>]*>[\s\S]*?<\/option3>/i.test(value)
         && /<option4\b[^>]*>[\s\S]*?<\/option4>/i.test(value);
-    }
-
-    function isLikelySummaryOnlyReply(text) {
-      const value = String(text || '');
-      return /<(summary_intro|summary_status|summary_producer|current_event|progress|tucao)\b/i.test(value);
     }
 
     function isGeneratedTextCompatibleWithPrompt(promptText, generatedText) {
@@ -1212,10 +1216,7 @@
       const expectsChoicePayload = expectsFirstChoice
         || (prompt.includes(interactionChoiceLabel) && promptHasOptionSeed)
         || (prompt.includes(bondEventLabel) && promptHasOptionSeed);
-      if (expectsChoicePayload) {
-        if (!hasCompleteOptionPayload(reply)) return false;
-        if (isLikelySummaryOnlyReply(reply)) return false;
-      }
+      if (expectsChoicePayload && !hasCompleteOptionPayload(reply)) return false;
       return true;
     }
     function findLatestAssistantReply(chat, requestId = '', minIndex = 0, startedAt = 0) {
@@ -1477,6 +1478,7 @@
       const endedPromise = new Promise((resolve) => { endedResolve = resolve; });
       const endedHandler = (finalText) => {
         try {
+          if (!isGenerationEndedPayloadForRequest(finalText, reqId)) return;
           const normalizedText = normalizeGenerationEndedText(finalText, reqId);
           if (normalizedText === null) return;
           if (!isGeneratedTextCompatibleWithPrompt(promptText, normalizedText)) return;

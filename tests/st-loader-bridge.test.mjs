@@ -105,7 +105,8 @@ test("transactional helper ignores generation-ended events for a different reque
   };
   const fn = new Function(
     "extractReplyTextFromGenerated",
-    `${readFunction("normalizeGenerationEndedText")}; return normalizeGenerationEndedText;`
+    `${readFunction("getGenerationPayloadRequestId")}
+${readFunction("normalizeGenerationEndedText")}; return normalizeGenerationEndedText;`
   )(extractReplyTextFromGenerated);
 
   assert.equal(fn({ generation_id: "previous-round", text: "old training reply" }, "current-round"), null);
@@ -113,26 +114,41 @@ test("transactional helper ignores generation-ended events for a different reque
   assert.equal(fn("legacy final text", "current-round"), "legacy final text");
 });
 
-test("transactional helper rejects stale summary text for choice prompts", () => {
+test("transactional helper only accepts scoped generation-ended payloads", () => {
+  const fn = new Function(
+    `${readFunction("getGenerationPayloadRequestId")}
+${readFunction("isGenerationEndedPayloadForRequest")}; return isGenerationEndedPayloadForRequest;`
+  )();
+
+  assert.equal(fn({ generation_id: "current-round", text: "current reply" }, "current-round"), true);
+  assert.equal(fn({ generation_id: "previous-round", text: "old reply" }, "current-round"), false);
+  assert.equal(fn("unscoped final text", "current-round"), false);
+  assert.equal(fn({ text: "unscoped object text" }, "current-round"), false);
+});
+
+test("transactional helper requires option payloads for choice prompts without rejecting summary tags", () => {
   const fn = new Function(
     `${readFunction("hasCompleteOptionPayload")}
-${readFunction("isLikelySummaryOnlyReply")}
 ${readFunction("isGeneratedTextCompatibleWithPrompt")}; return isGeneratedTextCompatibleWithPrompt;`
   )();
 
   const bondPrompt = "[\u521d\u661f\u80b2\u6210\u7cfb\u7edf\uff1a\u5e7f\u7f81\u7eca\u4e8b\u4ef6 - \u7b2c\u4e00\u8f6e\u9009\u62e9]\n<option1>A</option1>";
-  const staleInteractionReply = `<story>old interaction closure</story>
+  const missingOptionsReply = `<story>old interaction closure</story>
 <current_event>day summary</current_event>
 <summary_intro>previous round</summary_intro>
-<tucao>stale</tucao>
+<tucao>normal tags are allowed</tucao>
 <sum>previous interaction summary</sum>`;
   const properChoiceReply = `<story>current bond event</story>
+<current_event>bond scene</current_event>
+<summary_intro>normal summary intro</summary_intro>
+<progress>normal progress</progress>
+<tucao>normal comment</tucao>
 <option1>A</option1>
 <option2>B</option2>
 <option3>C</option3>
 <option4>D</option4>`;
 
-  assert.equal(fn(bondPrompt, staleInteractionReply), false);
+  assert.equal(fn(bondPrompt, missingOptionsReply), false);
   assert.equal(fn(bondPrompt, properChoiceReply), true);
-  assert.equal(fn("plain prompt", staleInteractionReply), true);
+  assert.equal(fn("plain prompt", missingOptionsReply), true);
 });
