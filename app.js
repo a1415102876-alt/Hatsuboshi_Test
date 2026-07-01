@@ -558,6 +558,7 @@
     "品牌旗舰店": DEFAULT_OUTING_SCENE
   };
   const FINAL_LIVE_DAY = 22;
+  const BOND_80_DAY = FINAL_LIVE_DAY - 1;
   const SUMMARY_ROUND = 5;
   const INTIMACY_UNLOCK_TRUST = 60;
   const INTIMACY_NSFW_UNLOCK_TRUST = 100;
@@ -886,7 +887,7 @@
     20: { title: "相互试探", theme: "围绕“为什么选择她、她为什么愿意接受你”推进早期信任。", timing: "好感度达到 20 后解锁。" },
     40: { title: "核心问题暴露", theme: "揭示该偶像最主要的矛盾与弱点，让数值育成和个人主线接上。", timing: "好感度达到 40 后解锁。" },
     60: { title: "关系转折", theme: "制作人与偶像的信任关系发生明确变化，角色开始把支持视为自己的力量。", timing: "好感度达到 60 后解锁。" },
-    80: { title: "路线后半转折", theme: "First Live 前的重要个人主线节点，回收旧关系、核心矛盾或上台前必须面对的课题。", timing: "好感度达到 80 后解锁，下一天进入羁绊事件日。" },
+    80: { title: "路线后半转折", theme: "First Live 前的重要个人主线节点，回收旧关系、核心矛盾或上台前必须面对的课题。", timing: "好感度达到 80 后解锁，于 First Live 前夜（第 21 天）进入羁绊事件日。" },
     100: { title: "First Live 之后", theme: "演出成功后的故事收尾，让角色关系完成 First Live 篇章的闭环。", timing: "First Live 成功且好感度达到 100 后解锁。" }
   };
   const affinityRouteSeeds = {
@@ -4240,11 +4241,17 @@ ${outputContract("请写 700 字以内的完整送礼场景，自然收束，不
     return state.affinity.pending.filter((threshold) => threshold !== 0 || !state.affinity.openingComplete).length;
   }
 
+  function isPendingRequiredBond80() {
+    ensureStateShape();
+    return state.affinity.pending.includes(80) && !state.affinity.viewed.includes(80);
+  }
+
   function pendingRequiredBondThreshold() {
     ensureStateShape();
     const pending = state.affinity.pending || [];
     return REQUIRED_BOND_THRESHOLDS.find((threshold) => {
       if (!pending.includes(threshold) || state.affinity.viewed.includes(threshold)) return false;
+      if (threshold === 80) return state.day >= BOND_80_DAY;
       const unlockDay = Number(state.affinity.bondUnlockDay?.[threshold]);
       return !Number.isFinite(unlockDay) || state.day > unlockDay;
     }) || null;
@@ -4267,15 +4274,25 @@ ${outputContract("请写 700 字以内的完整送礼场景，自然收束，不
   }
 
   function completeBondEventDay(threshold) {
-    markAffinityViewed(Number(threshold));
+    const thresholdValue = Number(threshold);
+    markAffinityViewed(thresholdValue);
     state.activeStoryNode = null;
     state.round = 1;
-    if (state.day >= FINAL_LIVE_DAY - 1) {
+    if (thresholdValue === 80 && state.day >= BOND_80_DAY) {
       state.day = FINAL_LIVE_DAY;
       state.liveReady = true;
-    } else {
-      state.day += 1;
+      return;
     }
+    if (state.day >= BOND_80_DAY) {
+      if (isPendingRequiredBond80()) {
+        state.day = BOND_80_DAY;
+        return;
+      }
+      state.day = FINAL_LIVE_DAY;
+      state.liveReady = true;
+      return;
+    }
+    state.day += 1;
   }
 
   function actionLabel(action, attribute) {
@@ -4343,9 +4360,13 @@ ${outputContract("请写 700 字以内的完整送礼场景，自然收束，不
   function advanceDay() {
     if (!isSummaryRound()) return false;
     state.round = 1;
-    if (state.day >= FINAL_LIVE_DAY - 1) {
-      state.day = FINAL_LIVE_DAY;
-      state.liveReady = true;
+    if (state.day >= BOND_80_DAY) {
+      if (isPendingRequiredBond80() && state.day === BOND_80_DAY) {
+        // Stay on First Live eve so the deferred bond-80 event can run.
+      } else {
+        state.day = FINAL_LIVE_DAY;
+        state.liveReady = true;
+      }
     } else {
       state.day += 1;
     }
@@ -6137,6 +6158,10 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     refreshAffinityUnlocks();
     if (!state.affinity.unlocked.includes(threshold)) {
       showToast("剧情尚未解锁", affinityNodes[threshold]?.timing || "继续推进育成即可解锁。", "warn");
+      return;
+    }
+    if (threshold === 80 && state.day < BOND_80_DAY) {
+      showToast("羁绊尚未到时", `好感度 80 羁绊将在第 ${BOND_80_DAY} 天（First Live 前夜）触发。`, "warn");
       return;
     }
     if (threshold === 0) {
@@ -15653,7 +15678,7 @@ ${buildChoiceHardRules({ phase1: true })}`;
         ],
         "考核": [
           ["First Live", "第 22 天点击开始最终演出，由前端判定三项数值是否达标。"],
-          ["好感度80", "好感度达到 80 后，下一天进入该偶像的路线后半羁绊事件。"],
+          ["好感度80", "好感度达到 80 后，于第 21 天（First Live 前夜）进入该偶像的路线后半羁绊事件。"],
           ["好感度100", "First Live 成功且好感度达到 100 后解锁最终剧情。"],
           ["数值门槛", "Vo、Da、Vi 的门槛与上限来自角色成长率预设。"]
         ]

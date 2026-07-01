@@ -47,10 +47,12 @@ function makeContext(overrides = {}) {
     render() {},
     REQUIRED_BOND_THRESHOLDS: [20, 40, 60, 80],
     FINAL_LIVE_DAY: 22,
+    BOND_80_DAY: 21,
     SUMMARY_ROUND: 5
   };
   vm.runInNewContext(
     [
+      readFunction("isPendingRequiredBond80"),
       readFunction("pendingRequiredBondThreshold"),
       readFunction("isBondEventDay"),
       readFunction("markAffinityUnlocked"),
@@ -96,6 +98,71 @@ test("pending 20 to 80 affinity nodes force the next day into a bond event day",
   assert.equal(context.state.day, 7);
   assert.equal(context.isBondEventDay(), true);
   assert.equal(context.pendingRequiredBondThreshold(), 20);
+});
+
+test("affinity 80 bond defers until First Live eve even when unlocked earlier", () => {
+  const context = makeContext({
+    day: 11,
+    affinity: {
+      openingComplete: true,
+      unlocked: [80],
+      pending: [80],
+      viewed: [],
+      bondUnlockDay: { 80: 11 }
+    }
+  });
+
+  assert.equal(context.pendingRequiredBondThreshold(), null);
+  assert.equal(context.isBondEventDay(), false);
+
+  context.state.day = 21;
+  assert.equal(context.pendingRequiredBondThreshold(), 80);
+  assert.equal(context.isBondEventDay(), true);
+});
+
+test("completing a non-80 bond on live eve keeps the schedule on day 21 for pending 80", () => {
+  const context = makeContext({
+    day: 21,
+    affinity: {
+      openingComplete: true,
+      unlocked: [60, 80],
+      pending: [60, 80],
+      viewed: [],
+      bondUnlockDay: { 60: 18, 80: 12 }
+    }
+  });
+
+  assert.equal(context.pendingRequiredBondThreshold(), 60);
+  context.completeBondEventDay(60);
+  assert.equal(context.state.day, 21);
+  assert.equal(context.state.liveReady, false);
+  assert.equal(context.pendingRequiredBondThreshold(), 80);
+});
+
+test("completing affinity 80 on live eve unlocks First Live", () => {
+  const context = makeContext({
+    day: 21,
+    affinity: { openingComplete: true, unlocked: [80], pending: [80], viewed: [] }
+  });
+
+  context.completeBondEventDay(80);
+
+  assert.equal(context.state.day, 22);
+  assert.equal(context.state.liveReady, true);
+});
+
+test("live eve summary keeps day 21 when affinity 80 is still pending", () => {
+  const context = makeContext({
+    day: 21,
+    round: 5,
+    affinity: { openingComplete: true, unlocked: [80], pending: [80], viewed: [], bondUnlockDay: { 80: 21 } }
+  });
+
+  context.advanceDay();
+
+  assert.equal(context.state.day, 21);
+  assert.equal(context.state.liveReady, false);
+  assert.equal(context.isBondEventDay(), true);
 });
 
 test("newly unlocked bond nodes do not interrupt the same day", () => {
@@ -147,6 +214,11 @@ test("affinity 100 does not consume a schedule day", () => {
 
   assert.equal(context.isBondEventDay(), false);
   assert.equal(context.pendingRequiredBondThreshold(), null);
+});
+
+test("triggerAffinityStory blocks manual affinity 80 before live eve", () => {
+  assert.match(source, /threshold === 80 && state\.day < BOND_80_DAY/);
+  assert.match(source, /First Live 前夜/);
 });
 
 test("post-live affinity 100 is exposed through the bond action button path", () => {
