@@ -130,15 +130,46 @@ test("every playable idol has a stable avatar filename", () => {
   assert.match(source, /class="idol-card-copy"/);
 });
 
-test("葛城莉莉娅 uses concise worldbook-aligned affinity seeds", () => {
-  assert.deepEqual(JSON.parse(JSON.stringify(affinityRouteSeeds["葛城莉莉娅"])), {
-    0: "初遇：拘谨、迷路、礼貌求助。",
-    20: "开始训练：把制作人当成可靠的指导者。",
-    40: "被选择的信任：制作人相信她，她开始相信制作人的眼光。",
-    60: "主动袒露：想把自己的心意传达出去。",
-    80: "Live前后：恐惧、过度努力、但最信任制作人。",
-    100: "深层信赖：制作人是引导她走出黑暗的人。"
-  });
+test("葛城莉莉娅 uses episode-based affinity seeds and bond routes", () => {
+  const routes = readObjectLiteral("liljaBondRoutes");
+  assert.deepEqual(Object.keys(routes).map(Number), [20, 40, 60, 80]);
+  assert.match(routes[40].canonAnchor, /清夏/);
+  assert.match(routes[80].resolution, /First Live/);
+
+  const seeds = affinityRouteSeeds["葛城莉莉娅"];
+  assert.match(seeds[0], /迷路/);
+  assert.match(seeds[40], /清夏/);
+  assert.match(seeds[100], /顶级偶像/);
+  assert.doesNotMatch(seeds[0], /^初遇：拘谨/);
+});
+
+test("仓本千奈 uses episode-based affinity seeds and bond routes", () => {
+  const routes = readObjectLiteral("chinaBondRoutes");
+  assert.deepEqual(Object.keys(routes).map(Number), [20, 40, 60, 80]);
+  assert.match(routes[60].canonAnchor, /首场演唱会|相信老师/);
+  assert.match(routes[80].resolution, /First Live|被开除/);
+
+  const seeds = affinityRouteSeeds["仓本千奈"];
+  assert.match(seeds[0], /亲自选择|委托/);
+  assert.match(seeds[40], /绝不甘休/);
+  assert.match(seeds[100], /吉娃娃|新手偶像/);
+  assert.doesNotMatch(seeds[80], /N\.I\.A|FINALE/);
+  assert.doesNotMatch(seeds[0], /^从家族安排的委托开始/);
+});
+
+test("姬崎莉波 uses episode-based affinity seeds and bond routes", () => {
+  const routes = readObjectLiteral("rinamiBondRoutes");
+  assert.deepEqual(Object.keys(routes).map(Number), [20, 40, 60, 80]);
+  assert.match(routes[40].canonAnchor, /琴音/);
+  assert.match(routes[80].resolution, /First Live|姐姐开关/);
+
+  const seeds = affinityRouteSeeds["姬崎莉波"];
+  assert.match(seeds[0], /成为我的姐姐/);
+  assert.match(seeds[40], /琴音/);
+  assert.match(seeds[100], /启明星/);
+  assert.doesNotMatch(seeds[60], /N\.I\.A|四音/);
+  assert.doesNotMatch(seeds[100], /月色真美/);
+  assert.doesNotMatch(seeds[0], /^与制作人重逢后/);
 });
 
 test("雨夜燕 has a configured live video file", () => {

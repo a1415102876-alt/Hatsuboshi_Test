@@ -84,6 +84,11 @@ function makePromptBuilder() {
     kotoneBondRoutes: readObjectLiteral("kotoneBondRoutes"),
     sakiBondRoutes: readObjectLiteral("sakiBondRoutes"),
     umeBondRoutes: readObjectLiteral("umeBondRoutes"),
+    chinaBondRoutes: readObjectLiteral("chinaBondRoutes"),
+    liljaBondRoutes: readObjectLiteral("liljaBondRoutes"),
+    sumikaBondRoutes: readObjectLiteral("sumikaBondRoutes"),
+    maoBondRoutes: readObjectLiteral("maoBondRoutes"),
+    rinamiBondRoutes: readObjectLiteral("rinamiBondRoutes"),
     temariBondRoutes: readObjectLiteral("temariBondRoutes"),
     misuzuBondRoutes: readObjectLiteral("misuzuBondRoutes"),
     amayaBondRoutes: readObjectLiteral("amayaBondRoutes"),
@@ -222,6 +227,93 @@ test("Ume has dedicated two-choice bond route seeds", () => {
 
   const routeSelector = readFunction("specialBondRoutesFor");
   assert.match(routeSelector, /idolName === "花海佑芽"[\s\S]*umeBondRoutes/);
+});
+
+test("China has dedicated two-choice bond route seeds", () => {
+  const routes = readObjectLiteral("chinaBondRoutes");
+  assert.deepEqual(Object.keys(routes).map(Number), [20, 40, 60, 80]);
+  assert.match(routes[20].canonAnchor, /讨人喜欢/);
+  assert.match(routes[40].objective, /放弃/);
+  assert.match(routes[60].canonAnchor, /首场演唱会/);
+  assert.match(routes[80].resolution, /First Live|被开除/);
+
+  const seeds = readObjectLiteral("affinityRouteSeeds")["仓本千奈"];
+  assert.match(seeds[0], /讨人喜欢/);
+  assert.match(seeds[40], /绝不甘休/);
+  assert.match(seeds[100], /吉娃娃/);
+  assert.doesNotMatch(seeds[80], /N\.I\.A|FINALE/);
+
+  const routeSelector = readFunction("specialBondRoutesFor");
+  assert.match(routeSelector, /idolName === "仓本千奈"[\s\S]*chinaBondRoutes/);
+});
+
+test("Lilja has dedicated two-choice bond route seeds", () => {
+  const routes = readObjectLiteral("liljaBondRoutes");
+  assert.deepEqual(Object.keys(routes).map(Number), [20, 40, 60, 80]);
+  assert.match(routes[20].canonAnchor, /顶级偶像/);
+  assert.match(routes[40].objective, /清夏/);
+  assert.match(routes[60].canonAnchor, /清夏到场观看/);
+  assert.match(routes[80].resolution, /First Live/);
+
+  const seeds = readObjectLiteral("affinityRouteSeeds")["葛城莉莉娅"];
+  assert.match(seeds[0], /清夏/);
+  assert.match(seeds[60], /清夏在观众席/);
+  assert.match(seeds[100], /引导我的光|指路/);
+
+  const routeSelector = readFunction("specialBondRoutesFor");
+  assert.match(routeSelector, /idolName === "葛城莉莉娅"[\s\S]*liljaBondRoutes/);
+});
+
+test("Sumika has dedicated two-choice bond route seeds", () => {
+  const routes = readObjectLiteral("sumikaBondRoutes");
+  assert.deepEqual(Object.keys(routes).map(Number), [20, 40, 60, 80]);
+  assert.match(routes[20].canonAnchor, /莉莉娅/);
+  assert.match(routes[40].resolution, /负责到底/);
+  assert.match(routes[60].canonAnchor, /芭蕾/);
+  assert.match(routes[80].resolution, /First Live/);
+
+  const seeds = readObjectLiteral("affinityRouteSeeds")["紫云清夏"];
+  assert.match(seeds[0], /Pっち/);
+  assert.match(seeds[40], /别再扰乱我的心/);
+  assert.match(seeds[100], /一起变强/);
+
+  const routeSelector = readFunction("specialBondRoutesFor");
+  assert.match(routeSelector, /idolName === "紫云清夏"[\s\S]*sumikaBondRoutes/);
+});
+
+test("Mao has dedicated two-choice bond route seeds", () => {
+  const routes = readObjectLiteral("maoBondRoutes");
+  assert.deepEqual(Object.keys(routes).map(Number), [20, 40, 60, 80]);
+  assert.match(routes[20].canonAnchor, /可爱偶像/);
+  assert.match(routes[40].resolution, /喜欢.*自己/);
+  assert.match(routes[60].canonAnchor, /女仆咖啡厅/);
+  assert.match(routes[80].resolution, /First Live/);
+
+  const seeds = readObjectLiteral("affinityRouteSeeds")["有村麻央"];
+  assert.match(seeds[0], /小王子/);
+  assert.match(seeds[40], /够了/);
+  assert.match(seeds[100], /喜欢上自己/);
+
+  const routeSelector = readFunction("specialBondRoutesFor");
+  assert.match(routeSelector, /idolName === "有村麻央"[\s\S]*maoBondRoutes/);
+});
+
+test("Rinami has dedicated two-choice bond route seeds", () => {
+  const routes = readObjectLiteral("rinamiBondRoutes");
+  assert.deepEqual(Object.keys(routes).map(Number), [20, 40, 60, 80]);
+  assert.match(routes[20].canonAnchor, /妹妹/);
+  assert.match(routes[40].objective, /自然/);
+  assert.match(routes[60].canonAnchor, /启明星/);
+  assert.match(routes[80].resolution, /First Live|姐姐开关/);
+
+  const seeds = readObjectLiteral("affinityRouteSeeds")["姬崎莉波"];
+  assert.match(seeds[0], /莉波噗哟|成为我的姐姐/);
+  assert.match(seeds[40], /琴音/);
+  assert.match(seeds[100], /启明星/);
+  assert.doesNotMatch(seeds[60], /N\.I\.A|四音/);
+
+  const routeSelector = readFunction("specialBondRoutesFor");
+  assert.match(routeSelector, /idolName === "姬崎莉波"[\s\S]*rinamiBondRoutes/);
 });
 
 test("Hiro has dedicated two-choice bond route seeds", () => {
