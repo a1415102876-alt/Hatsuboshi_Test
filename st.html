@@ -1170,6 +1170,22 @@
       return '';
     }
 
+
+    function normalizeGenerationEndedText(generated, requestId) {
+      const reqId = String(requestId || '');
+      if (generated && typeof generated === 'object') {
+        const eventReqId = String(
+          generated.generation_id
+          || generated.generationId
+          || generated.requestId
+          || generated.request_id
+          || generated.id
+          || ''
+        );
+        if (eventReqId && reqId && eventReqId !== reqId) return null;
+      }
+      return extractReplyTextFromGenerated(generated);
+    }
     function findLatestAssistantReply(chat, requestId = '', minIndex = 0, startedAt = 0) {
       if (!Array.isArray(chat)) return null;
       const reqId = String(requestId || '');
@@ -1427,7 +1443,13 @@
       const GEN_ENDED = 'js_generation_ended';
       let endedResolve = null;
       const endedPromise = new Promise((resolve) => { endedResolve = resolve; });
-      const endedHandler = (finalText) => { try { endedResolve(finalText); } catch (e) {} };
+      const endedHandler = (finalText) => {
+        try {
+          const normalizedText = normalizeGenerationEndedText(finalText, reqId);
+          if (normalizedText === null) return;
+          endedResolve(normalizedText);
+        } catch (e) {}
+      };
       let listening = false;
       if (eventSource && typeof eventSource.on === 'function') {
         try { eventSource.on(GEN_ENDED, endedHandler); listening = true; } catch (e) {}

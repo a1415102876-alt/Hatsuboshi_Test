@@ -3,6 +3,32 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 const stSource = readFileSync(new URL("../st.html", import.meta.url), "utf8");
+function readFunction(functionName) {
+  const declaration = `function ${functionName}`;
+  const start = stSource.indexOf(declaration);
+  assert.notEqual(start, -1, `${functionName} must exist`);
+  const bodyStart = stSource.indexOf("{", start);
+  let depth = 0;
+  let quote = null;
+  let escaped = false;
+
+  for (let index = bodyStart; index < stSource.length; index += 1) {
+    const character = stSource[index];
+    if (quote) {
+      if (escaped) escaped = false;
+      else if (character === "\\") escaped = true;
+      else if (character === quote) quote = null;
+      continue;
+    }
+    if (character === '"' || character === "'" || character === "`") quote = character;
+    else if (character === "{") depth += 1;
+    else if (character === "}") {
+      depth -= 1;
+      if (depth === 0) return stSource.slice(start, index + 1);
+    }
+  }
+  throw new Error(`Could not parse ${functionName}`);
+}
 
 test("st.html in-page bridge handles frontend AI reply acknowledgements", () => {
   assert.match(stSource, /data\.type === 'aiReplyAck'/);
@@ -68,4 +94,21 @@ test("st.html rewrites large assets to R2 while keeping avatars on Workers base"
   assert.match(stSource, /\.replaceAll\('"\.\/assets\/avatars\/'/);
   assert.match(stSource, /\.replaceAll\('"\.\/assets\/'/);
   assert.doesNotMatch(stSource, /\.replaceAll\('"\.\/assets\/', '"' \+ abs\('assets\/'\)\)/);
+});
+
+
+test("transactional helper ignores generation-ended events for a different request", () => {
+  const extractReplyTextFromGenerated = (generated) => {
+    if (typeof generated === "string") return generated.trim();
+    if (!generated || typeof generated !== "object") return "";
+    return String(generated.text || generated.mes || generated.message || generated.content || "").trim();
+  };
+  const fn = new Function(
+    "extractReplyTextFromGenerated",
+    `${readFunction("normalizeGenerationEndedText")}; return normalizeGenerationEndedText;`
+  )(extractReplyTextFromGenerated);
+
+  assert.equal(fn({ generation_id: "previous-round", text: "old training reply" }, "current-round"), null);
+  assert.equal(fn({ generation_id: "current-round", text: "current rest reply" }, "current-round"), "current rest reply");
+  assert.equal(fn("legacy final text", "current-round"), "legacy final text");
 });
