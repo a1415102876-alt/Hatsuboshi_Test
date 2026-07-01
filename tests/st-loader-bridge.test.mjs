@@ -112,3 +112,27 @@ test("transactional helper ignores generation-ended events for a different reque
   assert.equal(fn({ generation_id: "current-round", text: "current rest reply" }, "current-round"), "current rest reply");
   assert.equal(fn("legacy final text", "current-round"), "legacy final text");
 });
+
+test("transactional helper rejects stale summary text for choice prompts", () => {
+  const fn = new Function(
+    `${readFunction("hasCompleteOptionPayload")}
+${readFunction("isLikelySummaryOnlyReply")}
+${readFunction("isGeneratedTextCompatibleWithPrompt")}; return isGeneratedTextCompatibleWithPrompt;`
+  )();
+
+  const bondPrompt = "[\u521d\u661f\u80b2\u6210\u7cfb\u7edf\uff1a\u5e7f\u7f81\u7eca\u4e8b\u4ef6 - \u7b2c\u4e00\u8f6e\u9009\u62e9]\n<option1>A</option1>";
+  const staleInteractionReply = `<story>old interaction closure</story>
+<current_event>day summary</current_event>
+<summary_intro>previous round</summary_intro>
+<tucao>stale</tucao>
+<sum>previous interaction summary</sum>`;
+  const properChoiceReply = `<story>current bond event</story>
+<option1>A</option1>
+<option2>B</option2>
+<option3>C</option3>
+<option4>D</option4>`;
+
+  assert.equal(fn(bondPrompt, staleInteractionReply), false);
+  assert.equal(fn(bondPrompt, properChoiceReply), true);
+  assert.equal(fn("plain prompt", staleInteractionReply), true);
+});

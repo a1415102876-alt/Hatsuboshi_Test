@@ -1186,6 +1186,38 @@
       }
       return extractReplyTextFromGenerated(generated);
     }
+
+    function hasCompleteOptionPayload(text) {
+      const value = String(text || '');
+      return /<option1\b[^>]*>[\s\S]*?<\/option1>/i.test(value)
+        && /<option2\b[^>]*>[\s\S]*?<\/option2>/i.test(value)
+        && /<option3\b[^>]*>[\s\S]*?<\/option3>/i.test(value)
+        && /<option4\b[^>]*>[\s\S]*?<\/option4>/i.test(value);
+    }
+
+    function isLikelySummaryOnlyReply(text) {
+      const value = String(text || '');
+      return /<(summary_intro|summary_status|summary_producer|current_event|progress|tucao)\b/i.test(value);
+    }
+
+    function isGeneratedTextCompatibleWithPrompt(promptText, generatedText) {
+      const prompt = String(promptText || '');
+      const reply = String(generatedText || '').trim();
+      if (!reply) return false;
+      const firstChoiceLabel = '\u7b2c\u4e00\u8f6e\u9009\u62e9';
+      const interactionChoiceLabel = '\u4e92\u52a8\u5206\u652f\u8bbe\u8ba1';
+      const bondEventLabel = '\u7f81\u7eca\u4e8b\u4ef6';
+      const promptHasOptionSeed = /<option1\b/i.test(prompt);
+      const expectsFirstChoice = prompt.includes(firstChoiceLabel) && promptHasOptionSeed;
+      const expectsChoicePayload = expectsFirstChoice
+        || (prompt.includes(interactionChoiceLabel) && promptHasOptionSeed)
+        || (prompt.includes(bondEventLabel) && promptHasOptionSeed);
+      if (expectsChoicePayload) {
+        if (!hasCompleteOptionPayload(reply)) return false;
+        if (isLikelySummaryOnlyReply(reply)) return false;
+      }
+      return true;
+    }
     function findLatestAssistantReply(chat, requestId = '', minIndex = 0, startedAt = 0) {
       if (!Array.isArray(chat)) return null;
       const reqId = String(requestId || '');
@@ -1447,6 +1479,7 @@
         try {
           const normalizedText = normalizeGenerationEndedText(finalText, reqId);
           if (normalizedText === null) return;
+          if (!isGeneratedTextCompatibleWithPrompt(promptText, normalizedText)) return;
           endedResolve(normalizedText);
         } catch (e) {}
       };
@@ -1475,9 +1508,13 @@
         const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve(''), 120000));
         const raced = await Promise.race([endedPromise, generatePromise, timeoutPromise]);
         generatedText = extractReplyTextFromGenerated(raced);
+        if (generatedText && !isGeneratedTextCompatibleWithPrompt(promptText, generatedText)) generatedText = '';
         if (!generatedText) {
           // race 先返回的是空：再等 generate 自身的返回值兜底。
-          try { generatedText = extractReplyTextFromGenerated(await generatePromise); } catch (e) {}
+          try {
+            generatedText = extractReplyTextFromGenerated(await generatePromise);
+            if (generatedText && !isGeneratedTextCompatibleWithPrompt(promptText, generatedText)) generatedText = '';
+          } catch (e) {}
         }
         if (!generatedText && listening) {
           // generate 返回也空：最后再给事件一点时间。
@@ -1486,6 +1523,7 @@
             new Promise((resolve) => setTimeout(() => resolve(''), 1500))
           ]);
           generatedText = extractReplyTextFromGenerated(lateText);
+          if (generatedText && !isGeneratedTextCompatibleWithPrompt(promptText, generatedText)) generatedText = '';
         }
       } catch (error) {
         removeEndedListener();
@@ -1533,9 +1571,11 @@
       try {
         const generated = await context.generate?.('quiet');
         generatedText = extractReplyTextFromGenerated(generated);
+        if (generatedText && !isGeneratedTextCompatibleWithPrompt(promptText, generatedText)) generatedText = '';
         if (!generatedText) {
           existingAssistantHit = await waitForLatestAssistantReply(reqId, assistantStartIndex, txnStartedAt);
           generatedText = existingAssistantHit?.text || '';
+          if (generatedText && !isGeneratedTextCompatibleWithPrompt(promptText, generatedText)) generatedText = '';
         }
       } catch (error) {
         rollbackSilentUserMessage(userIndex, reqId);

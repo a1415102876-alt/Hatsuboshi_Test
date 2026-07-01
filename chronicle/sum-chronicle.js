@@ -3,12 +3,19 @@
 
   const CHRONICLE_ENTRY_COMMENT = "编年史";
   const CHRONICLE_LINE_RE = /^(\d+)\.\s*(.+)$/;
+  const MAX_CHRONICLE_SUM_LENGTH = 100;
+
+  function normalizeChronicleSummary(value) {
+    const summary = String(value || "").replace(/\s+/g, " ").trim();
+    if (Array.from(summary).length > MAX_CHRONICLE_SUM_LENGTH) return "";
+    return summary;
+  }
 
   function extractSumText(value) {
     const raw = String(value || "");
     const matches = [...raw.matchAll(/<sum\b[^>]*>([\s\S]*?)<\/sum>/gi)];
     if (!matches.length) return "";
-    return String(matches[matches.length - 1][1] || "").replace(/\s+/g, " ").trim();
+    return normalizeChronicleSummary(matches[matches.length - 1][1]);
   }
 
   // 兼容两种编号：SillyTavern chat index 常是 0-based（2/4/6...），可见楼层说明常是 1-based（3/5/7...）。
@@ -46,7 +53,7 @@
 
   function upsertChronicleContent(content, entryNo, sumText, options = {}) {
     const no = Number(entryNo);
-    const summary = String(sumText || "").replace(/\s+/g, " ").trim();
+    const summary = normalizeChronicleSummary(sumText);
     if (!Number.isInteger(no) || no <= 0 || !summary) {
       return String(content || "").trim();
     }

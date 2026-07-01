@@ -18,6 +18,18 @@ test("extractSumText keeps the last sum tag", () => {
   assert.equal(api.extractSumText(text), "午后 · 教室 · 琴音与制作人确认训练计划。");
 });
 
+
+test("extractSumText rejects summaries over one hundred characters", () => {
+  const api = loadChronicle();
+  const longSummary = "总结".repeat(51);
+  assert.equal(api.extractSumText(`<sum>${longSummary}</sum>`), "");
+});
+
+test("chronicle upsert refuses overlong summaries", () => {
+  const api = loadChronicle();
+  const longSummary = "污染".repeat(51);
+  assert.equal(api.upsertChronicleContent("1. 原总结", 2, longSummary), "1. 原总结");
+});
 test("assistant message ids map to chronicle entry numbers on even ST floors", () => {
   const api = loadChronicle();
   assert.equal(api.assistantMessageIdToEntryNo(0), 0);
