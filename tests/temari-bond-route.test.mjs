@@ -82,6 +82,8 @@ function makePromptBuilder() {
     hiroBondRoutes: readObjectLiteral("hiroBondRoutes"),
     seinaBondRoutes: readObjectLiteral("seinaBondRoutes"),
     kotoneBondRoutes: readObjectLiteral("kotoneBondRoutes"),
+    sakiBondRoutes: readObjectLiteral("sakiBondRoutes"),
+    umeBondRoutes: readObjectLiteral("umeBondRoutes"),
     temariBondRoutes: readObjectLiteral("temariBondRoutes"),
     misuzuBondRoutes: readObjectLiteral("misuzuBondRoutes"),
     amayaBondRoutes: readObjectLiteral("amayaBondRoutes"),
@@ -89,7 +91,9 @@ function makePromptBuilder() {
     buildProducerPromptSection: () => "",
     getPhase: () => "First Live 中期",
     roundLabel: () => "羁绊事件日",
-    outputContract: (text) => `输出格式要求：${text}`
+    outputContract: (text) => `输出格式要求：${text}`,
+    buildChoiceHardRules: () => "【输出硬规则】(测试桩)",
+    FREE_MODE_MAP_CHOICE_MINUTES: 30
   };
   vm.runInNewContext(
     `${readFunction("galgameRenderContract")}\n${readFunction("formatBondOptions")}\n${readFunction("specialBondRoutesFor")}\n${readFunction("specialBondLabel")}\n${readFunction("buildSpecialBondPhase1Prompt")}\n${readFunction("buildSpecialBondPhase2Prompt")}\n${readFunction("buildSpecialBondFinalPrompt")}\n${readFunction("buildTemariBondPhase1Prompt")}\n${readFunction("buildTemariBondPhase2Prompt")}\n${readFunction("buildTemariBondFinalPrompt")}\n${readFunction("buildAffinityPrompt")}\nthis.buildAffinityPrompt = buildAffinityPrompt;`,
@@ -113,7 +117,7 @@ test("Temari bond 100 remains a completed post-live ending prompt", () => {
   const buildAffinityPrompt = makePromptBuilder();
   const prompt = buildAffinityPrompt(100);
 
-  assert.match(prompt, /First Live 成功后的故事结尾/);
+  assert.match(prompt, /演出成功后的故事收尾/);
   assert.match(prompt, /First Live 成功后：赌约兑现/);
   assert.doesNotMatch(prompt, /手毬羁绊事件 - 第一轮选择/);
 });
@@ -182,6 +186,42 @@ test("Seina has dedicated two-choice bond route seeds", () => {
 
   const routeSelector = readFunction("specialBondRoutesFor");
   assert.match(routeSelector, /idolName === "十王星南"[\s\S]*seinaBondRoutes/);
+});
+
+test("Saki has dedicated two-choice bond route seeds", () => {
+  const routes = readObjectLiteral("sakiBondRoutes");
+  assert.deepEqual(Object.keys(routes).map(Number), [20, 40, 60, 80]);
+  assert.match(routes[20].canonAnchor, /追不上佑芽/);
+  assert.match(routes[40].objective, /谎言变成真实/);
+  assert.match(routes[60].canonAnchor, /保姆式辅导/);
+  assert.match(routes[80].resolution, /顶级偶像的证明/);
+
+  const seeds = readObjectLiteral("affinityRouteSeeds")["花海咲季"];
+  assert.match(seeds[0], /世界第一/);
+  assert.match(seeds[40], /期末考试输给佑芽/);
+  assert.match(seeds[80], /无法被复制/);
+  assert.match(seeds[100], /共犯关系/);
+
+  const routeSelector = readFunction("specialBondRoutesFor");
+  assert.match(routeSelector, /idolName === "花海咲季"[\s\S]*sakiBondRoutes/);
+});
+
+test("Ume has dedicated two-choice bond route seeds", () => {
+  const routes = readObjectLiteral("umeBondRoutes");
+  assert.deepEqual(Object.keys(routes).map(Number), [20, 40, 60, 80]);
+  assert.match(routes[20].canonAnchor, /宿敌/);
+  assert.match(routes[40].objective, /突破口/);
+  assert.match(routes[60].canonAnchor, /禁止说我输了/);
+  assert.match(routes[80].resolution, /成为世界第一/);
+
+  const seeds = readObjectLiteral("affinityRouteSeeds")["花海佑芽"];
+  assert.match(seeds[0], /候补入学/);
+  assert.match(seeds[40], /枷锁/);
+  assert.match(seeds[80], /对等的对手/);
+  assert.match(seeds[100], /成为姐姐的目标/);
+
+  const routeSelector = readFunction("specialBondRoutesFor");
+  assert.match(routeSelector, /idolName === "花海佑芽"[\s\S]*umeBondRoutes/);
 });
 
 test("Hiro has dedicated two-choice bond route seeds", () => {
