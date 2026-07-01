@@ -75,6 +75,26 @@ test("stripAiThinkingBlocks removes redacted thinking with mismatched close tag"
   assert.match(cleaned, /初星正文开始/);
 });
 
+
+test("extractChoicePayload keeps正文 after malformed konatan planning close", () => {
+  const ctx = makeExtractionContext();
+  const sample = `<konatan_planning~>
+1. **Revision de la situacion actual**
+The <sum> tag belongs after the body.
+<option1>"wrong quoted option"</option1>
+</konatan_planning~>
+【初星正文开始】
+<story><narration>真正的羁绊事件正文。</narration></story>
+<option1>直接问她</option1>
+<option2>告诉她梦境</option2>
+<option3>指出真正害怕的事</option3>
+<option4>让她自己说明</option4>
+【初星正文结束】`;
+
+  const payload = ctx.extractChoicePayload(sample);
+  assert.match(payload.story, /真正的羁绊事件正文/);
+  assert.deepEqual(Array.from(payload.options), ["直接问她", "告诉她梦境", "指出真正害怕的事", "让她自己说明"]);
+});
 test("extractReplyText keeps narrative raw when rendered still has previous delimiters", () => {
   const ctx = makeExtractionContext();
   const rawText = `好的，我来续写本次训练场景。

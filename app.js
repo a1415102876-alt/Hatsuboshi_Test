@@ -14406,9 +14406,11 @@ ${buildChoiceHardRules({ phase1: true })}`;
   }
 
   function stripAiThinkingBlocks(value) {
-    const thinkTags = "thinking|think|details|summary|sum|vars|analysis|planning|plan|konatan_planning|bginfo|bginfor|draft_notes|bginfor";
+    const thinkTags = "thinking|think|details|summary|vars|analysis|planning|plan|konatan_planning|bginfo|bginfor|draft_notes|bginfor";
+    const unclosedThinkTags = "thinking|think|details|summary|vars|analysis|planning|plan|konatan_planning|bginfo|bginfor|draft_notes|bginfor";
     const closedRegex = new RegExp("<(" + thinkTags + ")\\b[^>]*>[\\s\\S]*?<\\/\\1>", "gi");
-    const unclosedRegex = new RegExp("<(" + thinkTags + ")\\b[^>]*>[\\s\\S]*$", "gi");
+    const malformedClosedRegex = new RegExp("<(" + thinkTags + ")\\b[^>]*>[\\s\\S]*?<\\/\\1[^>]*>", "gi");
+    const unclosedRegex = new RegExp("<(" + unclosedThinkTags + ")\\b[^>]*>[\\s\\S]*$", "gi");
     const redactedPrefix = "redacted" + "_";
     const redactedMismatchedRegex = new RegExp(
       "<" + redactedPrefix + "thinking(?:\\s[^>]*)?>[\\s\\S]*?</" + redactedPrefix + "reasoning>",
@@ -14430,6 +14432,7 @@ ${buildChoiceHardRules({ phase1: true })}`;
       .replace(redactedClosedRegex, "")
       .replace(redactedUnclosedRegex, "")
       .replace(closedRegex, "")
+      .replace(malformedClosedRegex, "")
       .replace(unclosedRegex, "");
   }
 
@@ -14469,9 +14472,11 @@ ${buildChoiceHardRules({ phase1: true })}`;
   }
 
   function cleanReplyText(value) {
-    const thinkTags = "thinking|think|details|summary|sum|vars|analysis|planning|plan|konatan_planning|bginfo|bginfor|draft_notes|bginfor";
+    const thinkTags = "thinking|think|details|summary|vars|analysis|planning|plan|konatan_planning|bginfo|bginfor|draft_notes|bginfor";
+    const unclosedThinkTags = "thinking|think|details|summary|vars|analysis|planning|plan|konatan_planning|bginfo|bginfor|draft_notes|bginfor";
     const closedRegex = new RegExp("<(" + thinkTags + ")\\b[^>]*>[\\s\\S]*?<\\/\\1>", "gi");
-    const unclosedRegex = new RegExp("<(" + thinkTags + ")\\b[^>]*>[\\s\\S]*$", "gi");
+    const malformedClosedRegex = new RegExp("<(" + thinkTags + ")\\b[^>]*>[\\s\\S]*?<\\/\\1[^>]*>", "gi");
+    const unclosedRegex = new RegExp("<(" + unclosedThinkTags + ")\\b[^>]*>[\\s\\S]*$", "gi");
     const redactedPrefix = "redacted" + "_";
     const redactedMismatchedRegex = new RegExp(
       "<" + redactedPrefix + "thinking(?:\\s[^>]*)?>[\\s\\S]*?</" + redactedPrefix + "reasoning>",
@@ -14492,6 +14497,7 @@ ${buildChoiceHardRules({ phase1: true })}`;
       .replace(redactedClosedRegex, "")
       .replace(redactedUnclosedRegex, "")
       .replace(closedRegex, "")
+      .replace(malformedClosedRegex, "")
       .replace(unclosedRegex, "")
       .replace(/<(?!dialogue|narration|\/dialogue|\/narration)\/?[a-zA-Z_][\w:-]*\b[^>]*>/gi, "")
       .replace(/\[\s*\{[\s\S]*?\}\s*\]\s*$/g, "")
@@ -14584,6 +14590,12 @@ ${buildChoiceHardRules({ phase1: true })}`;
       }
     }
 
+    const storyMatches = [...content.matchAll(/<story\b[^>]*>[\s\S]*?<\/story>/gi)];
+    if (storyMatches.length > 0) {
+      const lastStoryMatch = storyMatches[storyMatches.length - 1];
+      content = content.slice(lastStoryMatch.index || 0);
+    }
+
     const extractTaggedOption = (num) => {
       const regexes = [
         new RegExp(`<option_?${num}>([\\s\\S]*?)<\\/option_?${num}>`, "i"),
@@ -14613,7 +14625,7 @@ ${buildChoiceHardRules({ phase1: true })}`;
       const raw = extractTaggedTime(num);
       return raw ? parseMapOptionMinutes(raw) : null;
     });
-    let story = content.match(/<story>([\s\S]*?)<\/story>/i)?.[1]?.trim() || "";
+    let story = content.match(/<story\b[^>]*>([\s\S]*?)<\/story>/i)?.[1]?.trim() || "";
 
     if (options.every(Boolean) && !story) {
       const firstOptIndex = content.search(/<option/i);
