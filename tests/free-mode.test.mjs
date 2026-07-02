@@ -82,6 +82,50 @@ test("world map locations and free mode time rules are wired", () => {
   assert.match(source, /dataset\.action === "world_map"/);
 });
 
+
+test("sandbox scout prompt handles wrong location as clue search", () => {
+  const sandbox = {
+    state: { idol: "月村手毬", boundCharacter: { name: "初星学园" } },
+    globalThis: {},
+    getWorldMapLocation(id) {
+      return id === "special_education"
+        ? { id, name: "特教栋", description: "训练室很多。" }
+        : { id, name: "中庭", description: "安静的中庭。" };
+    },
+    buildMapLocationPresenceLine() {
+      return "物色目标 月村手毬 今天不在这里；背景偶像仅供远观。";
+    },
+    getSandboxScoutTargetAtLocation(locationId) {
+      return locationId === "special_education" ? "月村手毬" : "";
+    },
+    getHatsuWorldHelpers() { return {}; },
+    formatCampusDayLabel() { return "学园第 1 天"; },
+    formatFreeModeClock() { return "8:15"; },
+    composeWorldSummaryBlock() { return ""; },
+    buildProducerPromptSection() { return "制作人设定：温柔耐心"; },
+    summarizeMapExploreContext() { return "（暂无上文）"; },
+    buildMapExplorePlayRules() { return "连续选项探索。"; },
+    galgameRenderContract() { return "渲染规则。"; },
+    buildMapExploreChoiceOutputBlock() { return "输出规则。"; }
+  };
+  sandbox.globalThis = sandbox;
+  sandbox.HatsuTasks = { getScoutQuestId: () => "scout_temari" };
+  sandbox.HatsuWorld = {
+    campusBehavior: { getScoutTargetLocation: () => "special_education" }
+  };
+  vm.runInNewContext(`${readFunction("buildSandboxScoutExplorePrompt")}`, sandbox);
+
+  const wrongLocationPrompt = sandbox.buildSandboxScoutExplorePrompt("courtyard");
+  assert.match(wrongLocationPrompt, /不在这里/);
+  assert.match(wrongLocationPrompt, /不要写制作人与 月村手毬 初次接触/);
+  assert.match(wrongLocationPrompt, /前往 特教栋/);
+  assert.match(wrongLocationPrompt, /不得输出【初星任务完成】scout_temari或 quest_complete/);
+  assert.doesNotMatch(wrongLocationPrompt, /同意签约时/);
+
+  const rightLocationPrompt = sandbox.buildSandboxScoutExplorePrompt("special_education");
+  assert.match(rightLocationPrompt, /与 月村手毬 初次接触/);
+  assert.match(rightLocationPrompt, /同意签约时/);
+});
 test("map location explore uses choice flow with return to map", () => {
   assert.match(source, /action === "map_location"/);
   assert.match(readFunction("beginMapLocationExploreSession"), /getMapExplorePrompt/);

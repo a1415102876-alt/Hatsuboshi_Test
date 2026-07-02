@@ -5785,7 +5785,11 @@ ${buildChoiceOnlyExample()}`;
     const targetIdol = state.idol || "物色目标";
     const scoutQuestId = globalThis.HatsuTasks?.getScoutQuestId?.(state) || "scout_temari";
     const presenceLine = buildMapLocationPresenceLine(locationId);
-    const sceneInstruction = continuation
+    const targetHere = getSandboxScoutTargetAtLocation(locationId) === targetIdol;
+    const targetLocationId = globalThis.HatsuWorld?.campusBehavior?.getScoutTargetLocation?.(targetIdol, getHatsuWorldHelpers()) || "";
+    const targetLocation = targetLocationId ? getWorldMapLocation(targetLocationId) : null;
+    const targetLocationName = targetLocation?.name || "\u76ee\u6807\u4eca\u5929\u6240\u5728\u5730\u70b9";
+    const targetPresentSceneInstruction = continuation
       ? `请承接下文摘要，写制作人继续留在 ${location.name}、与 ${targetIdol} 物色搭话的下一轮场景，并设计 4 个新的下一步行动选项。
 - 不要重复已经发生过的事件；从当前时间点自然续写。
 - 若 ${targetIdol} 在本轮明确同意成为制作人担当，不要输出 option 与 time 标签；正文写到她答应签约的瞬间，并在【初星正文结束】之前输出【初星任务完成】${scoutQuestId}（或 <quest_complete id="${scoutQuestId}" />）。前端将自动请求收尾剧情，不再展示选项。
@@ -5794,6 +5798,16 @@ ${summarizeMapExploreContext()}`
       : `请写制作人独自来到 ${location.name}，与 ${targetIdol} 初次接触、尝试邀请她成为担当的开场场景，并设计 4 个不同的下一步行动选项。
 - 这是沙盒物色期，不是已签约育成；不要写两人已是正式担当关系。
 - 重点写 ${targetIdol} 当前公开状态、对陌生人的距离感，以及制作人如何开口。`;
+    const targetAbsentSceneInstruction = continuation
+      ? `\u8bf7\u627f\u63a5\u4e0a\u6587\u6458\u8981\uff0c\u5199\u5236\u4f5c\u4eba\u7ee7\u7eed\u7559\u5728 ${location.name}\u5bfb\u627e ${targetIdol}\u7684\u7ebf\u7d22\uff0c\u4f46\u524d\u7aef\u5df2\u786e\u8ba4 ${targetIdol} \u4eca\u5929\u4e0d\u5728\u8fd9\u91cc\uff0c\u4e0d\u5f97\u5199\u5979\u8def\u8fc7\u6216\u88ab\u642d\u8bdd\u3002\n- \u5f53\u524d\u5730\u70b9\uff1a${location.name}\uff1b${targetIdol}\u4eca\u5929\u6240\u5728\u5730\u70b9\uff1a${targetLocationName}\u3002\n- \u672c\u8f6e\u5199\u627e\u4e0d\u5230\u76ee\u6807\u3001\u6838\u5bf9\u6821\u56ed\u52a8\u5411\u6216\u83b7\u5f97\u524d\u5f80 ${targetLocationName} \u7684\u7ebf\u7d22\uff0c\u8bbe\u8ba1 4 \u4e2a\u4e0b\u4e00\u6b65\u884c\u52a8\u9009\u9879\u3002\n- \u81f3\u5c11\u4e00\u4e2a option \u5fc5\u987b\u662f\u524d\u5f80 ${targetLocationName}\uff1b\u53ef\u4ee5\u6709\u7ee7\u7eed\u89c2\u5bdf\u73b0\u573a\u3001\u67e5\u770b\u516c\u544a/SNS\u3001\u6216\u5411\u5e38\u9a7bNPC\u8be2\u95ee\u7684\u9009\u9879\u3002\n- \u4e0a\u6587\u6458\u8981\uff08\u4ec5\u4f9b\u8854\u63a5\uff0c\u4e0d\u8981\u539f\u6587\u590d\u8ff0\uff09\uff1a\n${summarizeMapExploreContext()}`
+      : `\u8bf7\u5199\u5236\u4f5c\u4eba\u72ec\u81ea\u6765\u5230 ${location.name}\uff0c\u4f46\u524d\u7aef\u5df2\u786e\u8ba4 ${targetIdol} \u4eca\u5929\u4e0d\u5728\u8fd9\u91cc\uff1b\u4e0d\u8981\u5199\u5236\u4f5c\u4eba\u4e0e ${targetIdol} \u521d\u6b21\u63a5\u89e6\uff0c\u4e0d\u8981\u8ba9\u5979\u6070\u597d\u8def\u8fc7\u6216\u51fa\u73b0\u3002\n- \u5f53\u524d\u5730\u70b9\uff1a${location.name}\uff1b${targetIdol}\u4eca\u5929\u6240\u5728\u5730\u70b9\uff1a${targetLocationName}\u3002\n- \u672c\u8f6e\u5e94\u5199\u201c\u627e\u4e0d\u5230\u76ee\u6807\u201d\u7684\u5730\u70b9\u63a2\u7d22\u573a\u666f\uff1a\u5236\u4f5c\u4eba\u786e\u8ba4\u73b0\u573a\u6c1b\u56f4\u3001\u770b\u5230\u80cc\u666f\u5076\u50cf\u4f46\u4e0d\u6df1\u804a\uff0c\u5e76\u6839\u636e\u6821\u56ed\u52a8\u5411\u5224\u65ad\u5e94\u8f6c\u5f80 ${targetLocationName}\u3002\n- \u8bbe\u8ba1 4 \u4e2a\u4e0b\u4e00\u6b65\u884c\u52a8\u9009\u9879\uff1b\u81f3\u5c11\u4e00\u4e2a option \u5fc5\u987b\u662f\u524d\u5f80 ${targetLocationName}\uff0c\u4e0d\u5f97\u63d0\u4f9b\u4e0e\u80cc\u666f\u5076\u50cf\u6df1\u804a\u7684\u9009\u9879\u3002`;
+    const sceneInstruction = targetHere ? targetPresentSceneInstruction : targetAbsentSceneInstruction;
+    const scoutCompletionRule = targetHere
+      ? `- ${targetIdol} \u540c\u610f\u7b7e\u7ea6\u65f6\uff1a\u6b63\u6587\u672b\u5c3e\u8f93\u51fa\u3010\u521d\u661f\u4efb\u52a1\u5b8c\u6210\u3011${scoutQuestId}\uff08\u6216 <quest_complete id="${scoutQuestId}" />\uff09\uff0c\u540c\u8f6e\u4e0d\u8981 option/time\u3002`
+      : `- ${targetIdol} \u4e0d\u5728\u5f53\u524d\u5730\u70b9\uff1a\u672c\u8f6e\u4e0d\u5f97\u5199\u5979\u540c\u610f\u7b7e\u7ea6\uff0c\u4e0d\u5f97\u8f93\u51fa\u3010\u521d\u661f\u4efb\u52a1\u5b8c\u6210\u3011${scoutQuestId}\u6216 quest_complete\u3002`;
+    const scoutContactRule = targetHere
+      ? `- \u4ec5\u4e0e ${targetIdol} \u63a5\u89e6\uff0c\u4e0d\u8981\u63d0\u4f9b\u4e0e\u5176\u4ed6\u5076\u50cf\u6df1\u804a\u7684\u9009\u9879\u3002`
+      : `- \u4ec5\u53ef\u8fdc\u89c2\u80cc\u666f\u5076\u50cf\u6216\u5411\u5e38\u9a7bNPC\u8be2\u95ee\u7ebf\u7d22\uff1b\u4e0d\u8981\u628a\u80cc\u666f\u5076\u50cf\u5199\u6210\u53ef\u642d\u8bdd\u5bf9\u8c61\u3002`;
     return `[初星育成系统：沙盒模式 · 物色搭话]
 
 物色目标：${targetIdol}
@@ -5808,8 +5822,8 @@ ${presenceLine ? `\n${presenceLine}\n` : ""}${composeWorldSummaryBlock("map", lo
 ${buildProducerPromptSection()}
 
 ${sceneInstruction}
-- ${targetIdol} 同意签约时：正文末尾输出【初星任务完成】${scoutQuestId}（或 <quest_complete id="${scoutQuestId}" />），同轮不要 option/time。
-- 仅与 ${targetIdol} 接触，不要提供与其他偶像深聊的选项。
+${scoutCompletionRule}
+${scoutContactRule}
 
 ${buildMapExplorePlayRules({ outing: false, relationship: false })}
 
@@ -5858,6 +5872,7 @@ ${summarizeMapExploreContext()}`
         ? `请写制作人独自来到 ${location.name} 刚到达时的开场场景，并设计 4 个不同的下一步行动选项。担当偶像 ${idol} 不在身边同行。`
         : `请写制作人与担当偶像 ${idol} 一起来到 ${location.name} 刚到达时的开场场景，并设计 4 个不同的下一步行动选项。`;
     const presenceLine = buildMapLocationPresenceLine(locationId);
+
     const relationshipBlock = buildFreeModeRelationshipPromptBlock(locationId, { actionContext, visitMode });
     const sandboxMainBlock = isSandboxLaunch() && state.sandbox?.inviteComplete
       ? globalThis.HatsuTasks?.buildSandboxMainQuestPromptBlock?.(state, locationId) || ""
