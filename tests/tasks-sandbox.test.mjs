@@ -153,6 +153,17 @@ test("task panel hides inactive scout quests until idol is chosen", () => {
   assert.equal(snapshot.main.some((item) => item.id === "scout_temari"), false);
 });
 
+test("task panel suppresses leaked next scout before second idol is chosen", () => {
+  const HatsuTasks = loadHatsuTasks();
+  const state = baseKotoneSandboxState();
+  finishKotoneScoutFlow(HatsuTasks, state);
+  state.sandbox.inviteComplete = true;
+  state.tasks.main.scout_temari.status = "active";
+  const snapshot = HatsuTasks.getTaskPanelSnapshot(state);
+  assert.equal(snapshot.secondIdol.unlocked, false);
+  assert.equal(snapshot.main.some((item) => item.id === "scout_temari"), false);
+  assert.equal(state.tasks.main.scout_temari.status, "locked");
+});
 test("scout temari completes when AI outputs quest completion tag", () => {
   const HatsuTasks = loadHatsuTasks();
   const state = baseSandboxState();

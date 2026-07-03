@@ -134,7 +134,7 @@
   }
 
   function getScoutQuestId(state) {
-    const idol = String(state?.sandbox?.scoutTargetIdol || state?.idol || "").trim();
+    const idol = String(state?.sandbox?.scoutTargetIdol || "").trim();
     return SANDBOX_IDOL_QUEST_PACKS[idol]?.scoutId || "";
   }
 
@@ -198,14 +198,25 @@
     return SANDBOX_SELECTABLE_IDOLS.filter((idol) => !produced.has(idol));
   }
 
+  function syncScoutQuestSelection(state) {
+    if (!isSandboxTasksActive(state)) return;
+    ensureTasksShape(state);
+    ensureSandboxProgressState(state);
+    const selectedScoutId = SANDBOX_IDOL_QUEST_PACKS[state.sandbox.scoutTargetIdol]?.scoutId || "";
+    Object.values(SANDBOX_IDOL_QUEST_PACKS).forEach((pack) => {
+      const quest = state.tasks.main[pack.scoutId];
+      if (!quest || quest.status === "completed") return;
+      if (quest.status === "active" && pack.scoutId !== selectedScoutId) quest.status = "locked";
+    });
+  }
   function shouldShowMainQuestInPanel(state, id) {
     ensureTasksShape(state);
     const quest = state.tasks?.main?.[id];
     const status = quest?.status || "locked";
     if (isScoutQuestId(id)) {
       const idol = getIdolByScoutQuestId(id);
-      if (status === "completed" || status === "active") return true;
-      return state.sandbox?.scoutTargetIdol === idol;
+      if (status === "completed") return true;
+      return state.sandbox?.scoutTargetIdol === idol && status === "active";
     }
     if (isIdolPersonalQuestId(id)) {
       const idol = getIdolForPersonalQuestId(id);
@@ -526,6 +537,7 @@
       const pack = getSandboxQuestPack(state);
       Object.keys(MAIN_QUEST_META).forEach((id) => {
         if (id === scoutId) return;
+        if (isScoutQuestId(id)) return;
         if (isIdolPersonalQuestId(id) && !pack?.personalIds.includes(id)) return;
         if (state.tasks.main[id]?.status === "locked") {
           state.tasks.main[id].status = "active";
@@ -1536,6 +1548,7 @@ ${restLine}
     ensureTasksShape(state);
     ensureSandboxProgressState(state);
     syncProducedIdolsAndSecondUnlock(state);
+    syncScoutQuestSelection(state);
     const main = Object.keys(MAIN_QUEST_META)
       .filter((id) => shouldShowMainQuestInPanel(state, id))
       .map((id) => ({
