@@ -595,7 +595,7 @@
   const HYBRID_FACILITY_LESSON_LOCATIONS = ["idol_classroom", "producer_classroom"];
   const HYBRID_FACILITY_TRAINING_LOCATIONS = ["gymnasium", "special_education"];
   const HYBRID_FACILITY_ACTION_MINUTES = 60;
-  const SANDBOX_SELECTABLE_IDOLS = ["月村手毬", "藤田琴音"];
+  const SANDBOX_SELECTABLE_IDOLS = ["月村手毬", "藤田琴音", "花海咲季", "秦谷美铃"];
   const SANDBOX_ASARI_OPENING_STORY = `【初星正文开始】
 <story>
 <narration>午后的制作人科教室里，黑板上还留着上一节课的字迹。</narration>

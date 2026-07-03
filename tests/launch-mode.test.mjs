@@ -16,6 +16,7 @@ assert.match(appJs, /function chooseLaunchMode\(/);
 assert.match(appJs, /function startSandboxAsariOpening\(/);
 assert.match(appJs, /function enterSandboxCampusAfterOpening\(/);
 assert.match(appJs, /SANDBOX_SELECTABLE_IDOLS/);
+assert.match(appJs, /const SANDBOX_SELECTABLE_IDOLS = \["\u6708\u6751\u624b\u6bec", "\u85e4\u7530\u7434\u97f3", "\u82b1\u6d77\u54b2\u5b63", "\u79e6\u8c37\u7f8e\u94c3"\]/);
 assert.match(appJs, /isSandboxScoutActive/);
 assert.match(appJs, /getSandboxScoutTargetAtLocation/);
 assert.match(appJs, /macro_phase = "scout"/);
