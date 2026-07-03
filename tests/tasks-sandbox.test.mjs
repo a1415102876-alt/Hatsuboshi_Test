@@ -38,6 +38,12 @@ function finishKotoneScoutFlow(HatsuTasks, state) {
   HatsuTasks.applyQuestCompletionsFromReply(state, "【初星任务完成】scout_kotone");
 }
 
+function finishSakiScoutFlow(HatsuTasks, state) {
+  HatsuTasks.activateScoutQuestForIdol(state, state.idol);
+  HatsuTasks.onScoutInviteComplete(state);
+  HatsuTasks.applyQuestCompletionsFromReply(state, "【初星任务完成】scout_saki");
+}
+
 function loadSideQuestPool() {
   const sandbox = { globalThis: {}, console };
   sandbox.globalThis = sandbox;
@@ -507,6 +513,19 @@ function baseKotoneSandboxState() {
   };
 }
 
+function baseSakiSandboxState() {
+  return {
+    launchMode: "sandbox",
+    idol: "花海咲季",
+    sandbox: { openingComplete: true, inviteComplete: false },
+    stamina: 100,
+    stress: 0,
+    trust: 0,
+    Vo: 105,
+    Da: 120,
+    Vi: 100
+  };
+}
 test("sandbox selectable idols include kotone with scout and personal quests", () => {
   const HatsuTasks = loadHatsuTasks();
   assert.ok(HatsuTasks.SANDBOX_SELECTABLE_IDOLS.includes("藤田琴音"));
@@ -570,6 +589,42 @@ test("kotone praise and part-time flags parse from AI reply", () => {
   assert.equal(state.tasks.main.kotone_main_01.flags.part_time_cancelled, true);
 });
 
+test("sandbox selectable idols include saki with scout and personal quests", () => {
+  const HatsuTasks = loadHatsuTasks();
+  assert.ok(HatsuTasks.SANDBOX_SELECTABLE_IDOLS.includes("花海咲季"));
+  assert.equal(HatsuTasks.SANDBOX_IDOL_QUEST_PACKS["花海咲季"].scoutId, "scout_saki");
+  assert.equal(HatsuTasks.SANDBOX_IDOL_QUEST_PACKS["花海咲季"].personalIds, HatsuTasks.SAKI_PERSONAL_IDS);
+  assert.equal(HatsuTasks.MAIN_QUEST_META.saki_main_01.title, "解决担当面对的矛盾：天才的停滞感");
+});
+
+test("saki scout completes and unlocks only saki personal quests", () => {
+  const HatsuTasks = loadHatsuTasks();
+  const state = baseSakiSandboxState();
+  HatsuTasks.ensureTasksShape(state);
+  finishSakiScoutFlow(HatsuTasks, state);
+  assert.equal(state.tasks.main.scout_saki.status, "completed");
+  assert.equal(state.tasks.main.saki_main_01.status, "active");
+  assert.equal(state.tasks.main.saki_main_02.status, "active");
+  assert.equal(state.tasks.main.saki_main_03.status, "active");
+  assert.equal(state.tasks.main.temari_main_01.status, "locked");
+  assert.equal(state.tasks.main.kotone_main_01.status, "locked");
+  assert.equal(state.tasks.baseline.Vo, 105);
+  assert.equal(state.tasks.baseline.Vi, 100);
+});
+
+test("saki main quest prompt frames rivalry and sister identity", () => {
+  const HatsuTasks = loadHatsuTasks();
+  const state = baseSakiSandboxState();
+  finishSakiScoutFlow(HatsuTasks, state);
+  state.sandbox.inviteComplete = true;
+  const prompt = HatsuTasks.buildSandboxMainQuestPromptBlock(state, "playground");
+  assert.match(prompt, /天才的停滞感/);
+  assert.match(prompt, /最强姐姐的谎言/);
+  assert.match(prompt, /把私欲升华为胜利/);
+  assert.match(prompt, /【初星任务完成】saki_main_01/);
+  assert.match(prompt, /【初星任务完成】saki_main_02/);
+  assert.match(prompt, /【初星任务完成】saki_main_03/);
+});
 test("second idol unlock appears after full mainline completion", () => {
   const HatsuTasks = loadHatsuTasks();
   const state = baseKotoneSandboxState();

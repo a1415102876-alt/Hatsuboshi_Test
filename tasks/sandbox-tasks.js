@@ -57,6 +57,11 @@
       conflict: "在学园中接触藤田琴音并邀请她成为担当",
       category: "scout"
     },
+    scout_saki: {
+      title: "担当物色：花海咲季",
+      conflict: "在运动场接触花海咲季并邀请她成为担当",
+      category: "scout"
+    },
     kotone_main_01: {
       title: "解决担当面对的矛盾：告别快餐店打工",
       conflict: "让琴音辞掉快餐店打工，并通过委托系统达到 30 点知名度、赚到 1000 初星币",
@@ -70,6 +75,21 @@
     kotone_main_03: {
       title: "解决担当面对的矛盾：体力修养",
       conflict: "让琴音充分休息，把体力恢复到健康水平",
+      category: "conflict"
+    },
+    saki_main_01: {
+      title: "解决担当面对的矛盾：天才的停滞感",
+      conflict: "让咲季承认超早熟带来的瓶颈，以及如果不改变就会输给佑芽的恐惧",
+      category: "conflict"
+    },
+    saki_main_02: {
+      title: "解决担当面对的矛盾：最强姐姐的谎言",
+      conflict: "让咲季面对自己必须把「姐姐是世界第一」变成真实的压力",
+      category: "conflict"
+    },
+    saki_main_03: {
+      title: "解决担当面对的矛盾：把私欲升华为胜利",
+      conflict: "把想赢佑芽、珍惜佑芽、害怕被追上的复杂羁绊转化为舞台上的压制力",
       category: "conflict"
     },
     ability_vocal_180: {
@@ -107,6 +127,7 @@
   };
   const TEMARI_PERSONAL_IDS = ["temari_main_01", "temari_main_02", "temari_main_03"];
   const KOTONE_PERSONAL_IDS = ["kotone_main_01", "kotone_main_02", "kotone_main_03"];
+  const SAKI_PERSONAL_IDS = ["saki_main_01", "saki_main_02", "saki_main_03"];
 
   const SANDBOX_IDOL_QUEST_PACKS = {
     "月村手毬": {
@@ -116,6 +137,10 @@
     "藤田琴音": {
       scoutId: "scout_kotone",
       personalIds: KOTONE_PERSONAL_IDS
+    },
+    "花海咲季": {
+      scoutId: "scout_saki",
+      personalIds: SAKI_PERSONAL_IDS
     }
   };
   const SANDBOX_SELECTABLE_IDOLS = Object.keys(SANDBOX_IDOL_QUEST_PACKS);
@@ -412,12 +437,16 @@
       main: {
         scout_temari: defaultMainQuest("scout_temari", "locked"),
         scout_kotone: defaultMainQuest("scout_kotone", "locked"),
+        scout_saki: defaultMainQuest("scout_saki", "locked"),
         temari_main_01: defaultMainQuest("temari_main_01"),
         temari_main_02: defaultMainQuest("temari_main_02"),
         temari_main_03: defaultMainQuest("temari_main_03"),
         kotone_main_01: defaultMainQuest("kotone_main_01"),
         kotone_main_02: defaultMainQuest("kotone_main_02"),
-        kotone_main_03: defaultMainQuest("kotone_main_03")
+        kotone_main_03: defaultMainQuest("kotone_main_03"),
+        saki_main_01: defaultMainQuest("saki_main_01"),
+        saki_main_02: defaultMainQuest("saki_main_02"),
+        saki_main_03: defaultMainQuest("saki_main_03")
       },
       side: defaultSideState(),
       campus: { dayKey: "", usedCount: 0, maxPerDay: CAMPUS_MAX_PER_DAY, log: [] }
@@ -957,6 +986,41 @@ ${workLine}
 ${restLine}
 当前进度：${progressHint(state, "kotone_main_03")}
 若本轮写了充分休息、睡足或明显恢复体力，可输出【初星任务标记】full_rest。`
+      );
+    }
+    const saki01 = state.tasks.main.saki_main_01;
+    if (saki01?.status === "active") {
+      const sakiLine = locationId === "playground"
+        ? "本场景在运动场：适合写咲季自主训练、速度或体能项目后的瓶颈感。"
+        : "若场景涉及训练、课程或复盘，可写咲季用自夸掩盖成长停滞。";
+      blocks.push(
+        `【亚纱里课题 · 天才的停滞感】
+咲季的迫切矛盾：她是入学第一、训练认真，却开始意识到超早熟带来的瓶颈；制作人要点破「如果不改变现状，就会输给佑芽」这份恐惧。
+${sakiLine}
+完成条件：咲季承认成长停滞、害怕输或逃避真正败北，并要求制作人告诉她赢法。
+完成时请在正文末尾输出【初星任务完成】saki_main_01（或 <quest_complete id="saki_main_01" />），不要提前宣布课题完成。`
+      );
+    }
+    const saki02 = state.tasks.main.saki_main_02;
+    if (saki02?.status === "active") {
+      blocks.push(
+        `【亚纱里课题 · 最强姐姐的谎言】
+咲季与佑芽的矛盾不是单纯胜负：她想把「姐姐是世界第一」这个被妹妹相信过的谎言变成真实，同时害怕失去最强姐姐的位置。
+叙事要求：可写佑芽相关事件、童年承诺、姐姐身份压力；制作人应承诺陪她把谎言变成真实，而不是安慰她输也没关系。
+完成时请在正文末尾输出【初星任务完成】saki_main_02（或 <quest_complete id="saki_main_02" />），不要提前宣布课题完成。`
+      );
+    }
+    const saki03 = state.tasks.main.saki_main_03;
+    if (saki03?.status === "active") {
+      const battleLine = ["playground", "gymnasium", "outstage", "auditorium"].includes(locationId)
+        ? "本场景适合写对抗式训练、舞台压制力或首场 Live 前的发抖与逞强。"
+        : "可写她把训练、粉丝、营养管理和姐妹胜负重新组织成取胜计划。";
+      blocks.push(
+        `【亚纱里课题 · 把私欲升华为胜利】
+咲季不能只靠苦行僧式努力；制作人要引导她把想赢佑芽、珍惜佑芽、害怕被追上的复杂羁绊转化为舞台上的绝对压制力。
+${battleLine}
+完成条件：咲季不再逃避和佑芽正面对决，把战胜妹妹升华为顶级偶像证明，并主动要求更严苛计划。
+完成时请在正文末尾输出【初星任务完成】saki_main_03（或 <quest_complete id="saki_main_03" />），不要提前宣布课题完成。`
       );
     }
     return blocks.join("\n\n");
@@ -1603,12 +1667,16 @@ ${restLine}
     const map = {
       scout_temari: "担当确认，亚纱里老师阶段课题已解锁",
       scout_kotone: "担当确认，亚纱里老师阶段课题已解锁",
+      scout_saki: "担当确认，亚纱里老师阶段课题已解锁",
       temari_main_01: "课题完成：舞台唱完",
       temari_main_02: "课题完成：和美铃和好",
       temari_main_03: "课题完成：饮食与体态",
       kotone_main_01: "课题完成：告别快餐店打工",
       kotone_main_02: "课题完成：建立自信",
-      kotone_main_03: "课题完成：体力修养"
+      kotone_main_03: "课题完成：体力修养",
+      saki_main_01: "课题完成：天才的停滞感",
+      saki_main_02: "课题完成：最强姐姐的谎言",
+      saki_main_03: "课题完成：把私欲升华为胜利"
     };
     return map[id] || `任务完成：${MAIN_QUEST_META[id]?.title || id}`;
   }
@@ -1619,6 +1687,7 @@ ${restLine}
     SANDBOX_SELECTABLE_IDOLS,
     TEMARI_PERSONAL_IDS,
     KOTONE_PERSONAL_IDS,
+    SAKI_PERSONAL_IDS,
     THRESHOLDS,
     CAMPUS_MAX_PER_DAY,
     SIDE_SLOTS_PER_DAY,
