@@ -62,6 +62,11 @@
       conflict: "在运动场接触花海咲季并邀请她成为担当",
       category: "scout"
     },
+    scout_misuzu: {
+      title: "担当物色：秦谷美铃",
+      conflict: "在中庭接触秦谷美铃并邀请她成为担当",
+      category: "scout"
+    },
     kotone_main_01: {
       title: "解决担当面对的矛盾：告别快餐店打工",
       conflict: "让琴音辞掉快餐店打工，并通过委托系统达到 30 点知名度、赚到 1000 初星币",
@@ -90,6 +95,21 @@
     saki_main_03: {
       title: "解决担当面对的矛盾：把私欲升华为胜利",
       conflict: "把想赢佑芽、珍惜佑芽、害怕被追上的复杂羁绊转化为舞台上的压制力",
+      category: "conflict"
+    },
+    misuzu_main_01: {
+      title: "解决担当面对的矛盾：慢步调的野心",
+      conflict: "让美铃在被理解的步调中承认自己也会一步步走向偶像顶点",
+      category: "conflict"
+    },
+    misuzu_main_02: {
+      title: "解决担当面对的矛盾：温柔里的独占欲",
+      conflict: "让美铃把安稳平静的歌声背后想俘获所有人内心的真心唱出来",
+      category: "conflict"
+    },
+    misuzu_main_03: {
+      title: "解决担当面对的矛盾：比太阳更高的地方",
+      conflict: "让美铃从手毬的支撑者走向手毬也不得不仰望的顶点",
       category: "conflict"
     },
     ability_vocal_180: {
@@ -128,6 +148,7 @@
   const TEMARI_PERSONAL_IDS = ["temari_main_01", "temari_main_02", "temari_main_03"];
   const KOTONE_PERSONAL_IDS = ["kotone_main_01", "kotone_main_02", "kotone_main_03"];
   const SAKI_PERSONAL_IDS = ["saki_main_01", "saki_main_02", "saki_main_03"];
+  const MISUZU_PERSONAL_IDS = ["misuzu_main_01", "misuzu_main_02", "misuzu_main_03"];
 
   const SANDBOX_IDOL_QUEST_PACKS = {
     "月村手毬": {
@@ -141,6 +162,10 @@
     "花海咲季": {
       scoutId: "scout_saki",
       personalIds: SAKI_PERSONAL_IDS
+    },
+    "秦谷美铃": {
+      scoutId: "scout_misuzu",
+      personalIds: MISUZU_PERSONAL_IDS
     }
   };
   const SANDBOX_SELECTABLE_IDOLS = Object.keys(SANDBOX_IDOL_QUEST_PACKS);
@@ -438,6 +463,7 @@
         scout_temari: defaultMainQuest("scout_temari", "locked"),
         scout_kotone: defaultMainQuest("scout_kotone", "locked"),
         scout_saki: defaultMainQuest("scout_saki", "locked"),
+        scout_misuzu: defaultMainQuest("scout_misuzu", "locked"),
         temari_main_01: defaultMainQuest("temari_main_01"),
         temari_main_02: defaultMainQuest("temari_main_02"),
         temari_main_03: defaultMainQuest("temari_main_03"),
@@ -446,7 +472,10 @@
         kotone_main_03: defaultMainQuest("kotone_main_03"),
         saki_main_01: defaultMainQuest("saki_main_01"),
         saki_main_02: defaultMainQuest("saki_main_02"),
-        saki_main_03: defaultMainQuest("saki_main_03")
+        saki_main_03: defaultMainQuest("saki_main_03"),
+        misuzu_main_01: defaultMainQuest("misuzu_main_01"),
+        misuzu_main_02: defaultMainQuest("misuzu_main_02"),
+        misuzu_main_03: defaultMainQuest("misuzu_main_03")
       },
       side: defaultSideState(),
       campus: { dayKey: "", usedCount: 0, maxPerDay: CAMPUS_MAX_PER_DAY, log: [] }
@@ -1021,6 +1050,39 @@ ${sakiLine}
 ${battleLine}
 完成条件：咲季不再逃避和佑芽正面对决，把战胜妹妹升华为顶级偶像证明，并主动要求更严苛计划。
 完成时请在正文末尾输出【初星任务完成】saki_main_03（或 <quest_complete id="saki_main_03" />），不要提前宣布课题完成。`
+      );
+    }
+    const misuzu01 = state.tasks.main.misuzu_main_01;
+    if (misuzu01?.status === "active") {
+      const misuzuLine = locationId === "courtyard"
+        ? "本场景在中庭：适合写美铃在阳光和长椅上打盹，制作人选择等待、理解并成为共犯。"
+        : "若场景涉及休息、茶点、训练安排或偷懒，可写制作人理解她不是普通勤奋型偶像。";
+      blocks.push(
+        `【亚纱里课题 · 慢步调的野心】
+美铃的迫切矛盾：她会午睡、逃训练、按自己的步调行动，但这不是没有野心；制作人要理解她会像散步一样一步步走向偶像顶点。
+${misuzuLine}
+完成条件：美铃承认自己也想抵达顶点，制作人不指责她偷懒而是接受她的步调，并与她成为共犯。
+完成时请在正文末尾输出【初星任务完成】misuzu_main_01（或 <quest_complete id="misuzu_main_01" />），不要提前宣布课题完成。`
+      );
+    }
+    const misuzu02 = state.tasks.main.misuzu_main_02;
+    if (misuzu02?.status === "active") {
+      blocks.push(
+        `【亚纱里课题 · 温柔里的独占欲】
+美铃的歌声表层是安稳、平静、悠闲和慵懒；更深处是想让观众的心被自己填满、从今以后只注视她一人的占有式野心。
+叙事要求：不要写成普通治愈系，也不要写成阴暗病娇；让她用温柔平静的语气说出想俘获所有人的真心。
+完成条件：美铃明确说出想俘获观众或让所有人只注视自己，并愿意把这种真心放进舞台。
+完成时请在正文末尾输出【初星任务完成】misuzu_main_02（或 <quest_complete id="misuzu_main_02" />），不要提前宣布课题完成。`
+      );
+    }
+    const misuzu03 = state.tasks.main.misuzu_main_03;
+    if (misuzu03?.status === "active") {
+      blocks.push(
+        `【亚纱里课题 · 比太阳更高的地方】
+美铃与手毬、SyngUp! 的旧创伤核心不是单纯和好：她曾想成为手毬的翅膀，支撑手毬、让手毬只注视自己；失败后，她要亲自走到手毬仰望的太阳、高空和前方。
+叙事要求：可写手毬、SyngUp!、照顾欲与占有欲；重点是美铃从支撑者转为被注视的人，而不是回到旧组合状态。
+完成条件：美铃不再只想回到过去或支撑手毬，而是宣言要取代「太阳/高空/前方」，成为顶尖偶像。
+完成时请在正文末尾输出【初星任务完成】misuzu_main_03（或 <quest_complete id="misuzu_main_03" />），不要提前宣布课题完成。`
       );
     }
     return blocks.join("\n\n");
@@ -1668,6 +1730,7 @@ ${battleLine}
       scout_temari: "担当确认，亚纱里老师阶段课题已解锁",
       scout_kotone: "担当确认，亚纱里老师阶段课题已解锁",
       scout_saki: "担当确认，亚纱里老师阶段课题已解锁",
+      scout_misuzu: "担当确认，亚纱里老师阶段课题已解锁",
       temari_main_01: "课题完成：舞台唱完",
       temari_main_02: "课题完成：和美铃和好",
       temari_main_03: "课题完成：饮食与体态",
@@ -1676,7 +1739,10 @@ ${battleLine}
       kotone_main_03: "课题完成：体力修养",
       saki_main_01: "课题完成：天才的停滞感",
       saki_main_02: "课题完成：最强姐姐的谎言",
-      saki_main_03: "课题完成：把私欲升华为胜利"
+      saki_main_03: "课题完成：把私欲升华为胜利",
+      misuzu_main_01: "课题完成：慢步调的野心",
+      misuzu_main_02: "课题完成：温柔里的独占欲",
+      misuzu_main_03: "课题完成：比太阳更高的地方"
     };
     return map[id] || `任务完成：${MAIN_QUEST_META[id]?.title || id}`;
   }
@@ -1688,6 +1754,7 @@ ${battleLine}
     TEMARI_PERSONAL_IDS,
     KOTONE_PERSONAL_IDS,
     SAKI_PERSONAL_IDS,
+    MISUZU_PERSONAL_IDS,
     THRESHOLDS,
     CAMPUS_MAX_PER_DAY,
     SIDE_SLOTS_PER_DAY,

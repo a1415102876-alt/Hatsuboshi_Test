@@ -218,6 +218,36 @@ test("saki scout target starts at playground and is interactable", () => {
   assert.match(promptLines, /花海咲季/);
   assert.match(promptLines, /可接触/);
 });
+test("misuzu scout target starts at courtyard and is interactable", () => {
+  const HatsuWorld = loadWorldModules();
+  const state = {
+    idol: "秦谷美铃",
+    launchMode: "sandbox",
+    freeMode: {
+      postLiveDay: 1,
+      clockMinutes: 480,
+      world: { macro_phase: "scout", broadcast: { today: null, history: [] }, buzz: { items: [] } }
+    }
+  };
+  const helpers = {
+    idolNames: Object.keys(HatsuWorld.campusBehavior.SCOUT_OPENING_PRESENCE).concat(Object.keys(HatsuWorld.campusBehavior.SCOUT_BACKGROUND_PRESENCE)),
+    canonicalIdolName: (name) => name,
+    getPresenceSlotKey: () => "1@480",
+    getDayKey: () => "scout+1",
+    isSandboxLaunch: () => true,
+    isSandboxScoutPhase: () => true
+  };
+
+  const presence = HatsuWorld.dailyTick.refreshWorldPresence(state, helpers);
+  const campus = state.freeMode.world.campus;
+  assert.equal(presence["秦谷美铃"], "courtyard");
+  assert.equal(campus.slots["秦谷美铃"].interactable, true);
+  assert.equal(campus.slots["月村手毬"].interactable, false);
+
+  const promptLines = HatsuWorld.campusBehavior.buildMapPresencePromptLines("courtyard", state, helpers);
+  assert.match(promptLines, /秦谷美铃/);
+  assert.match(promptLines, /可接触/);
+});
 test("campus profiles resolve weighted first_live presence", () => {
   const HatsuWorld = loadWorldModules();
   const profiles = HatsuWorld.campusBehavior.CAMPUS_PROFILES;

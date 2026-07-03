@@ -44,6 +44,12 @@ function finishSakiScoutFlow(HatsuTasks, state) {
   HatsuTasks.applyQuestCompletionsFromReply(state, "【初星任务完成】scout_saki");
 }
 
+function finishMisuzuScoutFlow(HatsuTasks, state) {
+  HatsuTasks.activateScoutQuestForIdol(state, state.idol);
+  HatsuTasks.onScoutInviteComplete(state);
+  HatsuTasks.applyQuestCompletionsFromReply(state, "【初星任务完成】scout_misuzu");
+}
+
 function loadSideQuestPool() {
   const sandbox = { globalThis: {}, console };
   sandbox.globalThis = sandbox;
@@ -526,6 +532,21 @@ function baseSakiSandboxState() {
     Vi: 100
   };
 }
+
+function baseMisuzuSandboxState() {
+  return {
+    launchMode: "sandbox",
+    idol: "秦谷美铃",
+    sandbox: { openingComplete: true, inviteComplete: false },
+    stamina: 100,
+    stress: 0,
+    trust: 0,
+    Vo: 100,
+    Da: 100,
+    Vi: 115
+  };
+}
+
 test("sandbox selectable idols include kotone with scout and personal quests", () => {
   const HatsuTasks = loadHatsuTasks();
   assert.ok(HatsuTasks.SANDBOX_SELECTABLE_IDOLS.includes("藤田琴音"));
@@ -624,6 +645,43 @@ test("saki main quest prompt frames rivalry and sister identity", () => {
   assert.match(prompt, /【初星任务完成】saki_main_01/);
   assert.match(prompt, /【初星任务完成】saki_main_02/);
   assert.match(prompt, /【初星任务完成】saki_main_03/);
+});
+test("sandbox selectable idols include misuzu with scout and personal quests", () => {
+  const HatsuTasks = loadHatsuTasks();
+  assert.ok(HatsuTasks.SANDBOX_SELECTABLE_IDOLS.includes("秦谷美铃"));
+  assert.equal(HatsuTasks.SANDBOX_IDOL_QUEST_PACKS["秦谷美铃"].scoutId, "scout_misuzu");
+  assert.equal(HatsuTasks.SANDBOX_IDOL_QUEST_PACKS["秦谷美铃"].personalIds, HatsuTasks.MISUZU_PERSONAL_IDS);
+  assert.equal(HatsuTasks.MAIN_QUEST_META.misuzu_main_01.title, "解决担当面对的矛盾：慢步调的野心");
+});
+
+test("misuzu scout completes and unlocks only misuzu personal quests", () => {
+  const HatsuTasks = loadHatsuTasks();
+  const state = baseMisuzuSandboxState();
+  HatsuTasks.ensureTasksShape(state);
+  finishMisuzuScoutFlow(HatsuTasks, state);
+  assert.equal(state.tasks.main.scout_misuzu.status, "completed");
+  assert.equal(state.tasks.main.misuzu_main_01.status, "active");
+  assert.equal(state.tasks.main.misuzu_main_02.status, "active");
+  assert.equal(state.tasks.main.misuzu_main_03.status, "active");
+  assert.equal(state.tasks.main.temari_main_01.status, "locked");
+  assert.equal(state.tasks.main.kotone_main_01.status, "locked");
+  assert.equal(state.tasks.main.saki_main_01.status, "locked");
+  assert.equal(state.tasks.baseline.Vo, 100);
+  assert.equal(state.tasks.baseline.Vi, 115);
+});
+
+test("misuzu main quest prompt frames slow ambition and SyngUp past", () => {
+  const HatsuTasks = loadHatsuTasks();
+  const state = baseMisuzuSandboxState();
+  finishMisuzuScoutFlow(HatsuTasks, state);
+  state.sandbox.inviteComplete = true;
+  const prompt = HatsuTasks.buildSandboxMainQuestPromptBlock(state, "courtyard");
+  assert.match(prompt, /慢步调的野心/);
+  assert.match(prompt, /温柔里的独占欲/);
+  assert.match(prompt, /比太阳更高的地方/);
+  assert.match(prompt, /【初星任务完成】misuzu_main_01/);
+  assert.match(prompt, /【初星任务完成】misuzu_main_02/);
+  assert.match(prompt, /【初星任务完成】misuzu_main_03/);
 });
 test("second idol unlock appears after full mainline completion", () => {
   const HatsuTasks = loadHatsuTasks();
