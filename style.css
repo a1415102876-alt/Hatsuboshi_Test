@@ -8931,18 +8931,22 @@ body.is-free-mode-active {
 }
 
 .free-mode-outing-scene-overlay {
-  padding: 18px;
+  place-items: stretch;
+  padding: 0;
+  background: #080b14;
+  backdrop-filter: none;
 }
 
 .free-mode-outing-scene-panel {
   position: relative;
   overflow: hidden;
-  width: min(1180px, 100%);
-  height: min(780px, 92svh);
-  border: 1px solid rgba(255, 255, 255, 0.32);
-  border-radius: 8px;
+  width: 100vw;
+  height: 100svh;
+  border: 0;
+  border-radius: 0;
   background: #111827;
-  box-shadow: 0 28px 72px rgba(16, 14, 28, 0.42);
+  box-shadow: none;
+  animation: mallSceneEnter 360ms cubic-bezier(0.2, 0.82, 0.2, 1) both;
 }
 
 .free-mode-outing-scene-bg,
@@ -8955,6 +8959,8 @@ body.is-free-mode-active {
 
 .free-mode-outing-scene-bg {
   object-fit: cover;
+  transform: scale(1.015);
+  animation: mallSceneImageSettle 520ms cubic-bezier(0.2, 0.82, 0.2, 1) both;
 }
 
 .free-mode-outing-scene-shade {
@@ -9239,8 +9245,8 @@ body.is-free-mode-active {
 }
 
 @media (max-width: 760px) {
-  .free-mode-outing-scene-overlay { padding: 10px; }
-  .free-mode-outing-scene-panel { height: min(760px, 94svh); }
+  .free-mode-outing-scene-overlay { padding: 0; }
+  .free-mode-outing-scene-panel { height: 100svh; }
   .free-mode-outing-scene-head { inset: 10px 10px auto; }
   .free-mode-outing-scene-titlebox { max-width: calc(100% - 132px); padding: 11px 12px; }
   .free-mode-outing-scene-titlebox h2 { font-size: 19px; }
@@ -9258,4 +9264,26 @@ body.is-free-mode-active {
   .outing-facility-anime_shop,
   .outing-facility-entrance,
   .outing-facility-food_court { grid-column: auto; grid-row: auto; }
+}
+
+@keyframes mallSceneEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes mallSceneImageSettle {
+  from {
+    filter: brightness(0.55) blur(8px);
+    transform: scale(1.04);
+  }
+  to {
+    filter: brightness(1) blur(0);
+    transform: scale(1.015);
+  }
 }
