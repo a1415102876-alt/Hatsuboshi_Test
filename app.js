@@ -13892,6 +13892,8 @@ ${buildChoiceHardRules({ phase1: true })}`;
         return "./assets/scenes/rest.png";
       }
       if (action === "outing") {
+        const destination = String(context.actionContext?.destination || "").trim();
+        if (OUTING_DESTINATION_SCENES[destination]) return OUTING_DESTINATION_SCENES[destination];
         return "./assets/scenes/campus.png";
       }
       if (action === "companion" || action === "intimacy") {
