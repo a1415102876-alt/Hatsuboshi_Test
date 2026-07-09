@@ -654,6 +654,16 @@ test("sandbox selectable idols include misuzu with scout and personal quests", (
   assert.equal(HatsuTasks.MAIN_QUEST_META.misuzu_main_01.title, "解决担当面对的矛盾：慢步调的野心");
 });
 
+
+test("sandbox selectable idols include hiro with scout and personal quests", () => {
+  const HatsuTasks = loadHatsuTasks();
+  const hiro = "筱泽广";
+  assert.ok(HatsuTasks.SANDBOX_SELECTABLE_IDOLS.includes(hiro));
+  assert.equal(HatsuTasks.SANDBOX_IDOL_QUEST_PACKS[hiro].scoutId, "scout_hiro");
+  assert.deepEqual(HatsuTasks.SANDBOX_IDOL_QUEST_PACKS[hiro].personalIds, HatsuTasks.HIRO_PERSONAL_IDS);
+  assert.equal(HatsuTasks.MAIN_QUEST_META.hiro_main_01.category, "conflict");
+});
+
 test("misuzu scout completes and unlocks only misuzu personal quests", () => {
   const HatsuTasks = loadHatsuTasks();
   const state = baseMisuzuSandboxState();

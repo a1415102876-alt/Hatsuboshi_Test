@@ -67,6 +67,11 @@
       conflict: "在中庭接触秦谷美铃并邀请她成为担当",
       category: "scout"
     },
+    scout_hiro: {
+      title: "担当物色：筱泽广",
+      conflict: "在偶像科教室旁走廊或教学楼保健室接触筱泽广并邀请她成为担当",
+      category: "scout"
+    },
     kotone_main_01: {
       title: "解决担当面对的矛盾：告别快餐店打工",
       conflict: "让琴音辞掉快餐店打工，并通过委托系统达到 30 点知名度、赚到 1000 初星币",
@@ -112,6 +117,21 @@
       conflict: "让美铃从手毬的支撑者走向手毬也不得不仰望的顶点",
       category: "conflict"
     },
+    hiro_main_01: {
+      title: "解决担当面对的矛盾：最不适合的挑战",
+      conflict: "让广确认偶像活动正因为做不到才值得挑战，并接受制作人的试用指导",
+      category: "conflict"
+    },
+    hiro_main_02: {
+      title: "解决担当面对的矛盾：理论与身体的落差",
+      conflict: "把理论理解与身体极限之间的失败转化为一点点前进的喜悦",
+      category: "conflict"
+    },
+    hiro_main_03: {
+      title: "解决担当面对的矛盾：每天在一起的约定",
+      conflict: "让广把挑战、信任和想与制作人继续前进的心情说出口",
+      category: "conflict"
+    },
     ability_vocal_180: {
       title: "培养偶像能力：Vocal 达到 180",
       conflict: "完成亚纱里老师布置的歌唱能力阶段审查",
@@ -149,6 +169,7 @@
   const KOTONE_PERSONAL_IDS = ["kotone_main_01", "kotone_main_02", "kotone_main_03"];
   const SAKI_PERSONAL_IDS = ["saki_main_01", "saki_main_02", "saki_main_03"];
   const MISUZU_PERSONAL_IDS = ["misuzu_main_01", "misuzu_main_02", "misuzu_main_03"];
+  const HIRO_PERSONAL_IDS = ["hiro_main_01", "hiro_main_02", "hiro_main_03"];
 
   const SANDBOX_IDOL_QUEST_PACKS = {
     "月村手毬": {
@@ -166,6 +187,10 @@
     "秦谷美铃": {
       scoutId: "scout_misuzu",
       personalIds: MISUZU_PERSONAL_IDS
+    },
+    "筱泽广": {
+      scoutId: "scout_hiro",
+      personalIds: HIRO_PERSONAL_IDS
     }
   };
   const SANDBOX_SELECTABLE_IDOLS = Object.keys(SANDBOX_IDOL_QUEST_PACKS);
@@ -464,6 +489,7 @@
         scout_kotone: defaultMainQuest("scout_kotone", "locked"),
         scout_saki: defaultMainQuest("scout_saki", "locked"),
         scout_misuzu: defaultMainQuest("scout_misuzu", "locked"),
+        scout_hiro: defaultMainQuest("scout_hiro", "locked"),
         temari_main_01: defaultMainQuest("temari_main_01"),
         temari_main_02: defaultMainQuest("temari_main_02"),
         temari_main_03: defaultMainQuest("temari_main_03"),
@@ -475,7 +501,10 @@
         saki_main_03: defaultMainQuest("saki_main_03"),
         misuzu_main_01: defaultMainQuest("misuzu_main_01"),
         misuzu_main_02: defaultMainQuest("misuzu_main_02"),
-        misuzu_main_03: defaultMainQuest("misuzu_main_03")
+        misuzu_main_03: defaultMainQuest("misuzu_main_03"),
+        hiro_main_01: defaultMainQuest("hiro_main_01"),
+        hiro_main_02: defaultMainQuest("hiro_main_02"),
+        hiro_main_03: defaultMainQuest("hiro_main_03")
       },
       side: defaultSideState(),
       campus: { dayKey: "", usedCount: 0, maxPerDay: CAMPUS_MAX_PER_DAY, log: [] }
@@ -1083,6 +1112,39 @@ ${misuzuLine}
 叙事要求：可写手毬、SyngUp!、照顾欲与占有欲；重点是美铃从支撑者转为被注视的人，而不是回到旧组合状态。
 完成条件：美铃不再只想回到过去或支撑手毬，而是宣言要取代「太阳/高空/前方」，成为顶尖偶像。
 完成时请在正文末尾输出【初星任务完成】misuzu_main_03（或 <quest_complete id="misuzu_main_03" />），不要提前宣布课题完成。`
+      );
+    }
+    const hiro01 = state.tasks.main.hiro_main_01;
+    if (hiro01?.status === "active") {
+      const hiroLine = ["idol_classroom", "special_education", "producer_classroom"].includes(locationId)
+        ? "本场景适合写广在教室旁走廊、教学楼保健室或课程后摇摇晃晃地出现；制作人可以直说她不适合偶像，她反而觉得安心。"
+        : "可写广把普通移动、课程或外出都当成实验变量，身体很快到极限，但因为做不到所以觉得有趣。";
+      blocks.push(
+        `【亚纱里课题 · 最不适合的挑战】
+广的迫切矛盾：她选择偶像不是因为擅长，而是因为这像是最不适合自己的事情；制作人需要确认这份挑战不是自毁，而是她想认真前进的理由。
+${hiroLine}
+完成条件：广接受制作人的试用指导，明确说出「做不到所以有趣」或同等含义，并愿意把最不适合的偶像活动作为自己的挑战。
+完成时请在正文末尾输出【初星任务完成】hiro_main_01（或 <quest_complete id="hiro_main_01" />），不要提前宣布课题完成。`
+      );
+    }
+    const hiro02 = state.tasks.main.hiro_main_02;
+    if (hiro02?.status === "active") {
+      blocks.push(
+        `【亚纱里课题 · 理论与身体的落差】
+广能快速理解理论，却无法让身体跟上；重点不是突然变强，而是把失败、体力不足和一点点进步写成她真正感到开心的过程。
+叙事要求：可写训练、上课、保健室休息、制作人扶住她后的复盘；不要把她写成普通体力差的悲情角色，她会平静甚至开心地面对困难。
+完成条件：广在一次明显失败或体力极限后，确认自己确实前进了一点，并请求制作人继续见证她的挑战。
+完成时请在正文末尾输出【初星任务完成】hiro_main_02（或 <quest_complete id="hiro_main_02" />），不要提前宣布课题完成。`
+      );
+    }
+    const hiro03 = state.tasks.main.hiro_main_03;
+    if (hiro03?.status === "active") {
+      blocks.push(
+        `【亚纱里课题 · 每天在一起的约定】
+广的亲近不是热烈撒娇，而是直白地说开心、喜欢、谢谢，并希望制作人每天都在身边继续这个困难实验。
+叙事要求：可写她记录恢复、课程后的短暂散步、保健室或教室旁的安静对话；重点是信任从「请夸我」推进到「请明天也在」。
+完成条件：广主动表达想和制作人继续每天一起挑战偶像活动，制作人回应这份约定。
+完成时请在正文末尾输出【初星任务完成】hiro_main_03（或 <quest_complete id="hiro_main_03" />），不要提前宣布课题完成。`
       );
     }
     return blocks.join("\n\n");
@@ -1731,6 +1793,7 @@ ${misuzuLine}
       scout_kotone: "担当确认，亚纱里老师阶段课题已解锁",
       scout_saki: "担当确认，亚纱里老师阶段课题已解锁",
       scout_misuzu: "担当确认，亚纱里老师阶段课题已解锁",
+      scout_hiro: "担当确认，亚纱里老师阶段课题已解锁",
       temari_main_01: "课题完成：舞台唱完",
       temari_main_02: "课题完成：和美铃和好",
       temari_main_03: "课题完成：饮食与体态",
@@ -1742,7 +1805,10 @@ ${misuzuLine}
       saki_main_03: "课题完成：把私欲升华为胜利",
       misuzu_main_01: "课题完成：慢步调的野心",
       misuzu_main_02: "课题完成：温柔里的独占欲",
-      misuzu_main_03: "课题完成：比太阳更高的地方"
+      misuzu_main_03: "课题完成：比太阳更高的地方",
+      hiro_main_01: "课题完成：最不适合的挑战",
+      hiro_main_02: "课题完成：理论与身体的落差",
+      hiro_main_03: "课题完成：每天在一起的约定"
     };
     return map[id] || `任务完成：${MAIN_QUEST_META[id]?.title || id}`;
   }
@@ -1755,6 +1821,7 @@ ${misuzuLine}
     KOTONE_PERSONAL_IDS,
     SAKI_PERSONAL_IDS,
     MISUZU_PERSONAL_IDS,
+    HIRO_PERSONAL_IDS,
     THRESHOLDS,
     CAMPUS_MAX_PER_DAY,
     SIDE_SLOTS_PER_DAY,

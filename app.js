@@ -510,7 +510,7 @@
       line: "home",
       status: "locked",
       x: 52,
-      y: 24,
+      y: 82,
       description: "花海家的生活区域。建议作为咲季相关事件或信赖阶段地点开放。",
       pois: ["玄关", "客厅", "家庭餐桌"]
     },
@@ -520,8 +520,8 @@
       shortLabel: "千奈",
       line: "home",
       status: "locked",
-      x: 72,
-      y: 24,
+      x: 66,
+      y: 82,
       description: "千奈相关的私宅地点。建议作为角色事件或特定任务解锁。",
       pois: ["宅邸门前", "会客室", "庭院"]
     }
@@ -556,6 +556,70 @@
     "音乐节会场": DEFAULT_OUTING_SCENE,
     "摄影棚": DEFAULT_OUTING_SCENE,
     "品牌旗舰店": DEFAULT_OUTING_SCENE
+  };
+  const FREE_MODE_OUTING_VENUES = {
+    shopping_mall: {
+      id: "shopping_mall",
+      stationId: "shopping_mall",
+      name: "购物中心",
+      entranceFacilityId: "entrance",
+      facilities: [
+        {
+          id: "entrance",
+          floor: "1F",
+          name: "入口大厅 / 商场内",
+          shortName: "入口大厅",
+          sceneName: "购物中心入口",
+          image: "./assets/scenes/Shopping_Mall_Entrance.png",
+          description: "购物中心入口大厅。右侧有设施导览牌，适合确认同行偶像和下一步去处。"
+        },
+        {
+          id: "game_center",
+          floor: "2F",
+          name: "游戏厅",
+          shortName: "游戏厅",
+          sceneName: "购物中心游戏厅",
+          image: "./assets/scenes/Game_Center.png",
+          description: "灯光、音效和抓娃娃机聚在一起的游戏厅，适合轻松胜负和热闹互动。"
+        },
+        {
+          id: "karaoke",
+          floor: "3F",
+          name: "卡拉OK",
+          shortName: "卡拉OK",
+          sceneName: "购物中心卡拉OK",
+          image: "./assets/scenes/Karaoke.png",
+          description: "封闭的小包厢和点歌屏，适合唱歌、练声和更私密的对话。"
+        },
+        {
+          id: "cinema",
+          floor: "4F",
+          name: "电影院",
+          shortName: "电影院",
+          sceneName: "购物中心电影院",
+          image: "./assets/scenes/Shopping_Mall.png",
+          description: "商场高层的电影院区域。暂用商场内部背景，之后可替换为专用影院图。"
+        },
+        {
+          id: "anime_shop",
+          floor: "2F",
+          name: "动漫店",
+          shortName: "动漫店",
+          sceneName: "购物中心动漫店",
+          image: "./assets/scenes/AnimeShop.png",
+          description: "摆满周边、杂志和角色商品的店铺，适合发现私下兴趣。"
+        },
+        {
+          id: "food_court",
+          floor: "B1",
+          name: "餐饮区",
+          shortName: "餐饮区",
+          sceneName: "购物中心餐饮区",
+          image: "./assets/scenes/Shopping_Mall.png",
+          description: "商场地下餐饮区。先作为扩展入口保留，可用于休息和轻食事件。"
+        }
+      ]
+    }
   };
   const FINAL_LIVE_DAY = 22;
   const BOND_80_DAY = FINAL_LIVE_DAY - 1;
@@ -595,7 +659,7 @@
   const HYBRID_FACILITY_LESSON_LOCATIONS = ["idol_classroom", "producer_classroom"];
   const HYBRID_FACILITY_TRAINING_LOCATIONS = ["gymnasium", "special_education"];
   const HYBRID_FACILITY_ACTION_MINUTES = 60;
-  const SANDBOX_SELECTABLE_IDOLS = ["月村手毬", "藤田琴音", "花海咲季", "秦谷美铃"];
+  const SANDBOX_SELECTABLE_IDOLS = ["月村手毬", "藤田琴音", "花海咲季", "秦谷美铃", "筱泽广"];
   const SANDBOX_ASARI_OPENING_STORY = `【初星正文开始】
 <story>
 <narration>午后的制作人科教室里，黑板上还留着上一节课的字迹。</narration>
@@ -5930,6 +5994,17 @@ ${buildMapExploreChoiceOutputBlock({ includeRelationship: true })}`;
     const dayTimeLabel = isSandboxLaunch()
       ? `${formatCampusDayLabel()} ${formatFreeModeClock()}`
       : `${formatFreeModeDayLabel()} ${formatFreeModeClock()}`;
+    const activeFacility = getActiveFreeModeOutingFacility(actionContext);
+    const outingSceneName = actionContext.outingSceneName || activeFacility?.sceneName || location.name;
+    const outingFacilityName = actionContext.outingFacilityName || activeFacility?.name || location.name;
+    const outingFacilityDesc = activeFacility?.description || location.description;
+    const outingAction = actionContext.outingAction || "explore";
+    const outingSelectedIdol = actionContext.outingSelectedIdol || idol;
+    const outingActionLine = outingAction === "chat"
+      ? `本次互动：点击 ${outingSelectedIdol} 的立绘后选择闲聊。`
+      : outingAction === "ask"
+        ? `本次互动：询问 ${outingSelectedIdol} 想去哪里或想做什么。`
+        : `本次互动：在当前设施继续探索。`;
     const sceneInstruction = continuation
       ? `请承接下文摘要，写制作人继续在校外 ${location.name} 活动的下一轮场景，并设计 4 个新的下一步行动选项。
 - 不要重复已经发生过的事件；从当前时间点自然续写。
@@ -5950,6 +6025,10 @@ ${getFreeModeAffinityStageLine(state.idol)}
 当前时间：${dayTimeLabel}
 外出地点：${location.name}
 外出说明：${location.description}
+当前场景：${outingSceneName}
+当前设施：${outingFacilityName}
+设施说明：${outingFacilityDesc}
+${outingActionLine}
 
 ${buildMapLocationVisitModeLine(visitMode)}
 ${relationshipBlock ? `\n${relationshipBlock}` : ""}
@@ -5957,7 +6036,7 @@ ${relationshipBlock ? `\n${relationshipBlock}` : ""}
 ${buildProducerPromptSection()}
 
 ${sceneInstruction}
-- 氛围贴合 ${location.name}，可写路人、店员与环境细节。
+- 氛围贴合 ${location.name} 的 ${outingFacilityName}，可写路人、店员、设施物件与环境细节。
 - 与育成日程外出完全不同，这是地图自由探索中的校外地点。
 - 支持连续多轮选择 option，每轮只推进当前选项结果与新的下一步选项。
 
@@ -7321,7 +7400,7 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
         title: "物色担当偶像",
         desc: "亚纱里老师已介绍学园概况。先选一位今天要去接触的偶像，再到地图找她聊聊。",
         rules: [
-          "沙盒开局暂仅开放月村手毬",
+          "沙盒开局开放月村手毬、藤田琴音、花海咲季、秦谷美铃、筱泽广",
           "选择后设定制作人档案",
           "再到地图与担当接触"
         ],
@@ -7669,6 +7748,8 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     const locationId = actionContext.locationId;
     if (!locationId) return DEFAULT_OUTING_SCENE;
     if (isFreeModeOffCampusExplore(actionContext)) {
+      const facility = getActiveFreeModeOutingFacility(actionContext);
+      if (facility?.image) return facility.image;
       const destination = String(
         actionContext.outingDestination
         || actionContext.locationName
@@ -10071,6 +10152,201 @@ ${buildChoiceHardRules({ phase1: true })}`;
     });
   }
 
+
+  function getFreeModeOutingVenue(venueId) {
+    return FREE_MODE_OUTING_VENUES[String(venueId || "").trim()] || null;
+  }
+
+  function getFreeModeOutingVenueByDestination(destination) {
+    const station = offCampusStationByDestination(destination);
+    if (!station) return null;
+    return Object.values(FREE_MODE_OUTING_VENUES).find((venue) => venue.stationId === station.id) || null;
+  }
+
+  function getFreeModeOutingFacility(venueId, facilityId) {
+    const venue = getFreeModeOutingVenue(venueId);
+    if (!venue) return null;
+    const id = String(facilityId || venue.entranceFacilityId || "").trim();
+    return venue.facilities.find((facility) => facility.id === id) || venue.facilities[0] || null;
+  }
+
+  function getActiveFreeModeOutingFacility(actionContext = state.pendingActionContext?.actionContext || {}) {
+    const scene = state.freeMode?.outingScene || {};
+    const venueId = actionContext.outingVenueId || scene.venueId;
+    const facilityId = actionContext.outingFacilityId || scene.facilityId;
+    return getFreeModeOutingFacility(venueId, facilityId);
+  }
+
+  function openFreeModeOutingScene(venueId, visitMode = "with_idol") {
+    if (!isFreeModeActive()) return;
+    const venue = getFreeModeOutingVenue(venueId);
+    if (!venue) return;
+    if (!state.freeMode) state.freeMode = {};
+    state.freeMode.outingScene = {
+      venueId: venue.id,
+      facilityId: venue.entranceFacilityId,
+      visitMode: visitMode === "alone" ? "alone" : "with_idol",
+      selectedIdol: canonicalIdolName(state.idol) || state.idol || ""
+    };
+    state.freeMode.activeOutingDestination = venue.name;
+    closeFreeModeOutingOverlay();
+    closeMapLocationOverlay();
+    renderFreeModeOutingScene();
+    setElementHidden("freeModeOutingSceneOverlay", false);
+  }
+
+  function closeFreeModeOutingScene() {
+    setElementHidden("freeModeOutingSceneOverlay", true);
+    closeFreeModeOutingFacilityGuide();
+    closeFreeModeOutingIdolActionMenu();
+  }
+
+  function renderFreeModeOutingScene() {
+    const scene = state.freeMode?.outingScene || {};
+    const venue = getFreeModeOutingVenue(scene.venueId);
+    const facility = getFreeModeOutingFacility(scene.venueId, scene.facilityId);
+    if (!venue || !facility) return;
+    const title = document.getElementById("freeModeOutingSceneTitle");
+    const desc = document.getElementById("freeModeOutingSceneDesc");
+    const image = document.getElementById("freeModeOutingSceneImage");
+    if (title) title.textContent = facility.sceneName || facility.name;
+    if (desc) desc.textContent = facility.description || venue.name;
+    if (image) {
+      image.src = facility.image || DEFAULT_OUTING_SCENE;
+      image.alt = facility.sceneName || facility.name;
+    }
+    renderFreeModeOutingSceneIdols();
+    renderFreeModeOutingFacilityGuide();
+  }
+
+  function getFreeModeOutingSceneIdols() {
+    const names = [];
+    const assigned = canonicalIdolName(state.idol) || state.idol || "";
+    if (assigned && idols[assigned]) names.push(assigned);
+    return names;
+  }
+
+  function renderFreeModeOutingSceneIdols() {
+    const list = document.getElementById("freeModeOutingSceneIdols");
+    if (!list) return;
+    const selected = state.freeMode?.outingScene?.selectedIdol || canonicalIdolName(state.idol) || state.idol || "";
+    list.innerHTML = "";
+    getFreeModeOutingSceneIdols().forEach((idolName) => {
+      const profile = idols[idolName] || {};
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `outing-scene-idol${idolName === selected ? " is-selected" : ""}`;
+      button.dataset.outingIdol = idolName;
+      button.style.setProperty("--idol-color", profile.theme || "#ec407a");
+      const standee = resolveIdolStandeeSrc(idolName);
+      button.innerHTML = `
+        <img src="${escapePhoneText(standee || profile.avatar || "")}" alt="${escapePhoneText(idolName)}立绘" loading="lazy" decoding="async">
+        <span>${escapePhoneText(idolName)}</span>
+      `;
+      button.querySelector("img")?.addEventListener("error", (event) => {
+        event.currentTarget.classList.add("is-missing");
+      });
+      button.addEventListener("click", () => openFreeModeOutingIdolActionMenu(idolName));
+      list.appendChild(button);
+    });
+  }
+
+  function openFreeModeOutingIdolActionMenu(idolName) {
+    if (!state.freeMode?.outingScene) return;
+    const canonical = canonicalIdolName(idolName) || idolName || state.idol || "";
+    state.freeMode.outingScene.selectedIdol = canonical;
+    const name = document.getElementById("freeModeOutingIdolActionName");
+    if (name) name.textContent = canonical || "担当偶像";
+    renderFreeModeOutingSceneIdols();
+    setElementHidden("freeModeOutingIdolActionMenu", false);
+  }
+
+  function closeFreeModeOutingIdolActionMenu() {
+    setElementHidden("freeModeOutingIdolActionMenu", true);
+  }
+
+  function renderFreeModeOutingFacilityGuide() {
+    const map = document.getElementById("freeModeOutingFacilityGuideMap");
+    if (!map) return;
+    const scene = state.freeMode?.outingScene || {};
+    const venue = getFreeModeOutingVenue(scene.venueId);
+    if (!venue) return;
+    const currentFacilityId = scene.facilityId || venue.entranceFacilityId;
+    map.innerHTML = venue.facilities.map((facility) => `
+      <button
+        type="button"
+        class="outing-facility-card outing-facility-${escapePhoneText(facility.id)}${facility.id === currentFacilityId ? " is-current" : ""}"
+        data-outing-facility-id="${escapePhoneText(facility.id)}"
+      >
+        <span>${escapePhoneText(facility.floor || "")}</span>
+        <strong>${escapePhoneText(facility.shortName || facility.name)}</strong>
+        <em>${escapePhoneText((facility.image || "").split("/").pop()?.replace(/\.png$/i, "") || facility.name)}</em>
+      </button>
+    `).join("");
+    map.querySelectorAll("[data-outing-facility-id]").forEach((button) => {
+      button.addEventListener("click", () => selectFreeModeOutingFacility(button.dataset.outingFacilityId));
+    });
+  }
+
+  function openFreeModeOutingFacilityGuide() {
+    renderFreeModeOutingFacilityGuide();
+    closeFreeModeOutingIdolActionMenu();
+    setElementHidden("freeModeOutingFacilityGuide", false);
+  }
+
+  function closeFreeModeOutingFacilityGuide() {
+    setElementHidden("freeModeOutingFacilityGuide", true);
+  }
+
+  function selectFreeModeOutingFacility(facilityId) {
+    const scene = state.freeMode?.outingScene;
+    if (!scene) return;
+    const facility = getFreeModeOutingFacility(scene.venueId, facilityId);
+    if (!facility) return;
+    scene.facilityId = facility.id;
+    closeFreeModeOutingFacilityGuide();
+    closeFreeModeOutingIdolActionMenu();
+    renderFreeModeOutingScene();
+    showToast("设施移动", `已前往 ${facility.name}。`, "info");
+  }
+
+  function startFreeModeOutingFacilityExplore(action = "explore") {
+    const scene = state.freeMode?.outingScene;
+    const venue = getFreeModeOutingVenue(scene?.venueId);
+    const facility = getFreeModeOutingFacility(scene?.venueId, scene?.facilityId);
+    if (!venue || !facility) return;
+    const selectedIdol = scene.selectedIdol || canonicalIdolName(state.idol) || state.idol || "";
+    closeFreeModeOutingScene();
+    beginMapLocationExploreSession({
+      locationId: FREE_MODE_OUTING_LOCATION_ID,
+      locationName: venue.name,
+      outingDestination: venue.name,
+      visitMode: scene.visitMode || "with_idol",
+      isOffCampus: true,
+      outingVenueId: venue.id,
+      outingFacilityId: facility.id,
+      outingFacilityName: facility.name,
+      outingSceneName: facility.sceneName,
+      outingSceneImage: facility.image,
+      outingAction: action,
+      outingSelectedIdol: selectedIdol
+    });
+  }
+
+  function handleFreeModeOutingIdolAction(action) {
+    if (action === "status") {
+      const idolName = state.freeMode?.outingScene?.selectedIdol || state.idol || "担当偶像";
+      const relation = getFreeModeRelationship(idolName);
+      showToast("同行状态", `${idolName} 好感度 ${relation.score}/100。`, "info");
+      return;
+    }
+    if (action === "invite") {
+      showToast("同行确认", "已保持与担当偶像同行。", "info");
+      return;
+    }
+    startFreeModeOutingFacilityExplore(action || "chat");
+  }
+
   function openFreeModeOutingOverlay() {
     if (!isFreeModeActive()) return;
     document.getElementById("freeModeOutingCustomInput").value = "";
@@ -10106,6 +10382,11 @@ ${buildChoiceHardRules({ phase1: true })}`;
     const location = String(destination || "").trim();
     if (!location) {
       showToast("还没有地点", "请选择预设地点，或输入自定义外出地点。", "warn");
+      return;
+    }
+    const venue = getFreeModeOutingVenueByDestination(location);
+    if (venue) {
+      openFreeModeOutingScene(venue.id, "with_idol");
       return;
     }
     closeFreeModeOutingOverlay();
@@ -17177,6 +17458,20 @@ ${buildChoiceHardRules({ phase1: true })}`;
   document.getElementById("freeModeOutingCustomConfirmBtn")?.addEventListener("click", submitCustomFreeModeOutingDestination);
   document.getElementById("freeModeOutingOverlay")?.addEventListener("click", (event) => {
     if (event.target.id === "freeModeOutingOverlay") closeFreeModeOutingOverlay();
+  });
+  document.getElementById("freeModeOutingSceneBackBtn")?.addEventListener("click", () => {
+    closeFreeModeOutingScene();
+    openFreeModeOutingOverlay();
+  });
+  document.getElementById("freeModeOutingSceneExploreBtn")?.addEventListener("click", () => startFreeModeOutingFacilityExplore("explore"));
+  document.getElementById("freeModeOutingFacilityGuideBtn")?.addEventListener("click", openFreeModeOutingFacilityGuide);
+  document.getElementById("freeModeOutingFacilityGuideCloseBtn")?.addEventListener("click", closeFreeModeOutingFacilityGuide);
+  document.getElementById("freeModeOutingFacilityGuide")?.addEventListener("click", (event) => {
+    if (event.target.id === "freeModeOutingFacilityGuide") closeFreeModeOutingFacilityGuide();
+  });
+  document.getElementById("freeModeOutingIdolActionCloseBtn")?.addEventListener("click", closeFreeModeOutingIdolActionMenu);
+  document.querySelectorAll("[data-outing-idol-action]").forEach((button) => {
+    button.addEventListener("click", () => handleFreeModeOutingIdolAction(button.dataset.outingIdolAction));
   });
   document.getElementById("mapLocationOverlay")?.addEventListener("click", (event) => {
     if (event.target.id === "mapLocationOverlay") closeMapLocationOverlay();

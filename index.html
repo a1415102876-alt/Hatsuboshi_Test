@@ -823,6 +823,62 @@
     </article>
   </section>
 
+  <section id="freeModeOutingSceneOverlay" class="event-overlay free-mode-outing-scene-overlay" hidden aria-label="校外外出场景">
+    <article class="free-mode-outing-scene-panel">
+      <img id="freeModeOutingSceneImage" class="free-mode-outing-scene-bg" src="" alt="" draggable="false">
+      <div class="free-mode-outing-scene-shade" aria-hidden="true"></div>
+      <header class="free-mode-outing-scene-head">
+        <div class="free-mode-outing-scene-titlebox">
+          <p class="ui-kicker">Outing Scene</p>
+          <h2 id="freeModeOutingSceneTitle">外出地点</h2>
+          <p id="freeModeOutingSceneDesc">选择设施或与偶像互动。</p>
+        </div>
+        <div class="free-mode-outing-scene-actions">
+          <button id="freeModeOutingSceneBackBtn" class="event-button secondary" type="button">返回线路图</button>
+          <button id="freeModeOutingSceneExploreBtn" class="event-button primary" type="button">开始探索</button>
+        </div>
+      </header>
+      <button id="freeModeOutingFacilityGuideBtn" class="outing-facility-guide-hotspot" type="button" aria-label="打开设施导览图">
+        <span class="outing-facility-guide-mini" aria-hidden="true"></span>
+        <strong>设施导览</strong>
+        <span>查看商场内设施</span>
+      </button>
+      <div id="freeModeOutingSceneIdols" class="free-mode-outing-scene-idols" aria-label="同行偶像"></div>
+      <div id="freeModeOutingIdolActionMenu" class="outing-idol-action-menu" hidden>
+        <div class="outing-idol-action-head">
+          <strong id="freeModeOutingIdolActionName">担当偶像</strong>
+          <button id="freeModeOutingIdolActionCloseBtn" class="icon-button" type="button" aria-label="关闭偶像行动菜单">
+            <svg aria-hidden="true"><use href="#icon-close"></use></svg>
+          </button>
+        </div>
+        <div class="outing-idol-action-grid">
+          <button class="event-button primary" type="button" data-outing-idol-action="chat">闲聊</button>
+          <button class="event-button secondary" type="button" data-outing-idol-action="invite">邀请同行</button>
+          <button class="event-button secondary" type="button" data-outing-idol-action="ask">询问想去哪</button>
+          <button class="event-button secondary" type="button" data-outing-idol-action="status">查看状态</button>
+        </div>
+      </div>
+      <div id="freeModeOutingFacilityGuide" class="outing-facility-guide-modal" hidden>
+        <div class="outing-facility-guide-card">
+          <header class="outing-facility-guide-head">
+            <div>
+              <h3>购物中心设施导览</h3>
+              <p>选择后会切换背景，并更新提示词里的当前设施。</p>
+            </div>
+            <button id="freeModeOutingFacilityGuideCloseBtn" class="event-button secondary" type="button">关闭</button>
+          </header>
+          <div id="freeModeOutingFacilityGuideMap" class="outing-facility-guide-map"></div>
+          <div class="outing-facility-guide-hints" aria-hidden="true">
+            <span>关闭弹窗</span>
+            <span>更新场景背景</span>
+            <span>更新当前设施</span>
+            <span>保留偶像行动菜单</span>
+          </div>
+        </div>
+      </div>
+    </article>
+  </section>
+
   <section id="sideQuestOverlay" class="event-overlay side-quest-overlay" hidden aria-label="委托系统">
     <article class="event-panel side-quest-panel">
       <header class="event-head side-quest-head">
