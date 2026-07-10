@@ -50,6 +50,11 @@ test("shopping mall outing scene uses the fullscreen page and shared wipe transi
   assert.match(style, /\.free-mode-outing-scene-panel\s*\{[\s\S]*width:\s*100vw/);
   assert.match(style, /\.free-mode-outing-scene-panel\s*\{[\s\S]*height:\s*100svh/);
   assert.match(readFunction("openFreeModeOutingScene"), /triggerWipeTransition/);
+  assert.match(readFunction("selectFreeModeOutingFacility"), /triggerWipeTransition/);
+  assert.match(style, /\.free-mode-outing-scene-idols\s*\{[\s\S]*inset:\s*110px 32px -310px/);
+  assert.match(style, /\.outing-scene-idol\s*\{[\s\S]*width:\s*min\(620px, 52vw\)/);
+  assert.match(style, /\.outing-scene-idol\s*\{[\s\S]*height:\s*min\(1120px, 122svh\)/);
+  assert.match(style, /\.outing-scene-idol span\s*\{[\s\S]*bottom:\s*316px/);
   assert.doesNotMatch(style, /mallSceneEnter|mallSceneImageSettle/);
 });
 test("outing scene prompt includes current venue and facility context", () => {

@@ -10305,11 +10305,13 @@ ${buildChoiceHardRules({ phase1: true })}`;
     if (!scene) return;
     const facility = getFreeModeOutingFacility(scene.venueId, facilityId);
     if (!facility) return;
-    scene.facilityId = facility.id;
-    closeFreeModeOutingFacilityGuide();
-    closeFreeModeOutingIdolActionMenu();
-    renderFreeModeOutingScene();
-    showToast("设施移动", `已前往 ${facility.name}。`, "info");
+    triggerWipeTransition(() => {
+      scene.facilityId = facility.id;
+      closeFreeModeOutingFacilityGuide();
+      closeFreeModeOutingIdolActionMenu();
+      renderFreeModeOutingScene();
+      showToast("设施移动", `已前往 ${facility.name}。`, "info");
+    });
   }
 
   function startFreeModeOutingFacilityExplore(action = "explore") {

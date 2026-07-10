@@ -9058,7 +9058,7 @@ body.is-free-mode-active {
 .free-mode-outing-scene-idols {
   position: absolute;
   z-index: 3;
-  inset: 96px 32px 34px;
+  inset: 110px 32px -310px;
   display: flex;
   justify-content: center;
   align-items: flex-end;
@@ -9068,8 +9068,8 @@ body.is-free-mode-active {
 
 .outing-scene-idol {
   position: relative;
-  width: min(260px, 30vw);
-  height: min(560px, 70svh);
+  width: min(620px, 52vw);
+  height: min(1120px, 122svh);
   border: 0;
   background: transparent;
   cursor: pointer;
@@ -9095,7 +9095,7 @@ body.is-free-mode-active {
 .outing-scene-idol span {
   position: absolute;
   left: 50%;
-  bottom: 10px;
+  bottom: 316px;
   transform: translateX(-50%);
   padding: 7px 13px;
   border-radius: 999px;
@@ -9249,8 +9249,9 @@ body.is-free-mode-active {
   .free-mode-outing-scene-titlebox h2 { font-size: 19px; }
   .free-mode-outing-scene-actions { flex-direction: column; }
   .outing-facility-guide-hotspot { top: 150px; right: 10px; width: 126px; min-height: 104px; }
-  .free-mode-outing-scene-idols { inset: 150px 10px 128px; gap: 8px; }
-  .outing-scene-idol { width: min(46vw, 180px); height: min(430px, 58svh); }
+  .free-mode-outing-scene-idols { inset: 130px 10px -210px; gap: 8px; }
+  .outing-scene-idol { width: min(92vw, 420px); height: min(860px, 116svh); }
+  .outing-scene-idol span { bottom: 216px; }
   .outing-idol-action-menu { bottom: 12px; }
   .outing-idol-action-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .outing-facility-guide-modal { padding: 12px; }
