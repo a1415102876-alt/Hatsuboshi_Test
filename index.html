@@ -844,6 +844,27 @@
         <span>查看商场内设施</span>
       </button>
       <div id="freeModeOutingSceneIdols" class="free-mode-outing-scene-idols" aria-label="同行偶像"></div>
+      <div id="freeModeOutingSpeechBubble" class="outing-scene-speech-bubble" hidden>
+        <strong id="freeModeOutingSpeechName">担当偶像</strong>
+        <p id="freeModeOutingSpeechText"></p>
+      </div>
+      <section id="freeModeOutingDialogueBar" class="outing-scene-dialogue-bar" hidden aria-label="场景对话">
+        <header class="outing-scene-dialogue-head">
+          <span>Scene Talk</span>
+          <button id="freeModeOutingDialogueCloseBtn" class="icon-button" type="button" aria-label="关闭场景对话">
+            <svg aria-hidden="true"><use href="#icon-close"></use></svg>
+          </button>
+        </header>
+        <div class="outing-scene-dialogue-body">
+          <p id="freeModeOutingNarrationText" class="outing-scene-narration"></p>
+          <p id="freeModeOutingProducerText" class="outing-scene-producer"></p>
+        </div>
+        <div class="outing-scene-dialogue-actions">
+          <button class="event-button secondary" type="button" data-outing-dialogue-action="chat">继续聊</button>
+          <button class="event-button secondary" type="button" data-outing-dialogue-action="ask">问想去哪里</button>
+          <button class="event-button primary" type="button" data-outing-dialogue-action="explore">开始探索</button>
+        </div>
+      </section>
       <div id="freeModeOutingIdolActionMenu" class="outing-idol-action-menu" hidden>
         <div class="outing-idol-action-head">
           <strong id="freeModeOutingIdolActionName">担当偶像</strong>

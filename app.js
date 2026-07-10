@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
   "use strict";
 
   const STORAGE_KEY = "hatsuProduceLocalState";
@@ -610,13 +610,13 @@
           description: "摆满周边、杂志和角色商品的店铺，适合发现私下兴趣。"
         },
         {
-          id: "food_court",
-          floor: "B1",
-          name: "餐饮区",
-          shortName: "餐饮区",
-          sceneName: "购物中心餐饮区",
+          id: "fashion_store",
+          floor: "2F",
+          name: "服装店",
+          shortName: "服装店",
+          sceneName: "购物中心服装店",
           image: "./assets/scenes/Shopping_Mall.png",
-          description: "商场地下餐饮区。先作为扩展入口保留，可用于休息和轻食事件。"
+          description: "商场里的服装店。成排衣架、试衣镜和当季陈列适合挑选私服、搭配舞台外形象，也容易聊到偶像对风格的偏好。"
         }
       ]
     }
@@ -6046,6 +6046,73 @@ ${galgameRenderContract("choice")}
 ${buildMapExploreChoiceOutputBlock({ includeRelationship: true })}`;
   }
 
+  function buildFreeModeOutingSceneDialoguePrompt(action = "chat") {
+    const scene = state.freeMode?.outingScene || {};
+    const venue = getFreeModeOutingVenue(scene.venueId);
+    const facility = getFreeModeOutingFacility(scene.venueId, scene.facilityId);
+    if (!venue || !facility) return "";
+    const idolName = scene.selectedIdol || canonicalIdolName(state.idol) || state.idol || "担当偶像";
+    const dayTimeLabel = isSandboxLaunch()
+      ? formatCampusDayLabel() + " " + formatFreeModeClock()
+      : formatFreeModeDayLabel() + " " + formatFreeModeClock();
+    const actionLabel = action === "ask"
+      ? "制作人询问偶像接下来想去哪里或想做什么。"
+      : action === "invite"
+        ? "制作人确认与偶像继续同行。"
+        : "制作人与偶像在当前设施内轻松闲聊。";
+    return [
+      "[初星育成系统：商场场景内对话]",
+      "",
+      "请为当前商场场景生成一小段即时互动，不要进入 VN，不要输出选项，不要写长篇剧情。",
+      "前端会把偶像台词显示在立绘旁气泡，把旁白和制作人台词显示在底部对话栏。",
+      "",
+      "担当偶像：" + idolName,
+      "当前时间：" + dayTimeLabel,
+      "当前地点：" + (venue.name || "购物中心"),
+      "当前设施：" + (facility.name || "设施"),
+      "当前场景：" + (facility.sceneName || facility.name || venue.name),
+      "设施说明：" + (facility.description || ""),
+      "本次互动：" + actionLabel,
+      "",
+      buildProducerPromptSection(),
+      "",
+      "输出格式必须严格如下：",
+      "<scene_narration>一句旁白或动作描写，40字以内。</scene_narration>",
+      "<producer>制作人的一句话，40字以内，可以为空但标签必须保留。</producer>",
+      "<idol>" + idolName + "的一句回应，60字以内。</idol>",
+      "",
+      "要求：",
+      "- 偶像台词要贴合角色，不要写成旁白。",
+      "- 旁白和制作人不要混进 idol 标签。",
+      "- 不要输出 option/time/选择项。",
+      "- 不要使用 Markdown 列表。"
+    ].join("\n");
+  }
+
+  function extractFreeModeOutingSceneDialogue(source) {
+    const normalizeShell = (value) => stripAiThinkingBlocks(String(value || "")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&amp;/g, "&")
+      .replace(/\u200b/g, ""))
+      .replace(/<\/(?:thinking|think|details|summary|vars|analysis|planning|plan|konatan_planning|bginfo|bginfor|draft_notes)\s*>/gi, "")
+      .replace(/^\s*#{1,6}\s*(?:正文|本文|输出|main\s*text)\s*$/gim, "")
+      .trim();
+    const raw = normalizeShell(source);
+    const cleanSegment = (value) => cleanReplyText(normalizeShell(value)).trim();
+    const readTag = (name) => {
+      const match = raw.match(new RegExp("<" + name + "(?:\\s[^>]*)?>([\\s\\S]*?)<\\/" + name + ">", "i"));
+      return match ? cleanSegment(match[1]) : "";
+    };
+    const narration = readTag("scene_narration") || readTag("narration");
+    const producer = readTag("producer");
+    const idol = readTag("idol");
+    if (narration || producer || idol) return { narration, producer, idol };
+    const cleaned = cleanSegment(raw);
+    if (cleaned.length <= 90) return { narration: "", producer: "", idol: cleaned };
+    return { narration: cleaned, producer: "", idol: "" };
+  }
+
   function buildSideQuestScenePrompt(slot, location) {
     const tagLabel = getSideQuestPoolApi()?.getTagLabel?.(slot.tag) || slot.tag || "商演";
     const dayTimeLabel = isSandboxLaunch()
@@ -6126,17 +6193,26 @@ ${outputContract("离开正文写在【初星正文开始】…【初星正文�
     const actionContext = state.pendingActionContext?.actionContext || {};
     const location = resolveMapExploreLocation(FREE_MODE_OUTING_LOCATION_ID, actionContext);
     if (!location) return "";
-    return `[初星育成系统：自由模式 · 结束校外外出返回地图]
+    const returnTarget = getMapExploreReturnTarget(actionContext);
+    const activeFacility = getActiveFreeModeOutingFacility(actionContext);
+    const returnHeader = returnTarget?.type === "outing_scene"
+      ? "[初星育成系统：自由模式 · 校外外出设施返回场景]"
+      : "[初星育成系统：自由模式 · 结束校外外出返回地图]";
+    const returnLine = returnTarget?.type === "outing_scene"
+      ? `制作人决定结束 ${activeFacility?.name || location.name} 的当前探索，回到 ${location.name} 的外出场景页面，写 300 字以内过渡描写；不推进时间，不要 option，不要改数值。`
+      : `制作人决定离开 ${location.name}，写 300 字以内离开描写；不推进时间，不要 option，不要改数值。`;
+    return `${returnHeader}
 
 担当偶像：${state.idol}
 ${getFreeModeAffinityStageLine(state.idol)}
 当前时间：${formatFreeModeDayLabel()} ${formatFreeModeClock()}
 外出地点：${location.name}
 外出说明：${location.description}
+当前设施：${activeFacility?.name || location.name}
 
 ${buildMapLocationVisitModeLine(getMapLocationVisitMode())}
 
-制作人决定离开 ${location.name}，写 300 字以内离开描写；不推进时间，不要 option，不要改数值。
+${returnLine}
 
 ${outputContract("离开正文写在【初星正文开始】…【初星正文结束】内。")}`;
   }
@@ -7748,8 +7824,12 @@ ${outputContract(`请写一段 800 字左右、以演出后后台沟通与总结
     const locationId = actionContext.locationId;
     if (!locationId) return DEFAULT_OUTING_SCENE;
     if (isFreeModeOffCampusExplore(actionContext)) {
-      const facility = getActiveFreeModeOutingFacility(actionContext);
-      if (facility?.image) return facility.image;
+      if (actionContext.outingSceneImage) return actionContext.outingSceneImage;
+      const hasExplicitOutingFacility = Boolean(actionContext.outingVenueId || actionContext.outingFacilityId);
+      if (hasExplicitOutingFacility) {
+        const facility = getActiveFreeModeOutingFacility(actionContext);
+        if (facility?.image) return facility.image;
+      }
       const destination = String(
         actionContext.outingDestination
         || actionContext.locationName
@@ -9006,6 +9086,76 @@ ${buildChoiceHardRules({ phase1: true })}`;
     flushEveningGoHomeDeferred();
   }
 
+  function getMapExploreReturnTarget(actionContext = state.pendingActionContext?.actionContext || {}) {
+    return actionContext?.returnTarget || null;
+  }
+
+  function getMapExploreReturnLabel(actionContext = state.pendingActionContext?.actionContext || {}) {
+    const target = getMapExploreReturnTarget(actionContext);
+    if (target?.type === "outing_scene") {
+      const venue = getFreeModeOutingVenue(target.venueId || actionContext.outingVenueId);
+      return venue ? `返回${venue.name}` : "返回场景";
+    }
+    return "返回地图";
+  }
+
+  function returnToFreeModeOutingScene(returnTarget = {}, options = {}) {
+    const target = returnTarget || {};
+    const venue = getFreeModeOutingVenue(target.venueId);
+    if (!venue) {
+      returnToFreeModeMap(options);
+      return;
+    }
+    const facility = getFreeModeOutingFacility(venue.id, target.facilityId);
+    const visitMode = target.visitMode === "alone" ? "alone" : "with_idol";
+    const selectedIdol = target.selectedIdol || canonicalIdolName(state.idol) || state.idol || "";
+    pendingAiRequestId = "";
+    state.eventMode = "none";
+    state.choiceStep = 0;
+    state.pendingActionContext = null;
+    state.pendingOptionTexts = [];
+    state.pendingOptionMinutes = [];
+    state.pendingChoiceRewards = [];
+    state.selectedChoiceText = "";
+    state.selectedChoiceRating = "";
+    if (!state.freeMode) state.freeMode = {};
+    state.freeMode.activeLocationId = FREE_MODE_OUTING_LOCATION_ID;
+    state.freeMode.activeOutingDestination = venue.name;
+    state.freeMode.facilityKind = null;
+    state.freeMode.facilityLocationId = null;
+    state.freeMode.outingScene = {
+      venueId: venue.id,
+      facilityId: facility?.id || venue.entranceFacilityId,
+      visitMode,
+      selectedIdol
+    };
+    closeVnChoicesOverlay();
+    hideVnCustomChoicePanel();
+    setElementHidden("eventChoices", true);
+    setElementHidden("eventOverlay", true);
+    stopVnAuto();
+    if (!options.cancelled) {
+      saveState();
+    }
+    render();
+    if (isFreeModeActive()) {
+      renderFreeModeStage();
+    }
+    openFreeModeOutingScene(venue.id, visitMode, {
+      facilityId: facility?.id || venue.entranceFacilityId,
+      selectedIdol
+    });
+  }
+
+  function returnToFreeModeExploreOrigin(options = {}) {
+    const target = options.returnTarget || getMapExploreReturnTarget();
+    if (target?.type === "outing_scene") {
+      returnToFreeModeOutingScene(target, options);
+      return;
+    }
+    returnToFreeModeMap(options);
+  }
+
   function handleMapLocationReturn() {
     if (!isMapLocationExploreActive()) {
       returnToFreeModeMap({ cancelled: true });
@@ -9020,23 +9170,25 @@ ${buildChoiceHardRules({ phase1: true })}`;
       return;
     }
     closeVnChoicesOverlay();
-    const leaveLine = `<narration>▶ 制作人决定离开 ${location.name}，返回大地图。</narration>`;
-    state.pendingActionContext.actionContext = { ...actionContext, isReturn: true };
-    state.selectedChoiceText = "返回地图";
-    state.selectedChoiceRating = "【离开地点】";
+    const returnTarget = getMapExploreReturnTarget(actionContext);
+    const returnLabel = getMapExploreReturnLabel(actionContext);
+    const leaveLine = `<narration>▶ 制作人决定离开 ${location.name}，${returnLabel}。</narration>`;
+    state.pendingActionContext.actionContext = { ...actionContext, isReturn: true, returnTarget };
+    state.selectedChoiceText = returnLabel;
+    state.selectedChoiceRating = returnTarget?.type === "outing_scene" ? "【返回外出场景】" : "【离开地点】";
     state.eventMode = "choice_resolution";
     state.choiceStep = 2;
     state.pendingOptionTexts = [];
     const requestId = createRequestId();
     pendingAiRequestId = requestId;
     state.lastPrompt = getMapExploreReturnPrompt(locationId);
-    state.lastDebug = `自由模式：${location.name} 返回地图，等待离开描写。`;
+    state.lastDebug = `自由模式：${location.name} ${returnLabel}，等待离开描写。`;
     state.lastStory = state.lastStory ? `${state.lastStory}\n\n${leaveLine}` : leaveLine;
     saveState();
     render();
     setEventActionsEnabled(false, true);
     setElementHidden("eventChoices", true);
-    openEventOverlay(`${location.name} · 离开`, "正在生成返回地图的简短描写...", buildChoicePendingDisplayStory("", leaveLine));
+    openEventOverlay(`${location.name} · 离开`, `正在生成${returnLabel}的简短描写...`, buildChoicePendingDisplayStory("", leaveLine));
     if (!requestHostPromptSend(state.lastPrompt, requestId)) {
       openAiPromptOverlay("当前页面未连接 SillyTavern。请复制离开地点提示词后手动发送。");
     }
@@ -9086,7 +9238,9 @@ ${buildChoiceHardRules({ phase1: true })}`;
       locationName,
       outingDestination = "",
       visitMode = "with_idol",
-      isOffCampus = false
+      isOffCampus = false,
+      returnTarget = null,
+      ...extraActionContext
     } = session;
     const location = resolveMapExploreLocation(locationId, {
       locationName,
@@ -9116,7 +9270,9 @@ ${buildChoiceHardRules({ phase1: true })}`;
         locationName: location.name,
         outingDestination: isOffCampus ? locationName : "",
         visitMode: normalizedVisitMode,
-        isOffCampus
+        isOffCampus,
+        ...extraActionContext,
+        returnTarget
       }
     };
     const arrivedSideQuest = !isSandboxScoutActive() && isOffCampus ? getArrivedSideQuest(location.name) : null;
@@ -10177,16 +10333,18 @@ ${buildChoiceHardRules({ phase1: true })}`;
     return getFreeModeOutingFacility(venueId, facilityId);
   }
 
-  function openFreeModeOutingScene(venueId, visitMode = "with_idol") {
+  function openFreeModeOutingScene(venueId, visitMode = "with_idol", options = {}) {
     if (!isFreeModeActive()) return;
     const venue = getFreeModeOutingVenue(venueId);
     if (!venue) return;
     if (!state.freeMode) state.freeMode = {};
+    const normalizedVisitMode = visitMode === "alone" ? "alone" : "with_idol";
+    const facility = getFreeModeOutingFacility(venue.id, options.facilityId || venue.entranceFacilityId);
     state.freeMode.outingScene = {
       venueId: venue.id,
-      facilityId: venue.entranceFacilityId,
-      visitMode: visitMode === "alone" ? "alone" : "with_idol",
-      selectedIdol: canonicalIdolName(state.idol) || state.idol || ""
+      facilityId: facility?.id || venue.entranceFacilityId,
+      visitMode: normalizedVisitMode,
+      selectedIdol: options.selectedIdol || canonicalIdolName(state.idol) || state.idol || ""
     };
     state.freeMode.activeOutingDestination = venue.name;
     triggerWipeTransition(() => {
@@ -10201,6 +10359,7 @@ ${buildChoiceHardRules({ phase1: true })}`;
     setElementHidden("freeModeOutingSceneOverlay", true);
     closeFreeModeOutingFacilityGuide();
     closeFreeModeOutingIdolActionMenu();
+    closeFreeModeOutingSceneDialogue();
   }
 
   function renderFreeModeOutingScene() {
@@ -10267,6 +10426,93 @@ ${buildChoiceHardRules({ phase1: true })}`;
     setElementHidden("freeModeOutingIdolActionMenu", true);
   }
 
+  function closeFreeModeOutingSceneDialogue() {
+    setElementHidden("freeModeOutingSpeechBubble", true);
+    setElementHidden("freeModeOutingDialogueBar", true);
+  }
+
+  function buildFreeModeOutingPrototypeDialogue(action, idolName, facility) {
+    const safeIdol = idolName || state.idol || "担当偶像";
+    const facilityName = facility?.shortName || facility?.name || "这里";
+    if (action === "ask") {
+      return {
+        narration: "你们停在" + facilityName + "附近，人流和店内的声音从四周慢慢聚拢过来。",
+        producer: "制作人：「接下来想去哪里？还是想先在这里休息一下？」",
+        idol: "嗯……我想再看一会儿。老师决定也可以。"
+      };
+    }
+    if (action === "invite") {
+      return {
+        narration: "你向" + safeIdol + "确认接下来的同行路线，对方轻轻点头，站到更靠近你的一侧。",
+        producer: "制作人：「那就一起走吧。人多的时候不要离太远。」",
+        idol: "知道了。我会跟着老师。"
+      };
+    }
+    return {
+      narration: "你们在" + facilityName + "稍微放慢脚步，商场里的灯光映在玻璃扶手上。",
+      producer: "制作人：「难得出来一趟，感觉怎么样？」",
+      idol: "和平时的学园不太一样……不过这样也不错。"
+    };
+  }
+
+  function renderFreeModeOutingSceneDialogue(dialogue, idolName) {
+    const speechName = document.getElementById("freeModeOutingSpeechName");
+    const speechText = document.getElementById("freeModeOutingSpeechText");
+    const narration = document.getElementById("freeModeOutingNarrationText");
+    const producer = document.getElementById("freeModeOutingProducerText");
+    if (speechName) speechName.textContent = idolName || state.idol || "担当偶像";
+    if (speechText) speechText.textContent = dialogue?.idol || "";
+    if (narration) narration.textContent = dialogue?.narration || "";
+    if (producer) producer.textContent = dialogue?.producer || "";
+    closeFreeModeOutingIdolActionMenu();
+    setElementHidden("freeModeOutingSpeechBubble", !dialogue?.idol);
+    setElementHidden("freeModeOutingDialogueBar", !(dialogue?.narration || dialogue?.producer));
+  }
+
+  function showFreeModeOutingSceneDialogue(action = "chat") {
+    const scene = state.freeMode?.outingScene;
+    const facility = getFreeModeOutingFacility(scene?.venueId, scene?.facilityId);
+    if (!scene || !facility) return;
+    const idolName = scene.selectedIdol || canonicalIdolName(state.idol) || state.idol || "担当偶像";
+    renderFreeModeOutingSceneDialogue(buildFreeModeOutingPrototypeDialogue(action, idolName, facility), idolName);
+  }
+
+  function requestFreeModeOutingSceneDialogue(action = "chat") {
+    const scene = state.freeMode?.outingScene;
+    const venue = getFreeModeOutingVenue(scene?.venueId);
+    const facility = getFreeModeOutingFacility(scene?.venueId, scene?.facilityId);
+    if (!scene || !venue || !facility) return;
+    const idolName = scene.selectedIdol || canonicalIdolName(state.idol) || state.idol || "担当偶像";
+    const prompt = buildFreeModeOutingSceneDialoguePrompt(action);
+    if (!prompt.trim()) return;
+    const requestId = createRequestId();
+    pendingAiRequestId = requestId;
+    state.pendingActionContext = {
+      action: "outing_scene_dialogue",
+      attribute: null,
+      actionContext: {
+        outingAction: action,
+        outingVenueId: venue.id,
+        outingFacilityId: facility.id,
+        outingFacilityName: facility.name,
+        outingSceneName: facility.sceneName,
+        outingSelectedIdol: idolName
+      }
+    };
+    state.lastPrompt = prompt;
+    state.lastDebug = "商场场景内对话：等待 AI 生成气泡与底部栏文本。";
+    renderFreeModeOutingSceneDialogue({
+      narration: "正在等待当前场景的回应……",
+      producer: "制作人：「……」",
+      idol: "……"
+    }, idolName);
+    saveState();
+    if (!requestHostPromptSend(prompt, requestId)) {
+      showFreeModeOutingSceneDialogue(action);
+      openAiPromptOverlay("当前页面未连接 SillyTavern。请复制商场场景内对话提示词后手动发送。");
+    }
+  }
+
   function renderFreeModeOutingFacilityGuide() {
     const map = document.getElementById("freeModeOutingFacilityGuideMap");
     if (!map) return;
@@ -10309,6 +10555,7 @@ ${buildChoiceHardRules({ phase1: true })}`;
       scene.facilityId = facility.id;
       closeFreeModeOutingFacilityGuide();
       closeFreeModeOutingIdolActionMenu();
+      closeFreeModeOutingSceneDialogue();
       renderFreeModeOutingScene();
       showToast("设施移动", `已前往 ${facility.name}。`, "info");
     });
@@ -10333,7 +10580,14 @@ ${buildChoiceHardRules({ phase1: true })}`;
       outingSceneName: facility.sceneName,
       outingSceneImage: facility.image,
       outingAction: action,
-      outingSelectedIdol: selectedIdol
+      outingSelectedIdol: selectedIdol,
+      returnTarget: {
+        type: "outing_scene",
+        venueId: venue.id,
+        facilityId: facility.id,
+        visitMode: scene.visitMode || "with_idol",
+        selectedIdol
+      }
     });
   }
 
@@ -10344,8 +10598,8 @@ ${buildChoiceHardRules({ phase1: true })}`;
       showToast("同行状态", `${idolName} 好感度 ${relation.score}/100。`, "info");
       return;
     }
-    if (action === "invite") {
-      showToast("同行确认", "已保持与担当偶像同行。", "info");
+    if (["chat", "ask", "invite"].includes(action)) {
+      requestFreeModeOutingSceneDialogue(action);
       return;
     }
     startFreeModeOutingFacilityExplore(action || "chat");
@@ -14311,7 +14565,7 @@ ${buildChoiceHardRules({ phase1: true })}`;
     const backBtn = document.createElement("button");
     backBtn.className = "vn-choice-btn vn-choice-btn-map-back";
     backBtn.type = "button";
-    backBtn.textContent = "返回地图";
+    backBtn.textContent = getMapExploreReturnLabel();
     backBtn.onclick = () => handleMapLocationReturn();
     container.appendChild(backBtn);
 
@@ -14319,7 +14573,7 @@ ${buildChoiceHardRules({ phase1: true })}`;
     directBackBtn.className = "vn-choice-btn vn-choice-btn-map-back vn-choice-btn-map-back-direct";
     directBackBtn.type = "button";
     directBackBtn.textContent = "直接返回";
-    directBackBtn.onclick = () => returnToFreeModeMap({ cancelled: true });
+    directBackBtn.onclick = () => returnToFreeModeExploreOrigin({ cancelled: true });
     container.appendChild(directBackBtn);
   }
 
@@ -15196,7 +15450,7 @@ ${buildChoiceHardRules({ phase1: true })}`;
         closeApartmentCompanionSession();
         return;
       }
-      returnToFreeModeMap({ cancelled: !isChoiceResolutionMode() });
+      returnToFreeModeExploreOrigin({ cancelled: !isChoiceResolutionMode() });
       return;
     }
     triggerWipeTransition(() => {
@@ -15828,11 +16082,12 @@ ${buildChoiceHardRules({ phase1: true })}`;
         const locationName = actionContext.locationName
           || getWorldMapLocation(actionContext.locationId)?.name
           || "地图";
-        openEventOverlay(`${locationName} · 离开`, "离开完成，点击返回地图", reply);
+        const returnLabel = getMapExploreReturnLabel(actionContext);
+        openEventOverlay(`${locationName} · 离开`, `离开完成，点击${returnLabel}`, reply);
         const confirm = document.getElementById("eventConfirmBtn");
         if (confirm) {
           confirm.disabled = false;
-          confirm.textContent = "返回地图";
+          confirm.textContent = returnLabel;
         }
         return;
       }
@@ -16099,7 +16354,25 @@ ${buildChoiceHardRules({ phase1: true })}`;
     if (shouldRouteToBroadcast) {
       handleBroadcastAiReply(source, requestId, isFinal);
       return;
+    }    if (state.pendingActionContext?.action === "outing_scene_dialogue") {
+      const context = state.pendingActionContext.actionContext || {};
+      const idolName = context.outingSelectedIdol || state.freeMode?.outingScene?.selectedIdol || state.idol || "担当偶像";
+      const dialogue = extractFreeModeOutingSceneDialogue(source);
+      renderFreeModeOutingSceneDialogue(dialogue, idolName);
+      if (!isFinal) {
+        sendAiReplyAck(requestId, true, false, false);
+        return;
+      }
+      pendingAiRequestId = "";
+      state.lastStory = [dialogue.narration, dialogue.producer, dialogue.idol].filter(Boolean).join("\n");
+      state.lastDebug = "商场场景内对话：AI 回复已渲染到当前场景。";
+      state.pendingActionContext = null;
+      saveState();
+      sendAiReplyAck(requestId, true, false);
+      return;
     }
+
+
 
     const choiceFallbackPayload = (() => {
       if (state.eventMode !== "choice_prompt" || isChoicePromptMode()) return null;
@@ -16415,11 +16688,12 @@ ${buildChoiceHardRules({ phase1: true })}`;
         state.selectedChoiceRating = "";
         state.lastStory = `${state.lastStory}\n\n${chosenLine}\n\n${reply}`;
         saveState();
-        openEventOverlay(`${locationName} · 离开`, "离开完成，点击返回地图", displayStory);
+        const returnLabel = getMapExploreReturnLabel(state.pendingActionContext?.actionContext || {});
+        openEventOverlay(`${locationName} · 离开`, `离开完成，点击${returnLabel}`, displayStory);
         const confirm = document.getElementById("eventConfirmBtn");
         if (confirm) {
           confirm.disabled = false;
-          confirm.textContent = "返回地图";
+          confirm.textContent = returnLabel;
         }
         sendAiReplyAck(requestId, true, false);
         return;
@@ -17476,8 +17750,19 @@ ${buildChoiceHardRules({ phase1: true })}`;
     if (event.target.id === "freeModeOutingFacilityGuide") closeFreeModeOutingFacilityGuide();
   });
   document.getElementById("freeModeOutingIdolActionCloseBtn")?.addEventListener("click", closeFreeModeOutingIdolActionMenu);
+  document.getElementById("freeModeOutingDialogueCloseBtn")?.addEventListener("click", closeFreeModeOutingSceneDialogue);
   document.querySelectorAll("[data-outing-idol-action]").forEach((button) => {
     button.addEventListener("click", () => handleFreeModeOutingIdolAction(button.dataset.outingIdolAction));
+  });
+  document.querySelectorAll("[data-outing-dialogue-action]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const action = button.dataset.outingDialogueAction || "chat";
+      if (action === "explore") {
+        startFreeModeOutingFacilityExplore("explore");
+        return;
+      }
+      requestFreeModeOutingSceneDialogue(action);
+    });
   });
   document.getElementById("mapLocationOverlay")?.addEventListener("click", (event) => {
     if (event.target.id === "mapLocationOverlay") closeMapLocationOverlay();
