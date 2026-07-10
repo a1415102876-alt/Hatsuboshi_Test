@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+﻿import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
@@ -38,7 +38,8 @@ function readObjectLiteral(name) {
 function readFunction(name) {
   const start = source.indexOf(`function ${name}(`);
   assert.notEqual(start, -1, `${name} must exist`);
-  const bodyStart = source.indexOf("{", start);
+  const signatureEnd = source.indexOf(")", start);
+  const bodyStart = source.indexOf("{", signatureEnd);
   let depth = 0;
   for (let index = bodyStart; index < source.length; index += 1) {
     if (source[index] === "{") depth += 1;
@@ -156,4 +157,14 @@ test("AI prompt builders include the galgame render contract", () => {
     const body = source.slice(start, end === -1 ? source.length : end);
     assert.match(body, /galgameRenderContract\(|outputContract\(/, `${name} must include the shared render contract`);
   }
+});
+
+test("produce action prompt anchors prior story to avoid replaying opening", () => {
+  assert.match(source, /function summarizeProduceActionContext\(/);
+  const buildPrompt = readFunction("buildPrompt");
+  assert.match(buildPrompt, /summarizeProduceActionContext\(\)/);
+  assert.match(buildPrompt, /上文摘要/);
+  assert.match(buildPrompt, /不要重写担当开场/);
+  assert.match(buildPrompt, /不要.*递名片/);
+  assert.match(buildPrompt, /必须直接写本次行动现场/);
 });

@@ -2645,6 +2645,7 @@
       container.setAttribute("hidden", "");
     }, 1300);
   }
+  const recentHostPromptDispatches = [];
   let pendingAiRequestId = "";
   let pendingSecondaryRequestId = "";
   let pendingSecondaryMeta = null;
@@ -5641,6 +5642,20 @@ ${lines.map((line) => `- ${line}`).join("\n")}
 `;
   }
 
+  function summarizeProduceActionContext() {
+    const source = String(state.lastEventStory || state.lastStory || "").trim();
+    if (!source || /^请选择行动$/.test(source)) return "（暂无上文摘要；若当前不是担当开场，请直接写本次行动现场。）";
+    const cleaned = cleanReplyText(stripAiThinkingBlocks(source)
+      .replace(/[【\[]\s*初星正文开始\s*[】\]]/g, "")
+      .replace(/[【\[]\s*初星正文结束\s*[】\]][\s\S]*$/u, "")
+      .replace(/<option[1-4]\b[^>]*>[\s\S]*?<\/option[1-4]>/gi, "")
+      .replace(/<time[1-4]\b[^>]*>[\s\S]*?<\/time[1-4]>/gi, "")
+      .replace(/<sum\b[^>]*>[\s\S]*?<\/sum>/gi, ""))
+      .replace(/\s+/g, " ")
+      .trim();
+    if (!cleaned) return "（暂无上文摘要；若当前不是担当开场，请直接写本次行动现场。）";
+    return cleaned.length > 420 ? `${cleaned.slice(0, 420)}...` : cleaned;
+  }
   function buildPrompt(action, attribute, resultText, randomEvent = null, actionContext = {}) {
     const profile = idols[state.idol];
     const actionName = actionLabel(action, attribute);
@@ -5653,6 +5668,16 @@ ${lines.map((line) => `- ${line}`).join("\n")}
 - 利用该地点可见的设施、商品、声音、气味或人群推动互动。
 - 在本次回复内完成抵达、游玩/交流和当天收束，不要停在刚到目的地。
 ` : "";
+    const continuityPrompt = `
+
+上文摘要（仅供衔接，不要原文复述）：
+${summarizeProduceActionContext()}
+
+连续性要求：
+- 本轮是当前日程的「${actionName}」，必须直接写本次行动现场和行动后的反应。
+- 如果上文已经完成担当开场或确认担当关系，不要重写担当开场，不要再次写初遇、递名片、递契约书或重新签约。
+- 不要把课程、训练、休息或外出写成重新建立育成关系；只写前端已经结算的本次行动。`;
+
     const eventPrompt = randomEvent ? `
 
 本次行动触发随机互动事件：
@@ -5685,7 +5710,7 @@ ${getAffinityStageLine(state.idol, state.trust)}
 本轮SP候选：${Object.entries(state.sp || {}).filter(([, active]) => active).map(([key]) => `${key}训练`).join("、") || "无"}
 
 角色核心：
-${profile.core}
+${profile.core}${continuityPrompt}
 ${buildProducerPromptSection()}
 ${composeWorldSummaryBlock("produce")}
 
@@ -11557,6 +11582,27 @@ ${buildChoiceHardRules({ phase1: true })}`;
       state.activeStoryNode = null;
       resetBroadcastPendingState();
     }
+    const promptKey = [
+      String(requestId || ""),
+      String(prompt.length),
+      prompt.slice(0, 320),
+      prompt.slice(-320)
+    ].join("::");
+    const now = Date.now();
+    for (let index = recentHostPromptDispatches.length - 1; index >= 0; index -= 1) {
+      const entry = recentHostPromptDispatches[index];
+      if (!entry || now - entry.time > 120000) recentHostPromptDispatches.splice(index, 1);
+    }
+    if (recentHostPromptDispatches.some((entry) => entry.key === promptKey)) {
+      aiBridgeDebug.lastMessage = "重复发送已拦截：同一 requestId 的同一提示词刚刚发送过";
+      refreshVnDebugView();
+      if (!hostPromptSendSilent) {
+        showToast("重复发送已拦截", "同一提示词刚刚已交给酒馆，请等待回复或重新生成。", "warn");
+      }
+      return false;
+    }
+    recentHostPromptDispatches.push({ key: promptKey, time: now });
+    if (recentHostPromptDispatches.length > 24) recentHostPromptDispatches.shift();
     pendingAiRequestId = requestId;
     aiReplyRetryCount = 0;
     recordDebugPromptDispatch(prompt, requestId);
@@ -13878,7 +13924,7 @@ ${buildChoiceHardRules({ phase1: true })}`;
   }
 
   function triggerRegeneration() {
-    const requestId = state.lastRequestId || createRequestId();
+    const requestId = isChoicePromptMode() ? createRequestId() : (state.lastRequestId || createRequestId());
     pendingAiRequestId = requestId;
     state.lastRequestId = requestId;
     saveState();

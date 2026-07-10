@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+﻿import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
@@ -573,4 +573,18 @@ ${readFunction("extractChoicePayload")}
   assert.equal(payload.options[0], "“先休息一下吧。”");
   assert.equal(payload.options[3], "“您缺少的是让自己笨拙的勇气。”");
   assert.match(payload.story, /我缺少了什么/);
+});
+
+test("host prompt sending deduplicates repeated request payloads", () => {
+  assert.match(source, /const recentHostPromptDispatches\s*=\s*\[\]/);
+  const fn = readFunction("requestHostPromptSend");
+  assert.match(fn, /recentHostPromptDispatches/);
+  assert.match(fn, /promptKey/);
+  assert.match(fn, /重复发送已拦截/);
+});
+
+test("choice prompt regeneration creates a fresh request id", () => {
+  const fn = readFunction("triggerRegeneration");
+  assert.match(fn, /isChoicePromptMode\(\)\s*\?\s*createRequestId\(\)/);
+  assert.doesNotMatch(fn, /const requestId = state\.lastRequestId \|\| createRequestId\(\);/);
 });
