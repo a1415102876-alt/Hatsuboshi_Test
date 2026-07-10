@@ -597,8 +597,8 @@
           name: "电影院",
           shortName: "电影院",
           sceneName: "购物中心电影院",
-          image: "./assets/scenes/Shopping_Mall.png",
-          description: "商场高层的电影院区域。暂用商场内部背景，之后可替换为专用影院图。"
+          image: "./assets/scenes/Cinema.png",
+          description: "商场高层的电影院区域。海报墙、等候区和影厅灯光让约会与闲聊都更有氛围。"
         },
         {
           id: "anime_shop",
@@ -10189,10 +10189,12 @@ ${buildChoiceHardRules({ phase1: true })}`;
       selectedIdol: canonicalIdolName(state.idol) || state.idol || ""
     };
     state.freeMode.activeOutingDestination = venue.name;
-    closeFreeModeOutingOverlay();
-    closeMapLocationOverlay();
-    renderFreeModeOutingScene();
-    setElementHidden("freeModeOutingSceneOverlay", false);
+    triggerWipeTransition(() => {
+      closeFreeModeOutingOverlay();
+      closeMapLocationOverlay();
+      renderFreeModeOutingScene();
+      setElementHidden("freeModeOutingSceneOverlay", false);
+    });
   }
 
   function closeFreeModeOutingScene() {
