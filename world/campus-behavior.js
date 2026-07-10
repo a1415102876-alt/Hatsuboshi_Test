@@ -64,6 +64,11 @@
       locationId: "idol_classroom",
       activityId: "group_lesson",
       publicLabel: "上课但人在后排发呆"
+    },
+    "葛城莉莉娅": {
+      locationId: "idol_classroom",
+      activityId: "group_lesson",
+      publicLabel: "偶像科教室旁边的走廊，抱着教材有些拘谨"
     }
   };
 

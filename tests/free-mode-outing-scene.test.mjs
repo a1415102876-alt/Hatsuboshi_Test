@@ -39,6 +39,8 @@ test("shopping mall outing opens an entrance scene with facility guide", () => {
   assert.match(html, /id="freeModeOutingProducerText"/);
   assert.match(html, /data-outing-dialogue-action="chat"/);
   assert.match(html, /data-outing-dialogue-action="explore"/);
+  assert.match(html, /id="freeModeOutingDialogueCustomInput"/);
+  assert.match(html, /id="freeModeOutingDialogueCustomSendBtn"/);
   assert.match(html, /id="freeModeOutingIdolActionMenu"/);
 
   assert.match(readFunction("confirmFreeModeOutingDestination"), /getFreeModeOutingVenueByDestination/);
@@ -50,10 +52,15 @@ test("shopping mall outing opens an entrance scene with facility guide", () => {
   assert.match(readFunction("buildFreeModeOutingSceneDialoguePrompt"), /scene_narration/);
   assert.match(readFunction("buildFreeModeOutingSceneDialoguePrompt"), /<producer>/);
   assert.match(readFunction("buildFreeModeOutingSceneDialoguePrompt"), /<idol>/);
+  assert.match(readFunction("buildFreeModeOutingSceneDialoguePrompt"), /customText/);
+  assert.match(readFunction("buildFreeModeOutingSceneDialoguePrompt"), /用户自定义聊天内容/);
   assert.match(readFunction("extractFreeModeOutingSceneDialogue"), /scene_narration/);
   assert.match(readFunction("requestFreeModeOutingSceneDialogue"), /outing_scene_dialogue/);
   assert.match(readFunction("requestFreeModeOutingSceneDialogue"), /requestHostPromptSend/);
   assert.match(readFunction("requestFreeModeOutingSceneDialogue"), /showFreeModeOutingSceneDialogue/);
+  assert.match(source, /function submitFreeModeOutingSceneCustomDialogue\(/);
+  assert.match(source, /freeModeOutingDialogueCustomSendBtn[\s\S]*submitFreeModeOutingSceneCustomDialogue/);
+  assert.match(source, /bindImeSafeTextInput\("freeModeOutingDialogueCustomInput", submitFreeModeOutingSceneCustomDialogue\)/);
   assert.match(source, /outing_scene_dialogue[\s\S]*extractFreeModeOutingSceneDialogue[\s\S]*renderFreeModeOutingSceneDialogue/);
   assert.match(source, /freeModeOutingSceneBackBtn[\s\S]*openFreeModeOutingOverlay/);
   assert.match(source, /freeModeOutingFacilityGuideBtn[\s\S]*openFreeModeOutingFacilityGuide/);
@@ -63,6 +70,23 @@ test("shopping mall outing opens an entrance scene with facility guide", () => {
 });
 
 
+test("shopping street outing opens a full venue scene with daily-life facilities", () => {
+  assert.match(source, /id: "shopping_street"/);
+  assert.match(source, /stationId: "shopping_street"/);
+  assert.match(source, /Shopping_Street\.png/);
+  assert.match(source, /id: "ramen_shop"/);
+  assert.match(source, /name: "拉面店"/);
+  assert.match(source, /Ramen\.png/);
+  assert.match(source, /id: "burger_shop"/);
+  assert.match(source, /name: "琴音打工的快餐店"/);
+  assert.match(source, /Burger_Shop\.png/);
+  assert.match(source, /id: "grocery"/);
+  assert.match(source, /name: "杂货店"/);
+  assert.match(source, /grocery\.png/);
+  assert.match(source, /id: "cake_shop"/);
+  assert.match(source, /name: "甜品店"/);
+  assert.match(source, /Cake_Shop\.png/);
+});
 test("shopping mall outing scene uses the fullscreen page and shared wipe transition", () => {
   assert.equal(stripeCount, 6);
   assert.match(style, /\.wipe-stripe\s*\{[\s\S]*height:\s*calc\(100vh \/ 6 \+ 2px\)/);

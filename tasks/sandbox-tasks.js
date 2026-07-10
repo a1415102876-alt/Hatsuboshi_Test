@@ -72,6 +72,26 @@
       conflict: "在偶像科教室旁走廊或教学楼保健室接触筱泽广并邀请她成为担当",
       category: "scout"
     },
+    scout_lilja: {
+      title: "担当物色：葛城莉莉娅",
+      conflict: "在偶像科教室旁边的走廊接触葛城莉莉娅并邀请她成为担当",
+      category: "scout"
+    },
+    lilja_main_01: {
+      title: "解决担当面对的矛盾：自信的起点",
+      conflict: "让莉莉娅从零基础的混乱训练中聚焦声乐，并通过录像复盘看见自己正在进步",
+      category: "conflict"
+    },
+    lilja_main_02: {
+      title: "解决担当面对的矛盾：自信的表达",
+      conflict: "让莉莉娅理解笑容和表情不是模仿动作，而是把自己的心情传达给观众",
+      category: "conflict"
+    },
+    lilja_main_03: {
+      title: "解决担当面对的矛盾：自信的见证",
+      conflict: "让莉莉娅鼓起勇气把仍不完美但正在努力的自己唱给清夏听",
+      category: "conflict"
+    },
     kotone_main_01: {
       title: "解决担当面对的矛盾：告别快餐店打工",
       conflict: "让琴音辞掉快餐店打工，并通过委托系统达到 30 点知名度、赚到 1000 初星币",
@@ -170,6 +190,7 @@
   const SAKI_PERSONAL_IDS = ["saki_main_01", "saki_main_02", "saki_main_03"];
   const MISUZU_PERSONAL_IDS = ["misuzu_main_01", "misuzu_main_02", "misuzu_main_03"];
   const HIRO_PERSONAL_IDS = ["hiro_main_01", "hiro_main_02", "hiro_main_03"];
+  const LILJA_PERSONAL_IDS = ["lilja_main_01", "lilja_main_02", "lilja_main_03"];
 
   const SANDBOX_IDOL_QUEST_PACKS = {
     "月村手毬": {
@@ -191,6 +212,10 @@
     "筱泽广": {
       scoutId: "scout_hiro",
       personalIds: HIRO_PERSONAL_IDS
+    },
+    "葛城莉莉娅": {
+      scoutId: "scout_lilja",
+      personalIds: LILJA_PERSONAL_IDS
     }
   };
   const SANDBOX_SELECTABLE_IDOLS = Object.keys(SANDBOX_IDOL_QUEST_PACKS);
@@ -490,6 +515,7 @@
         scout_saki: defaultMainQuest("scout_saki", "locked"),
         scout_misuzu: defaultMainQuest("scout_misuzu", "locked"),
         scout_hiro: defaultMainQuest("scout_hiro", "locked"),
+        scout_lilja: defaultMainQuest("scout_lilja", "locked"),
         temari_main_01: defaultMainQuest("temari_main_01"),
         temari_main_02: defaultMainQuest("temari_main_02"),
         temari_main_03: defaultMainQuest("temari_main_03"),
@@ -504,7 +530,10 @@
         misuzu_main_03: defaultMainQuest("misuzu_main_03"),
         hiro_main_01: defaultMainQuest("hiro_main_01"),
         hiro_main_02: defaultMainQuest("hiro_main_02"),
-        hiro_main_03: defaultMainQuest("hiro_main_03")
+        hiro_main_03: defaultMainQuest("hiro_main_03"),
+        lilja_main_01: defaultMainQuest("lilja_main_01"),
+        lilja_main_02: defaultMainQuest("lilja_main_02"),
+        lilja_main_03: defaultMainQuest("lilja_main_03")
       },
       side: defaultSideState(),
       campus: { dayKey: "", usedCount: 0, maxPerDay: CAMPUS_MAX_PER_DAY, log: [] }
@@ -1112,6 +1141,42 @@ ${misuzuLine}
 叙事要求：可写手毬、SyngUp!、照顾欲与占有欲；重点是美铃从支撑者转为被注视的人，而不是回到旧组合状态。
 完成条件：美铃不再只想回到过去或支撑手毬，而是宣言要取代「太阳/高空/前方」，成为顶尖偶像。
 完成时请在正文末尾输出【初星任务完成】misuzu_main_03（或 <quest_complete id="misuzu_main_03" />），不要提前宣布课题完成。`
+      );
+    }
+    const lilja01 = state.tasks.main.lilja_main_01;
+    if (lilja01?.status === "active") {
+      const liljaLine = ["idol_classroom", "special_education", "producer_classroom"].includes(locationId)
+        ? "本场景适合写莉莉娅在偶像科教室旁或课程后训练到混乱，制作人把训练收束到声乐基础和录像复盘。"
+        : "若场景涉及训练或复盘，可写莉莉娅什么都想做好、越练越乱，需要先确认一个能看见进步的起点。";
+      blocks.push(
+        `【亚纱里课题 · 自信的起点】
+莉莉娅的迫切矛盾：零经验的她想同时练好歌、舞、表情，却因此更看不见自己的成长；制作人要帮她先聚焦声乐，并用录像复盘证明她正在前进。
+${liljaLine}
+完成条件：莉莉娅接受先从声乐基础开始，不再把一次做不好等同于没有资格，并通过前后对比确认自己确实进步了。
+完成时请在正文末尾输出【初星任务完成】lilja_main_01（或 <quest_complete id="lilja_main_01" />），不要提前宣布课题完成。`
+      );
+    }
+    const lilja02 = state.tasks.main.lilja_main_02;
+    if (lilja02?.status === "active") {
+      blocks.push(
+        `【亚纱里课题 · 自信的表达】
+莉莉娅的笑容一开始像是在模仿憧憬的偶像；制作人要让她明白表情不是装饰，也不是只要做对动作，而是把自己的心情交给观众的入口。
+叙事要求：可写镜前练习、表情僵硬、回忆憧憬的舞台；重点从「正确微笑」推进到「用自己的笑容传达」。
+完成条件：莉莉娅在练习中露出属于自己的真笑，或明确理解歌声和表情都要服务于传达心意。
+完成时请在正文末尾输出【初星任务完成】lilja_main_02（或 <quest_complete id="lilja_main_02" />），不要提前宣布课题完成。`
+      );
+    }
+    const lilja03 = state.tasks.main.lilja_main_03;
+    if (lilja03?.status === "active") {
+      const sumikaLine = ["idol_classroom", "special_education", "outstage", "auditorium"].includes(locationId)
+        ? "本场景适合写她邀请清夏观看练习或小舞台展示，把现在的自己唱给最重要的朋友听。"
+        : "若清夏或初 Live 前准备被提及，可写莉莉娅害怕不成熟的自己被看见，却仍想传达给清夏。";
+      blocks.push(
+        `【亚纱里课题 · 自信的见证】
+莉莉娅最难的一步不是等到完美，而是在仍会紧张、仍不成熟时让重要的人看见现在的自己；制作人要支持她把歌声传达到清夏心里。
+${sumikaLine}
+完成条件：莉莉娅主动邀请清夏观看练习或在清夏面前完成歌唱，并确认「现在的我」也能传达到别人心里。
+完成时请在正文末尾输出【初星任务完成】lilja_main_03（或 <quest_complete id="lilja_main_03" />），不要提前宣布课题完成。`
       );
     }
     const hiro01 = state.tasks.main.hiro_main_01;
@@ -1794,6 +1859,7 @@ ${hiroLine}
       scout_saki: "担当确认，亚纱里老师阶段课题已解锁",
       scout_misuzu: "担当确认，亚纱里老师阶段课题已解锁",
       scout_hiro: "担当确认，亚纱里老师阶段课题已解锁",
+      scout_lilja: "担当确认，亚纱里老师阶段课题已解锁",
       temari_main_01: "课题完成：舞台唱完",
       temari_main_02: "课题完成：和美铃和好",
       temari_main_03: "课题完成：饮食与体态",
@@ -1808,7 +1874,10 @@ ${hiroLine}
       misuzu_main_03: "课题完成：比太阳更高的地方",
       hiro_main_01: "课题完成：最不适合的挑战",
       hiro_main_02: "课题完成：理论与身体的落差",
-      hiro_main_03: "课题完成：每天在一起的约定"
+      hiro_main_03: "课题完成：每天在一起的约定",
+      lilja_main_01: "课题完成：自信的起点",
+      lilja_main_02: "课题完成：自信的表达",
+      lilja_main_03: "课题完成：自信的见证"
     };
     return map[id] || `任务完成：${MAIN_QUEST_META[id]?.title || id}`;
   }
@@ -1822,6 +1891,7 @@ ${hiroLine}
     SAKI_PERSONAL_IDS,
     MISUZU_PERSONAL_IDS,
     HIRO_PERSONAL_IDS,
+    LILJA_PERSONAL_IDS,
     THRESHOLDS,
     CAMPUS_MAX_PER_DAY,
     SIDE_SLOTS_PER_DAY,

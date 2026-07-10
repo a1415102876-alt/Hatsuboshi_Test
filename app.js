@@ -391,7 +391,7 @@
       x: 32,
       y: 66,
       description: "放学后人流最多的拱廊街，适合采购、打工、街头宣传和偶遇。",
-      pois: ["拉面店", "琴音打工的快餐店", "杂货店", "街头路口"]
+      pois: ["拉面店", "琴音打工的快餐店", "杂货店", "甜品店"]
     },
     {
       id: "shopping_mall",
@@ -558,6 +558,59 @@
     "品牌旗舰店": DEFAULT_OUTING_SCENE
   };
   const FREE_MODE_OUTING_VENUES = {
+    shopping_street: {
+      id: "shopping_street",
+      stationId: "shopping_street",
+      name: "商店街",
+      entranceFacilityId: "entrance",
+      facilities: [
+        {
+          id: "entrance",
+          floor: "入口",
+          name: "街头路口 / 商店街入口",
+          shortName: "街头路口",
+          sceneName: "商店街入口",
+          image: "./assets/scenes/Shopping_Street.png",
+          description: "放学后人流渐渐聚起来的商店街入口。招牌、店铺灯光和街边人声让这里适合确认同行偶像和下一步去处。"
+        },
+        {
+          id: "ramen_shop",
+          floor: "一番街",
+          name: "拉面店",
+          shortName: "拉面店",
+          sceneName: "商店街拉面店",
+          image: "./assets/scenes/Ramen.png",
+          description: "热气和汤香挤满狭窄店面的拉面店。适合放学后吃饭、补充体力，也容易聊到训练后的疲惫和满足。"
+        },
+        {
+          id: "burger_shop",
+          floor: "二番街",
+          name: "琴音打工的快餐店",
+          shortName: "快餐店",
+          sceneName: "商店街快餐店",
+          image: "./assets/scenes/Burger_Shop.png",
+          description: "琴音打工的快餐店。点餐声、炸物香气和忙碌柜台适合触发打工、金钱感和偶像日常的对话。"
+        },
+        {
+          id: "grocery",
+          floor: "二番街",
+          name: "杂货店",
+          shortName: "杂货店",
+          sceneName: "商店街杂货店",
+          image: "./assets/scenes/grocery.png",
+          description: "摆着日用品、零食和便宜小物的杂货店。适合挑选实用物品、小礼物，或者观察偶像对日常用品的偏好。"
+        },
+        {
+          id: "cake_shop",
+          floor: "三番街",
+          name: "甜品店",
+          shortName: "甜品店",
+          sceneName: "商店街甜品店",
+          image: "./assets/scenes/Cake_Shop.png",
+          description: "橱窗里摆着蛋糕和饮品的甜品店。节奏比街上更慢，适合休息、闲聊和稍微带一点约会感的互动。"
+        }
+      ]
+    },
     shopping_mall: {
       id: "shopping_mall",
       stationId: "shopping_mall",
@@ -659,7 +712,7 @@
   const HYBRID_FACILITY_LESSON_LOCATIONS = ["idol_classroom", "producer_classroom"];
   const HYBRID_FACILITY_TRAINING_LOCATIONS = ["gymnasium", "special_education"];
   const HYBRID_FACILITY_ACTION_MINUTES = 60;
-  const SANDBOX_SELECTABLE_IDOLS = ["月村手毬", "藤田琴音", "花海咲季", "秦谷美铃", "筱泽广"];
+  const SANDBOX_SELECTABLE_IDOLS = ["月村手毬", "藤田琴音", "花海咲季", "秦谷美铃", "筱泽广", "葛城莉莉娅"];
   const SANDBOX_ASARI_OPENING_STORY = `【初星正文开始】
 <story>
 <narration>午后的制作人科教室里，黑板上还留着上一节课的字迹。</narration>
@@ -6071,7 +6124,7 @@ ${galgameRenderContract("choice")}
 ${buildMapExploreChoiceOutputBlock({ includeRelationship: true })}`;
   }
 
-  function buildFreeModeOutingSceneDialoguePrompt(action = "chat") {
+  function buildFreeModeOutingSceneDialoguePrompt(action = "chat", customText = "") {
     const scene = state.freeMode?.outingScene || {};
     const venue = getFreeModeOutingVenue(scene.venueId);
     const facility = getFreeModeOutingFacility(scene.venueId, scene.facilityId);
@@ -6080,15 +6133,18 @@ ${buildMapExploreChoiceOutputBlock({ includeRelationship: true })}`;
     const dayTimeLabel = isSandboxLaunch()
       ? formatCampusDayLabel() + " " + formatFreeModeClock()
       : formatFreeModeDayLabel() + " " + formatFreeModeClock();
-    const actionLabel = action === "ask"
-      ? "制作人询问偶像接下来想去哪里或想做什么。"
-      : action === "invite"
-        ? "制作人确认与偶像继续同行。"
-        : "制作人与偶像在当前设施内轻松闲聊。";
+    const normalizedCustomText = String(customText || "").trim();
+    const actionLabel = normalizedCustomText
+      ? "制作人主动提出自定义聊天内容，请围绕该内容回应。"
+      : action === "ask"
+        ? "制作人询问偶像接下来想去哪里或想做什么。"
+        : action === "invite"
+          ? "制作人确认与偶像继续同行。"
+          : "制作人与偶像在当前设施内轻松闲聊。";
     return [
-      "[初星育成系统：商场场景内对话]",
+      "[初星育成系统：校外场景内对话]",
       "",
-      "请为当前商场场景生成一小段即时互动，不要进入 VN，不要输出选项，不要写长篇剧情。",
+      "请为当前校外场景生成一小段即时互动，不要进入 VN，不要输出选项，不要写长篇剧情。",
       "前端会把偶像台词显示在立绘旁气泡，把旁白和制作人台词显示在底部对话栏。",
       "",
       "担当偶像：" + idolName,
@@ -6098,6 +6154,7 @@ ${buildMapExploreChoiceOutputBlock({ includeRelationship: true })}`;
       "当前场景：" + (facility.sceneName || facility.name || venue.name),
       "设施说明：" + (facility.description || ""),
       "本次互动：" + actionLabel,
+      normalizedCustomText ? "用户自定义聊天内容：" + normalizedCustomText : "",
       "",
       buildProducerPromptSection(),
       "",
@@ -10456,9 +10513,17 @@ ${buildChoiceHardRules({ phase1: true })}`;
     setElementHidden("freeModeOutingDialogueBar", true);
   }
 
-  function buildFreeModeOutingPrototypeDialogue(action, idolName, facility) {
+  function buildFreeModeOutingPrototypeDialogue(action, idolName, facility, customText = "") {
     const safeIdol = idolName || state.idol || "担当偶像";
     const facilityName = facility?.shortName || facility?.name || "这里";
+    const normalizedCustomText = String(customText || "").trim();
+    if (normalizedCustomText) {
+      return {
+        narration: "你们停在" + facilityName + "旁边，周围的声音暂时退到背景里。",
+        producer: "制作人：「" + normalizedCustomText + "」",
+        idol: "嗯。我明白了，让我想想该怎么回答老师。"
+      };
+    }
     if (action === "ask") {
       return {
         narration: "你们停在" + facilityName + "附近，人流和店内的声音从四周慢慢聚拢过来。",
@@ -10494,21 +10559,22 @@ ${buildChoiceHardRules({ phase1: true })}`;
     setElementHidden("freeModeOutingDialogueBar", !(dialogue?.narration || dialogue?.producer));
   }
 
-  function showFreeModeOutingSceneDialogue(action = "chat") {
+  function showFreeModeOutingSceneDialogue(action = "chat", customText = "") {
     const scene = state.freeMode?.outingScene;
     const facility = getFreeModeOutingFacility(scene?.venueId, scene?.facilityId);
     if (!scene || !facility) return;
     const idolName = scene.selectedIdol || canonicalIdolName(state.idol) || state.idol || "担当偶像";
-    renderFreeModeOutingSceneDialogue(buildFreeModeOutingPrototypeDialogue(action, idolName, facility), idolName);
+    renderFreeModeOutingSceneDialogue(buildFreeModeOutingPrototypeDialogue(action, idolName, facility, customText), idolName);
   }
 
-  function requestFreeModeOutingSceneDialogue(action = "chat") {
+  function requestFreeModeOutingSceneDialogue(action = "chat", customText = "") {
     const scene = state.freeMode?.outingScene;
     const venue = getFreeModeOutingVenue(scene?.venueId);
     const facility = getFreeModeOutingFacility(scene?.venueId, scene?.facilityId);
     if (!scene || !venue || !facility) return;
     const idolName = scene.selectedIdol || canonicalIdolName(state.idol) || state.idol || "担当偶像";
-    const prompt = buildFreeModeOutingSceneDialoguePrompt(action);
+    const normalizedCustomText = String(customText || "").trim();
+    const prompt = buildFreeModeOutingSceneDialoguePrompt(action, normalizedCustomText);
     if (!prompt.trim()) return;
     const requestId = createRequestId();
     pendingAiRequestId = requestId;
@@ -10517,6 +10583,7 @@ ${buildChoiceHardRules({ phase1: true })}`;
       attribute: null,
       actionContext: {
         outingAction: action,
+        outingCustomText: normalizedCustomText,
         outingVenueId: venue.id,
         outingFacilityId: facility.id,
         outingFacilityName: facility.name,
@@ -10525,19 +10592,30 @@ ${buildChoiceHardRules({ phase1: true })}`;
       }
     };
     state.lastPrompt = prompt;
-    state.lastDebug = "商场场景内对话：等待 AI 生成气泡与底部栏文本。";
+    state.lastDebug = "校外场景内对话：等待 AI 生成气泡与底部栏文本。";
     renderFreeModeOutingSceneDialogue({
       narration: "正在等待当前场景的回应……",
-      producer: "制作人：「……」",
+      producer: normalizedCustomText ? "制作人：「" + normalizedCustomText + "」" : "制作人：「……」",
       idol: "……"
     }, idolName);
     saveState();
     if (!requestHostPromptSend(prompt, requestId)) {
-      showFreeModeOutingSceneDialogue(action);
-      openAiPromptOverlay("当前页面未连接 SillyTavern。请复制商场场景内对话提示词后手动发送。");
+      showFreeModeOutingSceneDialogue(action, normalizedCustomText);
+      openAiPromptOverlay("当前页面未连接 SillyTavern。请复制校外场景内对话提示词后手动发送。");
     }
   }
 
+  function submitFreeModeOutingSceneCustomDialogue() {
+    const input = document.getElementById("freeModeOutingDialogueCustomInput");
+    const customText = String(input?.value || "").trim();
+    if (!customText) {
+      showToast("请输入聊天内容", "可以输入想说的话、想问的问题，或想做的小行动。", "warn");
+      input?.focus();
+      return;
+    }
+    if (input) input.value = "";
+    requestFreeModeOutingSceneDialogue("custom", customText);
+  }
   function renderFreeModeOutingFacilityGuide() {
     const map = document.getElementById("freeModeOutingFacilityGuideMap");
     if (!map) return;
@@ -17797,6 +17875,8 @@ ${buildChoiceHardRules({ phase1: true })}`;
   });
   document.getElementById("freeModeOutingIdolActionCloseBtn")?.addEventListener("click", closeFreeModeOutingIdolActionMenu);
   document.getElementById("freeModeOutingDialogueCloseBtn")?.addEventListener("click", closeFreeModeOutingSceneDialogue);
+  document.getElementById("freeModeOutingDialogueCustomSendBtn")?.addEventListener("click", submitFreeModeOutingSceneCustomDialogue);
+  bindImeSafeTextInput("freeModeOutingDialogueCustomInput", submitFreeModeOutingSceneCustomDialogue);
   document.querySelectorAll("[data-outing-idol-action]").forEach((button) => {
     button.addEventListener("click", () => handleFreeModeOutingIdolAction(button.dataset.outingIdolAction));
   });

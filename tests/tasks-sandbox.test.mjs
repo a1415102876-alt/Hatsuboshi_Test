@@ -50,6 +50,12 @@ function finishMisuzuScoutFlow(HatsuTasks, state) {
   HatsuTasks.applyQuestCompletionsFromReply(state, "【初星任务完成】scout_misuzu");
 }
 
+function finishLiljaScoutFlow(HatsuTasks, state) {
+  HatsuTasks.activateScoutQuestForIdol(state, state.idol);
+  HatsuTasks.onScoutInviteComplete(state);
+  HatsuTasks.applyQuestCompletionsFromReply(state, "【初星任务完成】scout_lilja");
+}
+
 function loadSideQuestPool() {
   const sandbox = { globalThis: {}, console };
   sandbox.globalThis = sandbox;
@@ -547,6 +553,20 @@ function baseMisuzuSandboxState() {
   };
 }
 
+function baseLiljaSandboxState() {
+  return {
+    launchMode: "sandbox",
+    idol: "葛城莉莉娅",
+    sandbox: { openingComplete: true, inviteComplete: false },
+    stamina: 100,
+    stress: 0,
+    trust: 0,
+    Vo: 80,
+    Da: 100,
+    Vi: 115
+  };
+}
+
 test("sandbox selectable idols include kotone with scout and personal quests", () => {
   const HatsuTasks = loadHatsuTasks();
   assert.ok(HatsuTasks.SANDBOX_SELECTABLE_IDOLS.includes("藤田琴音"));
@@ -662,6 +682,47 @@ test("sandbox selectable idols include hiro with scout and personal quests", () 
   assert.equal(HatsuTasks.SANDBOX_IDOL_QUEST_PACKS[hiro].scoutId, "scout_hiro");
   assert.deepEqual(HatsuTasks.SANDBOX_IDOL_QUEST_PACKS[hiro].personalIds, HatsuTasks.HIRO_PERSONAL_IDS);
   assert.equal(HatsuTasks.MAIN_QUEST_META.hiro_main_01.category, "conflict");
+});
+
+test("sandbox selectable idols include lilja with scout and personal quests", () => {
+  const HatsuTasks = loadHatsuTasks();
+  assert.ok(HatsuTasks.SANDBOX_SELECTABLE_IDOLS.includes("葛城莉莉娅"));
+  assert.equal(HatsuTasks.SANDBOX_IDOL_QUEST_PACKS["葛城莉莉娅"].scoutId, "scout_lilja");
+  assert.deepEqual(HatsuTasks.SANDBOX_IDOL_QUEST_PACKS["葛城莉莉娅"].personalIds, HatsuTasks.LILJA_PERSONAL_IDS);
+  assert.equal(HatsuTasks.MAIN_QUEST_META.scout_lilja.title, "担当物色：葛城莉莉娅");
+  assert.equal(HatsuTasks.MAIN_QUEST_META.lilja_main_01.title, "解决担当面对的矛盾：自信的起点");
+});
+
+test("lilja scout completes and unlocks only lilja personal quests", () => {
+  const HatsuTasks = loadHatsuTasks();
+  const state = baseLiljaSandboxState();
+  HatsuTasks.ensureTasksShape(state);
+  finishLiljaScoutFlow(HatsuTasks, state);
+  assert.equal(state.tasks.main.scout_lilja.status, "completed");
+  assert.equal(state.tasks.main.lilja_main_01.status, "active");
+  assert.equal(state.tasks.main.lilja_main_02.status, "active");
+  assert.equal(state.tasks.main.lilja_main_03.status, "active");
+  assert.equal(state.tasks.main.temari_main_01.status, "locked");
+  assert.equal(state.tasks.main.kotone_main_01.status, "locked");
+  assert.equal(state.tasks.main.saki_main_01.status, "locked");
+  assert.equal(state.tasks.main.misuzu_main_01.status, "locked");
+  assert.equal(state.tasks.main.hiro_main_01.status, "locked");
+  assert.equal(state.tasks.baseline.Vo, 80);
+  assert.equal(state.tasks.baseline.Vi, 115);
+});
+
+test("lilja main quest prompt frames the three confidence steps", () => {
+  const HatsuTasks = loadHatsuTasks();
+  const state = baseLiljaSandboxState();
+  finishLiljaScoutFlow(HatsuTasks, state);
+  state.sandbox.inviteComplete = true;
+  const prompt = HatsuTasks.buildSandboxMainQuestPromptBlock(state, "idol_classroom");
+  assert.match(prompt, /自信的起点/);
+  assert.match(prompt, /自信的表达/);
+  assert.match(prompt, /自信的见证/);
+  assert.match(prompt, /【初星任务完成】lilja_main_01/);
+  assert.match(prompt, /【初星任务完成】lilja_main_02/);
+  assert.match(prompt, /【初星任务完成】lilja_main_03/);
 });
 
 test("misuzu scout completes and unlocks only misuzu personal quests", () => {
