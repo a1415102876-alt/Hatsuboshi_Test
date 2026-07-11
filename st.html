@@ -1466,8 +1466,8 @@
     }
 
     async function runTransactionalViaTavernHelper(tavernHelper, promptText, reqId) {
-      // 酒馆助手路径：先生成（此时聊天历史里还没有这条输入，避免提示词重复），
-      // 拿到文本后再依次建 user / assistant 楼层。生成失败则不留任何孤儿楼层。
+      // 先静默写入当前 user 楼层，确保预设里的 {{lastUserMessage}} 与 user_input
+      // 指向同一轮输入。生成失败时按 requestId 回滚，不留下孤儿楼层。
       //
       // generate() 的返回值偶尔不可靠/为空，但酒馆助手会在生成结束时发出
       // GENERATION_ENDED ('js_generation_ended') 事件并带上最终文本。仿 index2 的做法，
@@ -1476,19 +1476,17 @@
       const GEN_ENDED = 'js_generation_ended';
       let endedResolve = null;
       const endedPromise = new Promise((resolve) => { endedResolve = resolve; });
-      const endedHandler = (finalText) => {
+      const endedHandler = (finalText, generationId) => {
         try {
-          if (!isGenerationEndedPayloadForRequest(finalText, reqId)) return;
-          const normalizedText = normalizeGenerationEndedText(finalText, reqId);
+          const eventPayload = { text: finalText, generation_id: generationId };
+          if (!isGenerationEndedPayloadForRequest(eventPayload, reqId)) return;
+          const normalizedText = normalizeGenerationEndedText(eventPayload, reqId);
           if (normalizedText === null) return;
           if (!isGeneratedTextCompatibleWithPrompt(promptText, normalizedText)) return;
           endedResolve(normalizedText);
         } catch (e) {}
       };
       let listening = false;
-      if (eventSource && typeof eventSource.on === 'function') {
-        try { eventSource.on(GEN_ENDED, endedHandler); listening = true; } catch (e) {}
-      }
       const removeEndedListener = () => {
         if (!listening) return;
         try {
@@ -1498,6 +1496,21 @@
         listening = false;
       };
 
+      let userIndex = -1;
+      try {
+        userIndex = await createSilentChatMessage('user', promptText, reqId);
+        await persistChatSilently();
+      } catch (error) {
+        if (userIndex >= 0) {
+          rollbackSilentUserMessage(userIndex, reqId);
+          try { await persistChatSilently(); } catch (persistError) {}
+        }
+        postCommittedReply(reqId, '', { isFinal: true });
+        throw error;
+      }
+      if (eventSource && typeof eventSource.on === 'function') {
+        try { eventSource.on(GEN_ENDED, endedHandler); listening = true; } catch (e) {}
+      }
       let generatedText = '';
       try {
         const generatePromise = Promise.resolve(tavernHelper.generate({
@@ -1529,15 +1542,18 @@
         }
       } catch (error) {
         removeEndedListener();
+        rollbackSilentUserMessage(userIndex, reqId);
+        await persistChatSilently();
         postCommittedReply(reqId, '', { isFinal: true });
         throw error;
       }
       removeEndedListener();
       if (!generatedText) {
+        rollbackSilentUserMessage(userIndex, reqId);
+        await persistChatSilently();
         postCommittedReply(reqId, '', { isFinal: true });
         return;
       }
-      await createSilentChatMessage('user', promptText, reqId);
       await createSilentChatMessage('assistant', generatedText, reqId);
       await persistChatSilently();
       const assistantMessageId = getContext()?.chat?.length - 1;
@@ -1805,16 +1821,38 @@
       pendingStreamMessageId = -1;
     }
 
-    function isHatsuFrontendPromptMessage(message) {
-      if (!message || message.role !== 'user') return false;
+    function getChatCompletionMessageText(message) {
+      if (!message) return '';
       const content = Array.isArray(message.content)
         ? message.content.map(part => typeof part === 'string' ? part : part?.text || '').join('\n')
         : String(message.content || '');
+      return content.trim();
+    }
+
+    function removeCurrentTransactionalDuplicateUserPrompt(chat, activeRequestId) {
+      if (!activeRequestId || !Array.isArray(chat)) return false;
+      const userIndexes = [];
+      for (let index = chat.length - 1; index >= 0 && userIndexes.length < 2; index -= 1) {
+        if (chat[index]?.role === 'user') userIndexes.push(index);
+      }
+      if (userIndexes.length < 2) return false;
+      const [latestIndex, earlierIndex] = userIndexes;
+      const latestText = getChatCompletionMessageText(chat[latestIndex]);
+      const earlierText = getChatCompletionMessageText(chat[earlierIndex]);
+      if (!latestText || latestText !== earlierText) return false;
+      chat.splice(earlierIndex, 1);
+      return true;
+    }
+
+    function isHatsuFrontendPromptMessage(message) {
+      if (!message || message.role !== 'user') return false;
+      const content = getChatCompletionMessageText(message);
       return content.includes('初星育成系统') || content.includes('【初星学园 Galgame 渲染规则契约】');
     }
 
     function pruneHatsuChatCompletionPayload(eventData) {
       if (!eventData || eventData.dryRun || !Array.isArray(eventData.chat)) return;
+      removeCurrentTransactionalDuplicateUserPrompt(eventData.chat, pendingRequestId);
       const contextInfo = getCurrentContextInfo();
       const characterName = contextInfo.character?.name || '';
       const isHatsu = characterName.includes('初星学园') || characterName.includes('初星') || characterName.includes('Hatsuboshi');

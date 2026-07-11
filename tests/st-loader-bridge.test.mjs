@@ -78,6 +78,36 @@ test("st.html removes older Hatsuboshi user prompt floors from chat completion p
   assert.match(stSource, /eventData\.chat\.splice\(0, eventData\.chat\.length, \.\.\.filtered\)/);
 });
 
+test("st.html removes only the earlier copy of the current transactional user prompt", () => {
+  const fn = new Function(
+    `${readFunction("getChatCompletionMessageText")}
+${readFunction("removeCurrentTransactionalDuplicateUserPrompt")}; return removeCurrentTransactionalDuplicateUserPrompt;`
+  )();
+  const duplicateChat = [
+    { role: "user", content: "previous turn" },
+    { role: "assistant", content: "previous reply" },
+    { role: "user", content: "custom prompt without product marker" },
+    { role: "system", content: "preset reminder" },
+    { role: "user", content: "custom prompt without product marker" }
+  ];
+
+  assert.equal(fn(duplicateChat, "request-1"), true);
+  assert.deepEqual(duplicateChat.map(message => message.content), [
+    "previous turn",
+    "previous reply",
+    "preset reminder",
+    "custom prompt without product marker"
+  ]);
+
+  const distinctChat = [
+    { role: "user", content: "current history prompt" },
+    { role: "user", content: "different temporary prompt" }
+  ];
+  assert.equal(fn(distinctChat, "request-2"), false);
+  assert.equal(distinctChat.length, 2);
+  assert.equal(fn(distinctChat, ""), false);
+});
+
 test("st.html loads the gift shop module so the shop/bag entry is available under the bridge", () => {
   assert.match(stSource, /"shop\/gift-shop\.js"/);
   const scriptsBlock = stSource.match(/const WORLD_SCRIPTS = \[([\s\S]*?)\];/);
@@ -124,6 +154,48 @@ ${readFunction("isGenerationEndedPayloadForRequest")}; return isGenerationEndedP
   assert.equal(fn({ generation_id: "previous-round", text: "old reply" }, "current-round"), false);
   assert.equal(fn("unscoped final text", "current-round"), false);
   assert.equal(fn({ text: "unscoped object text" }, "current-round"), false);
+});
+
+test("transactional helper scopes TavernHelper's two-argument generation-ended event", () => {
+  const fnSource = readFunction("runTransactionalViaTavernHelper");
+
+  assert.match(fnSource, /const endedHandler = \(finalText, generationId\) =>/);
+  assert.match(fnSource, /generation_id: generationId/);
+  assert.match(fnSource, /text: finalText/);
+});
+
+test("transactional helper commits the current user prompt before generation", () => {
+  const fnSource = readFunction("runTransactionalViaTavernHelper");
+  const createUserIndex = fnSource.indexOf("createSilentChatMessage('user', promptText, reqId)");
+  const persistUserIndex = fnSource.indexOf("persistChatSilently()", createUserIndex);
+  const generateIndex = fnSource.indexOf("tavernHelper.generate({");
+  const createAssistantIndex = fnSource.indexOf("createSilentChatMessage('assistant', generatedText, reqId)");
+
+  assert.notEqual(createUserIndex, -1, "current user prompt must be written into chat");
+  assert.notEqual(persistUserIndex, -1, "current user prompt must be persisted before generation");
+  assert.ok(createUserIndex < persistUserIndex, "user prompt must be written before persistence");
+  assert.ok(persistUserIndex < generateIndex, "lastUserMessage must be current before prompt assembly");
+  assert.ok(generateIndex < createAssistantIndex, "assistant floor must only be written after generation");
+});
+
+test("transactional helper rolls back its precommitted user prompt when generation fails", () => {
+  const fnSource = readFunction("runTransactionalViaTavernHelper");
+  const rollbackMatches = fnSource.match(/rollbackSilentUserMessage\(userIndex, reqId\)/g) || [];
+
+  assert.match(fnSource, /userIndex = await createSilentChatMessage\('user', promptText, reqId\)/);
+  assert.ok(rollbackMatches.length >= 2, "throwing and empty generation paths must both roll back");
+});
+
+test("transactional helper finishes user precommit before subscribing to generation events", () => {
+  const fnSource = readFunction("runTransactionalViaTavernHelper");
+  const createUserIndex = fnSource.indexOf("createSilentChatMessage('user', promptText, reqId)");
+  const persistUserIndex = fnSource.indexOf("persistChatSilently()", createUserIndex);
+  const subscribeIndex = fnSource.indexOf("eventSource.on(GEN_ENDED, endedHandler)");
+
+  assert.ok(createUserIndex < persistUserIndex);
+  assert.ok(persistUserIndex < subscribeIndex, "generation listener must not survive a failed precommit");
+  assert.match(fnSource, /let userIndex = -1/);
+  assert.match(fnSource, /if \(userIndex >= 0\) \{[\s\S]*?rollbackSilentUserMessage\(userIndex, reqId\)/);
 });
 
 test("transactional helper requires option payloads for choice prompts without rejecting summary tags", () => {
